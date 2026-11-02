@@ -86,7 +86,7 @@ export default defineConfig({
     optional_host_permissions: ['*://*/*'],
     browser_specific_settings: {
       gecko: {
-        id: 'bpmn-io-browser-plugin@emaarco.github.io',
+        id: 'diagit@miragon.io',
         data_collection_permissions: { required: ['none'] },
       },
     },
