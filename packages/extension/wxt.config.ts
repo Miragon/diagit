@@ -25,6 +25,7 @@ const e2eHostPermissions = e2e ? ['http://localhost/*'] : []
 const EXCALIDRAW_BUNDLE = /@excalidraw\/utils\/dist\/(dev|prod)\/index\.js/
 const EMBEDDED_BASE64_ASSET = /(data:font\/woff2;base64,)?[A-Za-z0-9+/]{5000,}={0,2}/g
 const CSP_BLOCKED_GLOBAL_LOOKUP = 'Function("return this")()'
+const THIRD_PARTY_WIDGET_SCRIPT = /<script[^<]*src="https:\/\/[^"]*widgets\.js"[^<]*<\\\/script>/g
 
 // https://wxt.dev/api/config.html
 export default defineConfig({
@@ -37,12 +38,20 @@ export default defineConfig({
         transform(code: string, id: string) {
           if (!EXCALIDRAW_BUNDLE.test(id)) return null
           const stripped = code.replace(EMBEDDED_BASE64_ASSET, '')
-          if (stripped.length === code.length || !stripped.includes(CSP_BLOCKED_GLOBAL_LOOKUP)) {
+          const withoutWidgets = stripped.replace(THIRD_PARTY_WIDGET_SCRIPT, '')
+          if (
+            stripped.length === code.length ||
+            withoutWidgets.length === stripped.length ||
+            !stripped.includes(CSP_BLOCKED_GLOBAL_LOOKUP)
+          ) {
             throw new Error(
-              'excalidraw-patch-bundle no longer matches @excalidraw/utils. Update EMBEDDED_BASE64_ASSET and CSP_BLOCKED_GLOBAL_LOOKUP in wxt.config.ts for the new bundle format.',
+              'excalidraw-patch-bundle no longer matches @excalidraw/utils. Update EMBEDDED_BASE64_ASSET, THIRD_PARTY_WIDGET_SCRIPT and CSP_BLOCKED_GLOBAL_LOOKUP in wxt.config.ts for the new bundle format.',
             )
           }
-          return { code: stripped.replace(CSP_BLOCKED_GLOBAL_LOOKUP, 'globalThis'), map: null }
+          return {
+            code: withoutWidgets.replace(CSP_BLOCKED_GLOBAL_LOOKUP, 'globalThis'),
+            map: null,
+          }
         },
       },
       {
