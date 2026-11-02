@@ -60,11 +60,11 @@ Tampermonkey userscripts, now reworked into a tested, store-ready extension.
 
 ## Install
 
-| Browser | Store                                                                                                                | Status    |
-| ------- | -------------------------------------------------------------------------------------------------------------------- | --------- |
-| Chrome  | [Chrome Web Store](https://chromewebstore.google.com/detail/bpmn-io-browser-plugin/mdliikikbdabamnppihmmpmgpeiliifm) | Available |
-| Firefox | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/bpmn-io-browser-plugin@emaarco.github.io/)                | Available |
-| Edge    | Edge Add-ons                                                                                                         | Planned   |
+| Browser | Store                                                                                                | Status    |
+| ------- | ---------------------------------------------------------------------------------------------------- | --------- |
+| Chrome  | [Chrome Web Store](https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh) | Available |
+| Firefox | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/diagit/)                                  | Available |
+| Edge    | [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)   | Available |
 
 Until your browser's store listing is live, you can build it yourself and load
 it as an unpacked extension:
