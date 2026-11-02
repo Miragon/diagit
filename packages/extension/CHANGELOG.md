@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.0](https://github.com/emaarco/diagit/compare/v0.2.1...v0.3.0) (2026-11-02)
+
+
+### Features
+
+* rename to Diagit and render the Miragon notations ([#81](https://github.com/emaarco/diagit/issues/81)) ([2904322](https://github.com/emaarco/diagit/commit/2904322ed0c71e82e5498697915db755e0e636f6))
+* render Excalidraw diagrams inline ([#87](https://github.com/emaarco/diagit/issues/87)) ([74062f3](https://github.com/emaarco/diagit/commit/74062f35989fcb890f70c14525783166e068a9de))
+* show Camunda 7 transaction boundaries and diff async continuations ([#84](https://github.com/emaarco/diagit/issues/84)) ([bfac53e](https://github.com/emaarco/diagit/commit/bfac53ef4184faa23a213d8c0aad16a6e5383ba8))
+
 ## [0.2.1](https://github.com/emaarco/bpmn-io-browser-plugin/compare/v0.2.0...v0.2.1) (2026-10-05)
 
 
