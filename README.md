@@ -108,4 +108,4 @@ monorepo layout, scripts, and how to build, test, and load the extension locally
 
 ## License
 
-[MIT](./LICENSE) © Marco Schäck
+[MIT](./LICENSE) © Miragon GmbH
