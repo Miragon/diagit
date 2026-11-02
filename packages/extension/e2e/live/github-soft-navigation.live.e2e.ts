@@ -1,7 +1,7 @@
 import { browser, $, $$, expect } from '@wdio/globals'
 import { HOST_TAG } from '../../src/platform/injectedElements'
 
-const REPO = 'https://github.com/emaarco/diagit'
+const REPO = 'https://github.com/Miragon/diagit'
 const FIXTURES_DIRECTORY = `${REPO}/tree/main/packages/extension/e2e/fixtures`
 const BPMN_FILE = `${REPO}/blob/main/packages/extension/e2e/fixtures/sample.bpmn`
 

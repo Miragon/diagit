@@ -12,7 +12,7 @@ import { HOST_TAG } from '../../src/platform/injectedElements'
  * Target: the repo's own `dev:example` blob URL — a public `.bpmn` on `main`.
  */
 const BLOB_URL =
-  'https://github.com/emaarco/diagit/blob/main/packages/extension/e2e/fixtures/sample.bpmn'
+  'https://github.com/Miragon/diagit/blob/main/packages/extension/e2e/fixtures/sample.bpmn'
 
 describe('LIVE: GitHub blob viewer on real github.com', () => {
   it('injects and renders a BPMN diagram above the file view', async () => {

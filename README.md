@@ -1,7 +1,7 @@
 # Diagit
 
-[![CI](https://github.com/emaarco/diagit/actions/workflows/ci.yml/badge.svg)](https://github.com/emaarco/diagit/actions/workflows/ci.yml)
-[![license](https://img.shields.io/github/license/emaarco/diagit)](./LICENSE)
+[![CI](https://github.com/Miragon/diagit/actions/workflows/ci.yml/badge.svg)](https://github.com/Miragon/diagit/actions/workflows/ci.yml)
+[![license](https://img.shields.io/github/license/Miragon/diagit)](./LICENSE)
 
 > A browser extension (Chrome, Edge, Firefox) that renders **diagram models
 > inline** (BPMN, DMN, Wardley Maps, Team Topologies, Event Storming, Context Maps,
