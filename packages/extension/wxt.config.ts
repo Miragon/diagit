@@ -6,7 +6,7 @@ import { defineConfig } from 'wxt'
 //   - a permanently-closed demo PR (#12) exercises the before/after diff view
 // The fixtures live on `main` at packages/extension/e2e/fixtures and are the
 // same files the e2e suite renders.
-const REPO = 'https://github.com/emaarco/diagit'
+const REPO = 'https://github.com/Miragon/diagit'
 const FIXTURES = `${REPO}/blob/main/packages/extension/e2e/fixtures`
 const EXAMPLE_URLS = [
   `${FIXTURES}/sample.bpmn`, // inline viewer — BPMN

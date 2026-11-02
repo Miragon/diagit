@@ -50,7 +50,7 @@ npm run build              # production build for both browsers
 `npm run dev:example` opens three tabs against this repo so the git-host views
 can be checked end-to-end without foreign repos: the inline viewer on
 `e2e/fixtures/sample.bpmn` and `sample.dmn`, and the before/after diff on a
-permanently-closed demo PR ([#12](https://github.com/emaarco/diagit/pull/12)).
+permanently-closed demo PR ([#12](https://github.com/Miragon/diagit/pull/12)).
 The tab list lives in [`wxt.config.ts`](./wxt.config.ts) (`EXAMPLE_URLS`).
 
 Loading the built extension unpacked and the full monorepo layout are covered in

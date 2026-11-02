@@ -2,8 +2,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question / Discussion
-    url: https://github.com/emaarco/diagit/discussions
+    url: https://github.com/Miragon/diagit/discussions
     about: Ask questions and discuss ideas here.
   - name: Security Vulnerability
-    url: https://github.com/emaarco/diagit/security/advisories/new
+    url: https://github.com/Miragon/diagit/security/advisories/new
     about: Report vulnerabilities privately — never in a public issue.
