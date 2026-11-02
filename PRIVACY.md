@@ -1,8 +1,8 @@
 # Privacy Policy
 
-_Last updated: 2026-08-12_
+_Last updated: 2026-11-02_
 
-**BPMN Viewer & Diff for GitLab & GitHub** does not collect, store, transmit, or
+**Diagit**, published by Miragon GmbH, does not collect, store, transmit, or
 sell any personal data. There are no analytics, no tracking, and no external
 servers operated by us.
 
@@ -11,7 +11,9 @@ servers operated by us.
 - It runs only on pages you grant it access to: `gitlab.com`, `github.com`,
   `raw.githubusercontent.com`, and any self-hosted instance you explicitly add in
   the options page.
-- On those pages it reads the `.bpmn` file content in order to render the diagram.
+- On those pages it reads the content of the diagram files it supports (BPMN, DMN,
+  Wardley Map, Team Topologies, Event Storming, Context Map, Value Chain and
+  Excalidraw files) in order to render the diagram.
   File contents are fetched **directly from the git host you are viewing**, using
   your existing browser session (so private repositories work). Nothing is sent
   anywhere else.
@@ -37,11 +39,19 @@ leaves your browser:
 ## Permissions
 
 - `scripting`, `storage` — load the viewer when you open a diagram, register it
-  on self-hosted instances you add, and remember that list.
+  on self-hosted instances you add, and remember that list and the optional
+  GitHub access token.
+- `contextMenus`, `activeTab` — let you grant the viewer on the self-hosted
+  instance in the current tab via the toolbar icon or the right-click menu.
 - Host access (`gitlab.com`, `github.com`, `raw.githubusercontent.com`, plus any
-  self-hosted domain you grant) — required to read and render `.bpmn` files on
+  self-hosted domain you grant) — required to read and render diagram files on
   those sites. Access to other sites is only ever requested when you add them.
+- `api.github.com` — used only for pull-request diffs and only with the optional
+  GitHub access token described above.
 
 ## Contact
 
-Questions: open an issue on the project's GitHub repository.
+Diagit is published by Miragon GmbH, Böheimstr. 8, 86153 Augsburg, Germany.
+
+Questions: open an issue on the [GitHub repository](https://github.com/Miragon/diagit/issues)
+or write to info@miragon.io.
