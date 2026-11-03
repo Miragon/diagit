@@ -22,3 +22,7 @@ packages/*/test-results/
 
 # Playwright MCP session artifacts
 .playwright-mcp/
+
+# docs site
+docs/.vitepress/dist/
+docs/.vitepress/cache/
