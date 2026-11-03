@@ -5,5 +5,6 @@
       "entry": ["e2e/specs/**/*.e2e.ts", "e2e/live/**/*.e2e.ts"],
       "ignoreDependencies": ["@wdio/local-runner"]
     }
-  }
+  },
+  "ignore": ["docs/**"]
 }
