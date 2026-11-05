@@ -20,7 +20,9 @@ Everything stays in your browser's extension storage:
 | A GitHub access token, only if you connect | Private repositories on github.com | **Disconnect** in the options |
 | Your GitHub username, only if you connect  | To show which account is connected | **Disconnect** in the options |
 
-The token is sent only to `api.github.com`, and only for the data of pull requests and commits, and to show which account you connected.
+The access token is sent only to `api.github.com`, and only for the data of pull requests and commits, and to show which account you connected.
+
+Connecting also stores the refresh token that renews the access token. It is sent only to `github.com`, and **Disconnect** removes it too.
 
 ## Permissions
 

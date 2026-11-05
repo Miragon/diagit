@@ -1,4 +1,6 @@
+import { FetchError } from '../../platform/messaging/HttpClient'
 import { DeviceFlowError } from './DeviceFlowError'
+import type { GithubTokenSet } from './GithubTokenStore'
 
 const GITHUB_APP_CLIENT_ID = 'Iv23liayyRyhjA7nIqfG'
 
@@ -11,6 +13,7 @@ const DEVICE_CODE_URL = 'https://github.com/login/device/code'
 const ACCESS_TOKEN_URL = 'https://github.com/login/oauth/access_token'
 const VIEWER_URL = 'https://api.github.com/user'
 const DEVICE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code'
+const REFRESH_GRANT_TYPE = 'refresh_token'
 const DEFAULT_POLL_INTERVAL_S = 5
 const DEFAULT_EXPIRES_IN_S = 900
 const SLOW_DOWN_BACKOFF_MS = 5000
@@ -26,7 +29,10 @@ export interface DeviceCode {
 type Fetch = typeof fetch
 
 export class GithubDeviceFlow {
-  constructor(private readonly fetch: Fetch = (...args) => globalThis.fetch(...args)) {}
+  constructor(
+    private readonly fetch: Fetch = (...args) => globalThis.fetch(...args),
+    private readonly now: () => number = () => Date.now(),
+  ) {}
 
   async requestDeviceCode(): Promise<DeviceCode> {
     const data = await this.postForm(DEVICE_CODE_URL, { client_id: GITHUB_APP_CLIENT_ID })
@@ -43,18 +49,17 @@ export class GithubDeviceFlow {
     return { deviceCode, userCode, verificationUri, interval, expiresIn }
   }
 
-  async pollForToken(code: DeviceCode, signal?: AbortSignal): Promise<string> {
+  async pollForToken(code: DeviceCode, signal?: AbortSignal): Promise<GithubTokenSet> {
     let intervalMs = code.interval * 1000
-    const deadline = Date.now() + code.expiresIn * 1000
-    while (Date.now() < deadline) {
+    const deadline = this.now() + code.expiresIn * 1000
+    while (this.now() < deadline) {
       await this.delay(intervalMs, signal)
       const data = await this.postForm(ACCESS_TOKEN_URL, {
         client_id: GITHUB_APP_CLIENT_ID,
         device_code: code.deviceCode,
         grant_type: DEVICE_GRANT_TYPE,
       })
-      const token = this.readString(data, 'access_token')
-      if (token) return token
+      if (this.readString(data, 'access_token')) return this.tokenSetFrom(data)
       switch (this.readString(data, 'error')) {
         case 'authorization_pending':
           break
@@ -75,6 +80,24 @@ export class GithubDeviceFlow {
     throw this.expired()
   }
 
+  async refresh(refreshToken: string): Promise<GithubTokenSet> {
+    const response = await this.post(ACCESS_TOKEN_URL, {
+      client_id: GITHUB_APP_CLIENT_ID,
+      grant_type: REFRESH_GRANT_TYPE,
+      refresh_token: refreshToken,
+    })
+    if (!response.ok) {
+      throw new FetchError(`GitHub returned HTTP ${response.status}.`, response.status)
+    }
+    const data = (await response.json()) as Record<string, unknown>
+    if (!this.readString(data, 'access_token')) {
+      throw new DeviceFlowError(
+        this.readString(data, 'error_description') || 'GitHub did not renew the access token.',
+      )
+    }
+    return this.tokenSetFrom(data)
+  }
+
   async fetchViewerLogin(token: string): Promise<string> {
     try {
       const response = await this.fetch(VIEWER_URL, {
@@ -91,7 +114,13 @@ export class GithubDeviceFlow {
     url: string,
     params: Record<string, string>,
   ): Promise<Record<string, unknown>> {
-    const response = await this.fetch(url, {
+    const response = await this.post(url, params)
+    if (!response.ok) throw new DeviceFlowError(`GitHub returned HTTP ${response.status}.`)
+    return (await response.json()) as Record<string, unknown>
+  }
+
+  private post(url: string, params: Record<string, string>): Promise<Response> {
+    return this.fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -99,8 +128,20 @@ export class GithubDeviceFlow {
       },
       body: new URLSearchParams(params).toString(),
     })
-    if (!response.ok) throw new DeviceFlowError(`GitHub returned HTTP ${response.status}.`)
-    return (await response.json()) as Record<string, unknown>
+  }
+
+  private tokenSetFrom(data: Record<string, unknown>): GithubTokenSet {
+    return {
+      accessToken: this.readString(data, 'access_token'),
+      accessTokenExpiresAt: this.expiresAt(data, 'expires_in'),
+      refreshToken: this.readString(data, 'refresh_token'),
+      refreshTokenExpiresAt: this.expiresAt(data, 'refresh_token_expires_in'),
+    }
+  }
+
+  private expiresAt(data: Record<string, unknown>, key: string): number | undefined {
+    const seconds = data[key]
+    return typeof seconds === 'number' ? this.now() + seconds * 1000 : undefined
   }
 
   private readString(data: Record<string, unknown>, key: string): string {

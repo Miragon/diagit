@@ -1,9 +1,10 @@
 import { FetchError } from '../../platform/messaging/HttpClient'
 import type { AuthPolicy } from '../GitHost'
 import type { GithubRoutes } from './GithubRoutes'
-import type { GithubTokenStore } from './GithubTokenStore'
+import type { GithubTokenRefresher } from './GithubTokenRefresher'
 
 const GITHUB_API_HOST = 'api.github.com'
+const BEARER_PREFIX = 'Bearer '
 
 const CONNECT_APP_HINT =
   ' Connect the GitHub App in the extension options and install it on this repository (authorise it for the organisation if it uses SSO).'
@@ -11,7 +12,7 @@ const RECONNECT_APP_HINT = ' Reconnect the GitHub App in the extension options.'
 
 export class GithubApiAuth implements AuthPolicy {
   constructor(
-    private readonly tokens: GithubTokenStore,
+    private readonly tokens: GithubTokenRefresher,
     private readonly routes: GithubRoutes,
   ) {}
 
@@ -25,8 +26,20 @@ export class GithubApiAuth implements AuthPolicy {
 
   async headersFor(url: string): Promise<HeadersInit | undefined> {
     if (!this.targets(url)) return undefined
-    const token = await this.tokens.token()
-    return token ? { Authorization: `Bearer ${token}` } : undefined
+    return this.bearer(await this.tokens.validToken())
+  }
+
+  async headersAfterUnauthorized(
+    url: string,
+    rejected: HeadersInit,
+  ): Promise<HeadersInit | undefined> {
+    if (!this.targets(url)) return undefined
+    const rejectedToken = new Headers(rejected).get('Authorization')?.slice(BEARER_PREFIX.length)
+    return rejectedToken ? this.bearer(await this.tokens.replacementFor(rejectedToken)) : undefined
+  }
+
+  private bearer(token: string): HeadersInit | undefined {
+    return token ? { Authorization: `${BEARER_PREFIX}${token}` } : undefined
   }
 
   errorHint(location: Location, err: unknown): string {

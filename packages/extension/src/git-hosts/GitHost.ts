@@ -7,6 +7,7 @@ export interface PageView {
 
 export interface AuthPolicy {
   headersFor(url: string): Promise<HeadersInit | undefined>
+  headersAfterUnauthorized(url: string, rejected: HeadersInit): Promise<HeadersInit | undefined>
 }
 
 export interface GitHost {

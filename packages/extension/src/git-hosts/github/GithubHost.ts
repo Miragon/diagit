@@ -5,11 +5,13 @@ import { BlobPage } from '../BlobPage'
 import type { GitHost, PageView } from '../GitHost'
 import { GithubApiAuth } from './GithubApiAuth'
 import { GithubCommitPage } from './GithubCommitPage'
+import { GithubDeviceFlow } from './GithubDeviceFlow'
 import { GithubDiffScanner } from './GithubDiffScanner'
 import { GithubPullRequestPage } from './GithubPullRequestPage'
 import { GithubRestApi } from './GithubRestApi'
 import { GITHUB_PUBLIC_ORIGIN, GithubRoutes } from './GithubRoutes'
 import { githubSelectors } from './githubSelectors'
+import { GithubTokenRefresher } from './GithubTokenRefresher'
 import type { GithubTokenStore } from './GithubTokenStore'
 
 export class GithubHost implements GitHost {
@@ -26,7 +28,10 @@ export class GithubHost implements GitHost {
   constructor(http: HttpClient, tokens: GithubTokenStore) {
     const api = new GithubRestApi(http, this.routes)
     const scanner = new GithubDiffScanner()
-    this.authPolicy = new GithubApiAuth(tokens, this.routes)
+    this.authPolicy = new GithubApiAuth(
+      new GithubTokenRefresher(tokens, new GithubDeviceFlow()),
+      this.routes,
+    )
     this.blobPage = new BlobPage(
       {
         blobSegment: '/blob/',
