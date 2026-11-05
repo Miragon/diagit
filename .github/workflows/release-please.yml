@@ -127,6 +127,12 @@ jobs:
           ls -la packages/extension/.output/*.zip
           npm run lint:webext -w @diagit/extension
 
+      - name: Check the pinned store upload CLIs resolve
+        working-directory: packages/extension
+        run: |
+          npm exec --no -- chrome-webstore-upload --version
+          npm exec --no -- web-ext --version
+
   # Real upload to the stores, after the `gate` approval. Runs on its own after a
   # release was packaged, or manually (workflow_dispatch, dry_run unchecked) to
   # re-publish an existing release.
@@ -147,6 +153,21 @@ jobs:
     permissions:
       contents: read
     steps:
+      # The upload CLIs come from the lockfile of the workflow's own commit,
+      # installed without lifecycle scripts since this job holds the store
+      # secrets. Only the bundles are bound to the release tag.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
       - name: Resolve the release tag
         id: release
         env:
@@ -154,22 +175,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
           TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
         run: echo "tag=${TAG:-$(gh release view --json tagName --jq .tagName)}" >> "$GITHUB_OUTPUT"
-
-      # The upload CLIs come from the lockfile of the release tag, installed
-      # without lifecycle scripts since this job holds the store secrets.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ steps.release.outputs.tag }}
-          persist-credentials: false
-
-      - name: Setup Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
 
       - name: Download the store bundles of the release
         env:
@@ -227,6 +232,6 @@ jobs:
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
         working-directory: packages/extension
         run: |
-          npm exec --no -- web-ext sign --channel listed \
+          npm exec --no -- web-ext sign --no-config-discovery --channel listed \
             --source-dir "$GITHUB_WORKSPACE/bundles/firefox-mv3" \
             --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
