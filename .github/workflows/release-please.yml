@@ -127,6 +127,12 @@ jobs:
           ls -la packages/extension/.output/*.zip
           npm run lint:webext -w @diagit/extension
 
+      - name: Check the pinned store upload CLIs resolve
+        working-directory: packages/extension
+        run: |
+          npm exec --no -- chrome-webstore-upload --version
+          npm exec --no -- web-ext --version
+
   # Real upload to the stores, after the `gate` approval. Runs on its own after a
   # release was packaged, or manually (workflow_dispatch, dry_run unchecked) to
   # re-publish an existing release.
@@ -147,10 +153,20 @@ jobs:
     permissions:
       contents: read
     steps:
+      # The upload CLIs come from the lockfile of the workflow's own commit,
+      # installed without lifecycle scripts since this job holds the store
+      # secrets. Only the bundles are bound to the release tag.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
 
       - name: Resolve the release tag
         id: release
@@ -192,9 +208,10 @@ jobs:
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        working-directory: packages/extension
         run: |
-          npx chrome-webstore-upload-cli@3 upload \
-            --source "$(ls bundles/*-chrome.zip | head -n1)" \
+          npm exec --no -- chrome-webstore-upload upload \
+            --source "$(ls "$GITHUB_WORKSPACE"/bundles/*-chrome.zip | head -n1)" \
             --extension-id "$CHROME_ID" --client-id "$CHROME_CLIENT_ID" \
             --client-secret "$CHROME_CLIENT_SECRET" --refresh-token "$CHROME_REFRESH_TOKEN" \
             --auto-publish
@@ -213,7 +230,8 @@ jobs:
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        working-directory: packages/extension
         run: |
-          npx --package=web-ext@10 web-ext sign --channel listed \
-            --source-dir bundles/firefox-mv3 \
+          npm exec --no -- web-ext sign --no-config-discovery --channel listed \
+            --source-dir "$GITHUB_WORKSPACE/bundles/firefox-mv3" \
             --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
