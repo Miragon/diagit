@@ -47,8 +47,8 @@ jobs:
   # the pipeline pauses here until the deployment is approved — nothing is
   # packaged or published before that. Runs for a real release, or for a manual
   # re-publish (workflow_dispatch, dry_run unchecked). A dry run only builds and
-  # lints in verify-bundles, so it needs no approval. A rejected release leaves
-  # its tag without bundles, so a later re-publish fails; recover with "Re-run
+  # lints in verify-bundles, so it needs no approval. A rejected release stays
+  # a draft without bundles, so a later re-publish fails; recover with "Re-run
   # failed jobs" on the original run instead.
   gate:
     name: Await release approval
@@ -62,9 +62,9 @@ jobs:
       - name: Approved
         run: echo "Release approved."
 
-  # On an approved release, build the store bundles and attach them to the GitHub
-  # release. Publishing to the Chrome Web Store / AMO / Edge is intentionally a
-  # separate, secret-gated step so this pipeline works
+  # On an approved release, build and attest the store bundles, attach them to
+  # the draft GitHub release and publish it. Publishing to the Chrome Web Store /
+  # AMO / Edge is intentionally a separate, secret-gated step so this pipeline works
   # out of the box without any store credentials.
   package:
     needs: [release-please, gate]
@@ -72,6 +72,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -89,6 +91,11 @@ jobs:
       - name: Build & zip (Chrome + Firefox)
         run: npm run zip -w @diagit/extension
 
+      - name: Attest the store bundles
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: packages/extension/.output/*.zip
+
       - name: Upload store bundles to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,6 +109,12 @@ jobs:
           path: packages/extension/.output/*.zip
           if-no-files-found: error
           include-hidden-files: true
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: gh release edit "$TAG" --draft=false --latest
 
   # Manual dry run (workflow_dispatch, dry_run checked): build + lint the store
   # bundles without uploading and without touching the protected environment.
@@ -142,7 +155,8 @@ jobs:
   # release was packaged, or manually (workflow_dispatch, dry_run unchecked) to
   # re-publish an existing release.
   # Always ships the bundles attached to the GitHub release of the tag, never a
-  # fresh build of main. Each store runs only when its secrets exist, so
+  # fresh build of main, and only once their attestation proves this workflow
+  # built them on main. Each store runs only when its secrets exist, so
   # unconfigured stores (e.g. Edge before you have its keys) are skipped, and a
   # failing store does not stop the others — the job still ends red.
   # Add the credentials to the `store-publishing` environment.
@@ -157,6 +171,7 @@ jobs:
     environment: store-publishing
     permissions:
       contents: read
+      attestations: read
     steps:
       # The upload CLIs come from the lockfile of the workflow's own commit,
       # installed without lifecycle scripts since this job holds the store
@@ -181,13 +196,18 @@ jobs:
           TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
         run: echo "tag=${TAG:-$(gh release view --json tagName --jq .tagName)}" >> "$GITHUB_OUTPUT"
 
-      - name: Download the store bundles of the release
+      - name: Download and verify the store bundles of the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ steps.release.outputs.tag }}
         run: |
           gh release download "$TAG" --pattern '*-chrome.zip' --pattern '*-firefox.zip' --dir bundles
+          for bundle in bundles/*.zip; do
+            gh attestation verify "$bundle" --repo Miragon/diagit \
+              --signer-workflow Miragon/diagit/.github/workflows/release-please.yml \
+              --source-ref refs/heads/main
+          done
           unzip -q bundles/*-firefox.zip -d bundles/firefox-mv3
           ls -la bundles
 
