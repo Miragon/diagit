@@ -10,7 +10,7 @@ function mountWithQuery(search: string, closeWindow = vi.fn()): HTMLElement {
 describe('AlertPage', () => {
   it('shows the message from the query string as plain text', () => {
     const message = 'Could not enable <img src=x onerror=alert(1)> on https://git.example.com'
-    const app = mountWithQuery(`?${new URLSearchParams({ message, title: 'Diagit' })}`)
+    const app = mountWithQuery(`?${new URLSearchParams({ message })}`)
     expect(app.querySelector('.message')!.textContent).toBe(message)
     expect(app.querySelector('img')).toBeNull()
   })
