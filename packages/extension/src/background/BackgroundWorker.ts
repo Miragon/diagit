@@ -4,9 +4,11 @@ import addPermissionToggle from 'webext-permission-toggle'
 import type { HostRegistry } from '../git-hosts/HostRegistry'
 import { hostRegistry } from '../git-hosts/hosts'
 import { HostAccess } from '../git-hosts/self-hosted/HostAccess'
-import type { BackgroundRequest } from '../platform/messaging/messages'
+import type { BackgroundRequest, FetchTextResponse } from '../platform/messaging/messages'
 import { originToPattern } from '../platform/utils/origin'
 import { FetchProxy } from './FetchProxy'
+import { FetchScope } from './FetchScope'
+import { TrustedSender, type MessageSender, type SenderPage } from './TrustedSender'
 import { ViewScriptInjector } from './ViewScriptInjector'
 
 const ENABLE_ON_DOMAIN_TITLE = 'Enable Diagit on this domain'
@@ -22,8 +24,9 @@ export class BackgroundWorker {
     return new BackgroundWorker(
       HostAccess.forHosts(hostRegistry),
       hostRegistry,
-      new FetchProxy(hostRegistry.authPolicies()),
+      new FetchProxy(hostRegistry.authPolicies(), new FetchScope()),
       new ViewScriptInjector(hostRegistry.allViewScripts()),
+      new TrustedSender(browser.runtime.id),
     )
   }
 
@@ -32,6 +35,7 @@ export class BackgroundWorker {
     private readonly hosts: HostRegistry,
     private readonly fetchProxy: FetchProxy,
     private readonly injector: ViewScriptInjector,
+    private readonly senders: TrustedSender,
   ) {}
 
   start(): void {
@@ -46,22 +50,33 @@ export class BackgroundWorker {
       (perms) => void this.access.revoke(perms.origins ?? []),
     )
     browser.runtime.onMessage.addListener((message: BackgroundRequest, sender, sendResponse) =>
-      this.handle(message, sender.tab?.id, sendResponse),
+      this.handle(message, sender, sendResponse),
     )
   }
 
   private handle(
     message: BackgroundRequest,
-    tabId: number | undefined,
+    sender: MessageSender,
     sendResponse: (response: unknown) => void,
   ): boolean {
-    if (message?.type === 'fetchText') {
-      this.fetchProxy.fetchText(message.url).then(sendResponse)
-      return KEEP_CHANNEL_OPEN_FOR_ASYNC_RESPONSE
-    }
-    if (message?.type === 'injectViewScript') {
-      this.injector.inject(tabId, message.script).then(sendResponse)
-      return KEEP_CHANNEL_OPEN_FOR_ASYNC_RESPONSE
+    if (message?.type !== 'fetchText' && message?.type !== 'injectViewScript') return false
+    const page = this.senders.pageOf(sender)
+    const response = page ? this.serve(message, page) : this.refuse(message)
+    response.then(sendResponse)
+    return KEEP_CHANNEL_OPEN_FOR_ASYNC_RESPONSE
+  }
+
+  private serve(
+    message: BackgroundRequest,
+    page: SenderPage,
+  ): Promise<FetchTextResponse | boolean> {
+    if (message.type === 'fetchText') return this.fetchProxy.fetchText(message.url, page.origin)
+    return this.injector.inject(page.tabId, message.script)
+  }
+
+  private async refuse(message: BackgroundRequest): Promise<FetchTextResponse | boolean> {
+    if (message.type === 'fetchText') {
+      return { ok: false, error: `Refused to fetch ${message.url} for an untrusted sender` }
     }
     return false
   }

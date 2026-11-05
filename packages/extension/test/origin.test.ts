@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeOrigin, originToPattern, patternToOrigin } from '../src/platform/utils/origin'
+import {
+  normalizeOrigin,
+  originToPattern,
+  patternToOrigin,
+  webOrigin,
+} from '../src/platform/utils/origin'
 
 describe('normalizeOrigin', () => {
   it('defaults to https and strips path/query', () => {
@@ -34,5 +39,19 @@ describe('origin <-> pattern', () => {
   it('returns null for wildcard / non-origin patterns', () => {
     expect(patternToOrigin('<all_urls>')).toBeNull()
     expect(patternToOrigin('*://*/*')).toBeNull()
+  })
+})
+
+describe('webOrigin', () => {
+  it('returns the origin of an http(s) url, port included', () => {
+    expect(webOrigin('https://github.com/o/r?x=1')).toBe('https://github.com')
+    expect(webOrigin('http://localhost:4567/a')).toBe('http://localhost:4567')
+  })
+
+  it('returns null for relative, malformed and non-web urls', () => {
+    expect(webOrigin('/o/r')).toBeNull()
+    expect(webOrigin('not a url')).toBeNull()
+    expect(webOrigin('about:blank')).toBeNull()
+    expect(webOrigin('chrome-extension://abc/viewer.html')).toBeNull()
   })
 })
