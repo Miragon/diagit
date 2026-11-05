@@ -147,11 +147,6 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Setup Node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-
       - name: Resolve the release tag
         id: release
         env:
@@ -159,6 +154,22 @@ jobs:
           GH_REPO: ${{ github.repository }}
           TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
         run: echo "tag=${TAG:-$(gh release view --json tagName --jq .tagName)}" >> "$GITHUB_OUTPUT"
+
+      # The upload CLIs come from the lockfile of the release tag, installed
+      # without lifecycle scripts since this job holds the store secrets.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
 
       - name: Download the store bundles of the release
         env:
@@ -192,9 +203,10 @@ jobs:
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        working-directory: packages/extension
         run: |
-          npx chrome-webstore-upload-cli@3 upload \
-            --source "$(ls bundles/*-chrome.zip | head -n1)" \
+          npm exec --no -- chrome-webstore-upload upload \
+            --source "$(ls "$GITHUB_WORKSPACE"/bundles/*-chrome.zip | head -n1)" \
             --extension-id "$CHROME_ID" --client-id "$CHROME_CLIENT_ID" \
             --client-secret "$CHROME_CLIENT_SECRET" --refresh-token "$CHROME_REFRESH_TOKEN" \
             --auto-publish
@@ -213,7 +225,8 @@ jobs:
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        working-directory: packages/extension
         run: |
-          npx --package=web-ext@10 web-ext sign --channel listed \
-            --source-dir bundles/firefox-mv3 \
+          npm exec --no -- web-ext sign --channel listed \
+            --source-dir "$GITHUB_WORKSPACE/bundles/firefox-mv3" \
             --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
