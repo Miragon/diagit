@@ -1,4 +1,5 @@
 import { browser } from 'wxt/browser'
+import { localWebExtAlertHtml } from 'webext-alert'
 import addPermissionToggle from 'webext-permission-toggle'
 import type { HostRegistry } from '../git-hosts/HostRegistry'
 import { hostRegistry } from '../git-hosts/hosts'
@@ -37,6 +38,7 @@ export class BackgroundWorker {
     this.access
       .restoreOnStartup()
       .catch((err) => console.error('[diagit] host registration failed', err))
+    localWebExtAlertHtml(browser.runtime.getURL('/alert.html'))
     addPermissionToggle({ title: ENABLE_ON_DOMAIN_TITLE })
     browser.action?.onClicked.addListener((tab) => void this.onToolbarClick(tab))
     browser.permissions.onAdded.addListener((perms) => void this.access.grant(perms.origins ?? []))
