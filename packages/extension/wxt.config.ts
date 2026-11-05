@@ -22,19 +22,24 @@ const openExample = Boolean(env?.WXT_DEV_EXAMPLE)
 const e2e = Boolean(env?.WXT_E2E)
 const e2eHostPermissions = e2e ? ['http://localhost/*'] : []
 
-const DEV_SERVER_SOURCES = ' http://localhost:* ws://localhost:*'
-
 function extensionPagesCsp(command: 'build' | 'serve'): string {
-  const devServer = command === 'serve' ? DEV_SERVER_SOURCES : ''
-  return [
-    "default-src 'self'",
-    "script-src 'self'",
-    "object-src 'self'",
-    `img-src 'self' data:${devServer}`,
-    `font-src 'self' data:${devServer}`,
-    "style-src 'self' 'unsafe-inline'",
-    `connect-src https: http:${devServer}`,
-  ].join('; ')
+  const isDev = command === 'serve'
+  const devAssets = isDev ? ['http://localhost:*'] : []
+  const devHotReload = isDev ? ['ws://localhost:*'] : []
+  const directives: Record<string, string[]> = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'none'"],
+    'form-action': ["'none'"],
+    'img-src': ["'self'", 'data:', ...devAssets],
+    'font-src': ["'self'", 'data:', ...devAssets],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'connect-src': ['https:', 'http:', ...devHotReload],
+  }
+  return Object.entries(directives)
+    .map(([directive, sources]) => [directive, ...sources].join(' '))
+    .join('; ')
 }
 
 const EXCALIDRAW_BUNDLE = /@excalidraw\/utils\/dist\/(dev|prod)\/index\.js/
