@@ -48,7 +48,9 @@ jobs:
   # the pipeline pauses here until the deployment is approved — nothing is
   # packaged or published before that. Runs for a real release, or for a manual
   # re-publish (workflow_dispatch, dry_run unchecked). A dry run only builds and
-  # lints in verify-bundles, so it needs no approval.
+  # lints in verify-bundles, so it needs no approval. A rejected release leaves
+  # its tag without bundles, so a later re-publish fails; recover with "Re-run
+  # failed jobs" on the original run instead.
   gate:
     name: Await release approval
     needs: release-please
@@ -59,7 +61,7 @@ jobs:
     environment: release
     steps:
       - name: Approved
-        run: echo "Release approved — proceeding to package and publish."
+        run: echo "Release approved."
 
   # On an approved release, build the store bundles and attach them to the GitHub
   # release. Publishing to the Chrome Web Store / AMO / Edge is intentionally a
