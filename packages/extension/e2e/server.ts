@@ -45,6 +45,8 @@ const COMMIT = {
 } as const
 
 const REPO_HOME = `/${PR.owner}/${PR.repo}`
+const RENAMED_REPO_SEGMENT = `/${PR.owner}/renamed/`
+const REPO_SEGMENT = `/${PR.owner}/${PR.repo}/`
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -96,6 +98,12 @@ export interface FixtureServer {
 export function startFixtureServer(port: number): Promise<FixtureServer> {
   const server: Server = createServer((req, res) => {
     const path = decodeURIComponent((req.url ?? '/').split('?')[0] ?? '/')
+
+    const isPage = path.includes('/blob/') || path.includes('/pull/')
+    if (path.includes(RENAMED_REPO_SEGMENT) && !isPage) {
+      res.writeHead(302, { location: path.replace(RENAMED_REPO_SEGMENT, REPO_SEGMENT) })
+      return res.end()
+    }
 
     // GitHub REST metadata for the PR diff adapter (Enterprise `/api/v3` path).
     if (path === `/api/v3/repos/${PR.owner}/${PR.repo}/pulls/${PR.number}`) {

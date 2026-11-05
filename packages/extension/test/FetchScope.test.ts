@@ -5,7 +5,9 @@ const scope = new FetchScope()
 
 describe('FetchScope.grantFor (which urls a page may have fetched)', () => {
   it('allows the origin of the page without auth', () => {
-    expect(scope.grantFor('https://github.com', 'https://github.com/o/r/raw/main/a.bpmn')).toEqual({
+    expect(
+      scope.grantFor('https://github.com', 'https://github.com/o/r/raw/main/a.bpmn'),
+    ).toMatchObject({
       withAuth: false,
     })
     expect(
@@ -13,22 +15,22 @@ describe('FetchScope.grantFor (which urls a page may have fetched)', () => {
         'https://gitlab.com',
         'https://gitlab.com/api/v4/projects/g%2Fp/merge_requests/2',
       ),
-    ).toEqual({ withAuth: false })
+    ).toMatchObject({ withAuth: false })
   })
 
   it('allows a github.com page to call api.github.com with auth', () => {
     expect(
       scope.grantFor('https://github.com', 'https://api.github.com/repos/o/r/pulls/1'),
-    ).toEqual({ withAuth: true })
+    ).toMatchObject({ withAuth: true })
   })
 
   it('allows an Enterprise or self-hosted page its own API, never with auth', () => {
     expect(
       scope.grantFor('https://ghe.corp.example', 'https://ghe.corp.example/api/v3/repos/o/r'),
-    ).toEqual({ withAuth: false })
+    ).toMatchObject({ withAuth: false })
     expect(
       scope.grantFor('http://localhost:4567', 'http://localhost:4567/api/v3/repos/octo/flows'),
-    ).toEqual({ withAuth: false })
+    ).toMatchObject({ withAuth: false })
   })
 
   it('refuses other origins', () => {
@@ -50,6 +52,30 @@ describe('FetchScope.grantFor (which urls a page may have fetched)', () => {
     expect(scope.grantFor('https://github.com', '/o/r/raw/a.bpmn')).toBeNull()
     expect(scope.grantFor('null', 'data:text/plain,x')).toBeNull()
     expect(scope.grantFor('null', 'file:///etc/passwd')).toBeNull()
+  })
+})
+
+describe('FetchScope.grantFor (which fetches may follow redirects)', () => {
+  it('lets a raw file of the page origin follow its redirect', () => {
+    expect(
+      scope.grantFor('https://github.com', 'https://github.com/o/r/raw/main/a.bpmn?plain=1'),
+    ).toEqual({ withAuth: false, followsRedirects: true })
+    expect(
+      scope.grantFor('https://ghe.corp.example', 'https://ghe.corp.example/o/r/raw/main/a.bpmn'),
+    ).toEqual({ withAuth: false, followsRedirects: true })
+  })
+
+  it('refuses redirects for every other fetch', () => {
+    expect(scope.grantFor('https://github.com', 'https://github.com/o/r/blob/main/a.bpmn')).toEqual(
+      { withAuth: false, followsRedirects: false },
+    )
+    expect(scope.grantFor('https://github.com', 'https://api.github.com/repos/o/r')).toEqual({
+      withAuth: true,
+      followsRedirects: false,
+    })
+    expect(
+      scope.grantFor('https://gitlab.com', 'https://gitlab.com/g/p/-/raw/main/a.bpmn'),
+    ).toEqual({ withAuth: false, followsRedirects: false })
   })
 })
 
