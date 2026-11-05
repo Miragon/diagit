@@ -50,7 +50,7 @@
     "@wdio/mocha-framework": "10.1.0",
     "@wdio/spec-reporter": "10.1.0",
     "@wdio/types": "10.1.0",
-    "chrome-webstore-upload-cli": "3.5.0",
+    "chrome-webstore-upload-cli": "4.0.2",
     "dependency-cruiser": "18.7.1",
     "expect-webdriverio": "8.0.0",
     "happy-dom": "21.0.4",
