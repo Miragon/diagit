@@ -1,20 +1,24 @@
 import type { AuthPolicy } from '../git-hosts/GitHost'
 import type { FetchTextResponse } from '../platform/messaging/messages'
 import { errorMessage } from '../platform/utils/errorMessage'
+import type { FetchScope } from './FetchScope'
 
 type Fetch = typeof fetch
 
 export class FetchProxy {
   constructor(
     private readonly authPolicies: readonly AuthPolicy[],
+    private readonly scope: FetchScope,
     private readonly fetch: Fetch = (...args) => globalThis.fetch(...args),
   ) {}
 
-  async fetchText(url: string): Promise<FetchTextResponse> {
+  async fetchText(url: string, pageUrl: string | undefined): Promise<FetchTextResponse> {
+    const grant = pageUrl ? this.scope.grantFor(pageUrl, url) : null
+    if (!grant) return { ok: false, error: `Refused to fetch ${url} for this page` }
     try {
       const response = await this.fetch(url, {
         credentials: 'include',
-        headers: await this.authHeadersFor(url),
+        headers: grant.withAuth ? await this.authHeadersFor(url) : undefined,
       })
       if (!response.ok) {
         return { ok: false, error: `HTTP ${response.status} for ${url}`, status: response.status }
