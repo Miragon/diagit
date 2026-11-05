@@ -22,6 +22,21 @@ const openExample = Boolean(env?.WXT_DEV_EXAMPLE)
 const e2e = Boolean(env?.WXT_E2E)
 const e2eHostPermissions = e2e ? ['http://localhost/*'] : []
 
+const DEV_SERVER_SOURCES = ' http://localhost:* ws://localhost:*'
+
+function extensionPagesCsp(command: 'build' | 'serve'): string {
+  const devServer = command === 'serve' ? DEV_SERVER_SOURCES : ''
+  return [
+    "default-src 'self'",
+    "script-src 'self'",
+    "object-src 'self'",
+    `img-src 'self' data:${devServer}`,
+    `font-src 'self' data:${devServer}`,
+    "style-src 'self' 'unsafe-inline'",
+    `connect-src https: http:${devServer}`,
+  ].join('; ')
+}
+
 const EXCALIDRAW_BUNDLE = /@excalidraw\/utils\/dist\/(dev|prod)\/index\.js/
 const EMBEDDED_BASE64_ASSET = /(data:font\/woff2;base64,)?[A-Za-z0-9+/]{5000,}={0,2}/g
 const CSP_BLOCKED_GLOBAL_LOOKUP = 'Function("return this")()'
@@ -72,7 +87,7 @@ export default defineConfig({
   webExt: {
     startUrls: openExample ? EXAMPLE_URLS : undefined,
   },
-  manifest: {
+  manifest: ({ command }) => ({
     name: 'Diagit',
     description:
       'Render BPMN, DMN, Wardley Maps, Team Topologies, Event Storming, Excalidraw & more on GitHub & GitLab, with before/after diffs.',
@@ -93,11 +108,12 @@ export default defineConfig({
       ...e2eHostPermissions,
     ],
     optional_host_permissions: ['*://*/*'],
+    content_security_policy: { extension_pages: extensionPagesCsp(command) },
     browser_specific_settings: {
       gecko: {
         id: 'diagit@miragon.io',
         data_collection_permissions: { required: ['none'] },
       },
     },
-  },
+  }),
 })
