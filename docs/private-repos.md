@@ -22,7 +22,7 @@ Back in the options, press **Connect GitHub**. Diagit shows a code. Open `github
 
 ## Disconnect
 
-**Disconnect** removes the access token from this browser. To remove the app itself, uninstall it and revoke its authorisation in your GitHub settings (**Uninstall on GitHub**).
+**Disconnect** removes the access token and its refresh token from this browser. To remove the app itself, uninstall it and revoke its authorisation in your GitHub settings (**Uninstall on GitHub**).
 
 ## Next steps
 

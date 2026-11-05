@@ -6,6 +6,8 @@ import type { AuthPolicy } from '../src/git-hosts/GitHost'
 const tokenForApi: AuthPolicy = {
   headersFor: async (url) =>
     url.startsWith('https://api.github.com') ? { Authorization: 'Bearer t' } : undefined,
+  headersAfterUnauthorized: async (url) =>
+    url.startsWith('https://api.github.com') ? { Authorization: 'Bearer renewed' } : undefined,
 }
 
 const githubPage = 'https://github.com'
@@ -90,6 +92,45 @@ describe('FetchProxy', () => {
       error: 'Refused the redirect of https://gitlab.com/a for this page',
     })
     expect(text).not.toHaveBeenCalled()
+  })
+
+  it('retries a 401 once with the renewed auth headers', async () => {
+    const url = 'https://api.github.com/x'
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(textResponse(url, '', 401))
+      .mockResolvedValueOnce(textResponse(url, '<xml/>'))
+
+    const response = await proxyWith(fetch, [tokenForApi]).fetchText(url, githubPage)
+
+    expect(response).toEqual({ ok: true, text: '<xml/>' })
+    expect(fetch).toHaveBeenNthCalledWith(1, url, {
+      credentials: 'include',
+      headers: { Authorization: 'Bearer t' },
+    })
+    expect(fetch).toHaveBeenNthCalledWith(2, url, {
+      credentials: 'include',
+      headers: { Authorization: 'Bearer renewed' },
+    })
+  })
+
+  it('reports the 401 when the renewed headers are rejected too', async () => {
+    const url = 'https://api.github.com/x'
+    const fetch = vi.fn().mockResolvedValue(textResponse(url, '', 401))
+
+    const response = await proxyWith(fetch, [tokenForApi]).fetchText(url, githubPage)
+
+    expect(response).toMatchObject({ ok: false, status: 401 })
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not retry a 401 for a request that carried no auth headers', async () => {
+    const url = 'https://github.com/o/r/raw/main/a.bpmn'
+    const fetch = vi.fn().mockResolvedValue(textResponse(url, '', 401))
+
+    await proxyWith(fetch, [tokenForApi]).fetchText(url, githubPage)
+
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('reports HTTP failures with their status', async () => {

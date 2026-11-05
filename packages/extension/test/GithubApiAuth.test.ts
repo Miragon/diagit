@@ -1,16 +1,28 @@
 import { describe, expect, it } from 'vitest'
 import { GithubApiAuth } from '../src/git-hosts/github/GithubApiAuth'
+import { GithubDeviceFlow } from '../src/git-hosts/github/GithubDeviceFlow'
 import { GithubRoutes } from '../src/git-hosts/github/GithubRoutes'
+import { GithubTokenRefresher } from '../src/git-hosts/github/GithubTokenRefresher'
 import { GithubTokenStore } from '../src/git-hosts/github/GithubTokenStore'
 import { FetchError } from '../src/platform/messaging/HttpClient'
 import { SettingsStore } from '../src/platform/settings/SettingsStore'
 import { MemoryStorageArea } from './fakes/MemoryStorageArea'
 
-async function authWithToken(token: string): Promise<GithubApiAuth> {
+function authOn(area: MemoryStorageArea): GithubApiAuth {
+  const store = new GithubTokenStore(new SettingsStore(() => area))
+  const renewingFetch = async () =>
+    Response.json({ access_token: 'renewed', refresh_token: 'ghr_renewed' })
+  const refresher = new GithubTokenRefresher(store, new GithubDeviceFlow(renewingFetch))
+  return new GithubApiAuth(refresher, new GithubRoutes())
+}
+
+async function authWithToken(token: string, refreshToken = ''): Promise<GithubApiAuth> {
   const area = new MemoryStorageArea()
-  const tokens = new GithubTokenStore(new SettingsStore(() => area))
-  await tokens.connect(token, 'octocat')
-  return new GithubApiAuth(tokens, new GithubRoutes())
+  await new GithubTokenStore(new SettingsStore(() => area)).connect(
+    { accessToken: token, refreshToken },
+    'octocat',
+  )
+  return authOn(area)
 }
 
 const githubCom = { hostname: 'github.com', origin: 'https://github.com' } as Location
@@ -46,6 +58,41 @@ describe('GithubApiAuth.headersFor', () => {
     const auth = await authWithToken('')
 
     expect(await auth.headersFor('https://api.github.com/repos/o/r')).toBeUndefined()
+  })
+
+  it('still sends a token stored before expiring tokens were kept', async () => {
+    const area = new MemoryStorageArea()
+    Object.assign(area.items, { githubApiToken: 'legacy', githubLogin: 'octocat' })
+
+    expect(await authOn(area).headersFor('https://api.github.com/repos/o/r')).toEqual({
+      Authorization: 'Bearer legacy',
+    })
+  })
+})
+
+describe('GithubApiAuth.headersAfterUnauthorized', () => {
+  const rejected = { Authorization: 'Bearer secret' }
+
+  it('answers a rejected api.github.com token with a refreshed one', async () => {
+    const auth = await authWithToken('secret', 'ghr_secret')
+
+    expect(
+      await auth.headersAfterUnauthorized('https://api.github.com/repos/o/r', rejected),
+    ).toEqual({ Authorization: 'Bearer renewed' })
+  })
+
+  it('has nothing to retry with when the token cannot be refreshed', async () => {
+    const auth = await authWithToken('secret')
+
+    expect(
+      await auth.headersAfterUnauthorized('https://api.github.com/repos/o/r', rejected),
+    ).toBeUndefined()
+  })
+
+  it('has nothing to retry with for a url outside api.github.com', async () => {
+    const auth = await authWithToken('secret', 'ghr_secret')
+
+    expect(await auth.headersAfterUnauthorized('https://github.com/o/r', rejected)).toBeUndefined()
   })
 })
 

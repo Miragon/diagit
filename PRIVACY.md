@@ -31,15 +31,17 @@ leaves your browser:
 - the list of self-hosted instance domains you add, so the extension knows where
   to activate;
 - an optional GitHub access token, used only for private repositories on
-  github.com. You obtain it by installing the GitHub App and connecting once from
+  github.com, plus the refresh token GitHub issues with it when the token expires.
+  You obtain them by installing the GitHub App and connecting once from
   the options page (via GitHub's device flow — no token to paste by hand); the
-  extension never sees a client secret. It is sent **only** to `api.github.com`
-  (never to any other host) to authenticate the diff-metadata requests and to
-  show which account you connected, and only if you choose to connect. Your
-  GitHub username is stored alongside it. Disconnecting in the options page
-  removes both from your browser; the GitHub App itself stays installed and
-  authorised on GitHub until you uninstall it and revoke its authorisation in
-  your GitHub settings.
+  extension never sees a client secret. The access token is sent **only** to
+  `api.github.com` (never to any other host) to authenticate the diff-metadata
+  requests and to show which account you connected, and only if you choose to
+  connect. The refresh token is sent **only** to `github.com` to renew the access
+  token before it expires. Your GitHub username is stored alongside them.
+  Disconnecting in the options page removes all of them from your browser; the
+  GitHub App itself stays installed and authorised on GitHub until you uninstall
+  it and revoke its authorisation in your GitHub settings.
 
 ## Permissions
 

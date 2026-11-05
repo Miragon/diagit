@@ -20,6 +20,19 @@ export class SettingsStore {
     else await this.area().remove(key)
   }
 
+  async readRecord<T>(key: string): Promise<T | undefined> {
+    const value = (await this.area().get(key))[key]
+    return typeof value === 'object' && value !== null ? (value as T) : undefined
+  }
+
+  async writeRecord<T>(key: string, record: T): Promise<void> {
+    await this.area().set({ [key]: record })
+  }
+
+  async remove(key: string): Promise<void> {
+    await this.area().remove(key)
+  }
+
   async readList<T>(key: string): Promise<T[]> {
     const value = (await this.area().get(key))[key]
     return Array.isArray(value) ? (value as T[]) : []

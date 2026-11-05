@@ -1,25 +1,61 @@
 import type { SettingsStore } from '../../platform/settings/SettingsStore'
 
-const TOKEN_KEY = 'githubApiToken'
-const LOGIN_KEY = 'githubLogin'
+const CONNECTION_KEY = 'githubConnection'
+const LEGACY_TOKEN_KEY = 'githubApiToken'
+const LEGACY_LOGIN_KEY = 'githubLogin'
+
+export interface GithubTokenSet {
+  accessToken: string
+  accessTokenExpiresAt?: number
+  refreshToken: string
+  refreshTokenExpiresAt?: number
+}
+
+export interface GithubConnection {
+  tokens: GithubTokenSet
+  login: string
+}
 
 export class GithubTokenStore {
   constructor(private readonly settings: SettingsStore) {}
 
   async token(): Promise<string> {
-    return (await this.settings.readString(TOKEN_KEY)).trim()
+    return (await this.tokenSet()).accessToken
   }
 
-  login(): Promise<string> {
-    return this.settings.readString(LOGIN_KEY)
+  async tokenSet(): Promise<GithubTokenSet> {
+    return (await this.connection()).tokens
   }
 
-  async connect(token: string, login: string): Promise<void> {
-    await this.settings.writeString(TOKEN_KEY, token)
-    await this.settings.writeString(LOGIN_KEY, login)
+  async login(): Promise<string> {
+    return (await this.connection()).login
+  }
+
+  async connect(tokens: GithubTokenSet, login: string): Promise<void> {
+    await this.settings.writeRecord<GithubConnection>(CONNECTION_KEY, { tokens, login })
+    await this.forgetLegacyConnection()
   }
 
   async disconnect(): Promise<void> {
-    await this.connect('', '')
+    await this.forgetLegacyConnection()
+    await this.settings.remove(CONNECTION_KEY)
+  }
+
+  async connection(): Promise<GithubConnection> {
+    const stored = await this.settings.readRecord<GithubConnection>(CONNECTION_KEY)
+    return stored ?? this.legacyConnection()
+  }
+
+  private async legacyConnection(): Promise<GithubConnection> {
+    const [accessToken, login] = await Promise.all([
+      this.settings.readString(LEGACY_TOKEN_KEY),
+      this.settings.readString(LEGACY_LOGIN_KEY),
+    ])
+    return { tokens: { accessToken: accessToken.trim(), refreshToken: '' }, login }
+  }
+
+  private async forgetLegacyConnection(): Promise<void> {
+    await this.settings.remove(LEGACY_TOKEN_KEY)
+    await this.settings.remove(LEGACY_LOGIN_KEY)
   }
 }

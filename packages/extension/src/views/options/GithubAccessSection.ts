@@ -39,8 +39,10 @@ export class GithubAccessSection {
           rel: 'noreferrer',
           text: 'install the GitHub App',
         }),
-        ' on the accounts and repositories it may read, then connect below. The extension only ever gets access to the repos you install it on, and the token is stored in this browser and sent only to ',
+        ' on the accounts and repositories it may read, then connect below. The extension only ever gets access to the repos you install it on, and the access token is stored in this browser and sent only to ',
         h('code', { text: 'api.github.com' }),
+        '; the refresh token that renews it is sent only to ',
+        h('code', { text: 'github.com' }),
         '.',
       ]),
       h('div', { class: 'card' }, [this.body, this.status, this.appRemovalHint()]),
@@ -80,8 +82,8 @@ export class GithubAccessSection {
     await browser.tabs.create({ url: code.verificationUri }).catch(() => undefined)
 
     try {
-      const token = await this.deviceFlow.pollForToken(code)
-      await this.tokens.connect(token, await this.deviceFlow.fetchViewerLogin(token))
+      const tokens = await this.deviceFlow.pollForToken(code)
+      await this.tokens.connect(tokens, await this.deviceFlow.fetchViewerLogin(tokens.accessToken))
       this.setStatus('Connected.', 'ok')
     } catch (err) {
       this.setStatus(this.authError(err), 'error')
@@ -140,7 +142,7 @@ export class GithubAccessSection {
     return h('div', { class: 'auth-removal' }, [
       h('p', {
         class: 'auth-hint',
-        text: 'Disconnect only removes the access token from this browser. To remove the GitHub App itself, uninstall it and revoke its authorisation in your GitHub settings.',
+        text: 'Disconnect only removes the access and refresh tokens from this browser. To remove the GitHub App itself, uninstall it and revoke its authorisation in your GitHub settings.',
       }),
       h('a', {
         class: 'btn',
