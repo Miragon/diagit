@@ -8,11 +8,11 @@ const tokenForApi: AuthPolicy = {
     url.startsWith('https://api.github.com') ? { Authorization: 'Bearer t' } : undefined,
 }
 
-const githubPage = 'https://github.com/o/r/pull/1/files'
-const gitlabPage = 'https://gitlab.com/g/p/-/merge_requests/2'
+const githubPage = 'https://github.com'
+const gitlabPage = 'https://gitlab.com'
 
-function textResponse(text: string, status = 200): Response {
-  return { ok: status < 400, status, text: async () => text } as unknown as Response
+function textResponse(url: string, text: string, status = 200): Response {
+  return { ok: status < 400, status, url, text: async () => text } as unknown as Response
 }
 
 function proxyWith(fetch: typeof globalThis.fetch, policies: AuthPolicy[] = []): FetchProxy {
@@ -21,24 +21,23 @@ function proxyWith(fetch: typeof globalThis.fetch, policies: AuthPolicy[] = []):
 
 describe('FetchProxy', () => {
   it('sends cookies and the auth headers of the policy that claims the url', async () => {
-    const fetch = vi.fn().mockResolvedValue(textResponse('<xml/>'))
+    const url = 'https://api.github.com/x'
+    const fetch = vi.fn().mockResolvedValue(textResponse(url, '<xml/>'))
 
-    const response = await proxyWith(fetch, [tokenForApi]).fetchText(
-      'https://api.github.com/x',
-      githubPage,
-    )
+    const response = await proxyWith(fetch, [tokenForApi]).fetchText(url, githubPage)
 
     expect(response).toEqual({ ok: true, text: '<xml/>' })
-    expect(fetch).toHaveBeenCalledWith('https://api.github.com/x', {
+    expect(fetch).toHaveBeenCalledWith(url, {
       credentials: 'include',
       headers: { Authorization: 'Bearer t' },
     })
   })
 
   it('sends no auth header for a same-origin fetch', async () => {
-    const fetch = vi.fn().mockResolvedValue(textResponse(''))
+    const url = 'https://github.com/o/r/raw/a.bpmn'
+    const fetch = vi.fn().mockResolvedValue(textResponse(url, ''))
 
-    await proxyWith(fetch, [tokenForApi]).fetchText('https://github.com/o/r/raw/a.bpmn', githubPage)
+    await proxyWith(fetch, [tokenForApi]).fetchText(url, githubPage)
 
     expect(fetch.mock.calls[0]![1].headers).toBeUndefined()
   })
@@ -53,17 +52,48 @@ describe('FetchProxy', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('refuses every url when the sender page is unknown', async () => {
-    const fetch = vi.fn()
+  it('returns the body of a same-origin redirect', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(textResponse('https://gitlab.com/g/renamed/-/raw/main/a.bpmn', '<xml/>'))
 
-    const response = await proxyWith(fetch).fetchText('https://gitlab.com/x', undefined)
+    const response = await proxyWith(fetch).fetchText(
+      'https://gitlab.com/g/p/-/raw/main/a.bpmn',
+      gitlabPage,
+    )
 
-    expect(response.ok).toBe(false)
-    expect(fetch).not.toHaveBeenCalled()
+    expect(response).toEqual({ ok: true, text: '<xml/>' })
+  })
+
+  it('returns the body of a github.com raw file served from raw.githubusercontent.com', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        textResponse('https://raw.githubusercontent.com/o/r/main/a.bpmn?token=abc', '<xml/>'),
+      )
+
+    const response = await proxyWith(fetch).fetchText(
+      'https://github.com/o/r/raw/main/a.bpmn',
+      githubPage,
+    )
+
+    expect(response).toEqual({ ok: true, text: '<xml/>' })
+  })
+
+  it('refuses the body of a redirect to another origin', async () => {
+    const text = vi.fn()
+    const redirected = { ok: true, status: 200, url: 'https://evil.example/x', text }
+    const fetch = vi.fn().mockResolvedValue(redirected)
+
+    expect(await proxyWith(fetch).fetchText('https://gitlab.com/a', gitlabPage)).toEqual({
+      ok: false,
+      error: 'Refused the redirect of https://gitlab.com/a for this page',
+    })
+    expect(text).not.toHaveBeenCalled()
   })
 
   it('reports HTTP failures with their status', async () => {
-    const fetch = vi.fn().mockResolvedValue(textResponse('', 404))
+    const fetch = vi.fn().mockResolvedValue(textResponse('https://gitlab.com/a', '', 404))
 
     expect(await proxyWith(fetch).fetchText('https://gitlab.com/a', gitlabPage)).toEqual({
       ok: false,

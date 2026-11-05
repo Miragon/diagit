@@ -21,3 +21,13 @@ export function originToPattern(origin: string): string {
 export function patternToOrigin(pattern: string): string | null {
   return CONCRETE_ORIGIN_PATTERN.exec(pattern)?.[1] ?? null
 }
+
+export function webOrigin(url: string): string | null {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null
+    return parsed.origin
+  } catch {
+    return null
+  }
+}

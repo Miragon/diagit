@@ -12,14 +12,17 @@ export class FetchProxy {
     private readonly fetch: Fetch = (...args) => globalThis.fetch(...args),
   ) {}
 
-  async fetchText(url: string, pageUrl: string | undefined): Promise<FetchTextResponse> {
-    const grant = pageUrl ? this.scope.grantFor(pageUrl, url) : null
+  async fetchText(url: string, pageOrigin: string): Promise<FetchTextResponse> {
+    const grant = this.scope.grantFor(pageOrigin, url)
     if (!grant) return { ok: false, error: `Refused to fetch ${url} for this page` }
     try {
       const response = await this.fetch(url, {
         credentials: 'include',
         headers: grant.withAuth ? await this.authHeadersFor(url) : undefined,
       })
+      if (!this.scope.allowsResponseFrom(pageOrigin, response.url)) {
+        return { ok: false, error: `Refused the redirect of ${url} for this page` }
+      }
       if (!response.ok) {
         return { ok: false, error: `HTTP ${response.status} for ${url}`, status: response.status }
       }
