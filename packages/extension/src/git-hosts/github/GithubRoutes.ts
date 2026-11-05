@@ -16,6 +16,7 @@ export const GITHUB_PUBLIC_ORIGIN = 'https://github.com'
 const GITHUB_PUBLIC_HOSTNAME = 'github.com'
 export const GITHUB_PUBLIC_API = 'https://api.github.com'
 export const GITHUB_RAW_CONTENT_ORIGIN = 'https://raw.githubusercontent.com'
+export const GITHUB_RAW_FILE_PATH = /^\/[^/]+\/[^/]+\/raw\//
 const ENTERPRISE_API_PATH = '/api/v3'
 
 const PULL_REQUEST_PATH = /^\/([^/]+)\/([^/]+)\/pull\/(\d+)/

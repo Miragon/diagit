@@ -17,6 +17,10 @@ function textResponse(url: string, text: string, status = 200): Response {
   return { ok: status < 400, status, url, text: async () => text } as unknown as Response
 }
 
+function opaqueRedirect(url: string): Response {
+  return { type: 'opaqueredirect', ok: false, status: 0, url, text: vi.fn() } as unknown as Response
+}
+
 function proxyWith(fetch: typeof globalThis.fetch, policies: AuthPolicy[] = []): FetchProxy {
   return new FetchProxy(policies, new FetchScope(), fetch)
 }
@@ -32,6 +36,7 @@ describe('FetchProxy', () => {
     expect(fetch).toHaveBeenCalledWith(url, {
       credentials: 'include',
       headers: { Authorization: 'Bearer t' },
+      redirect: 'manual',
     })
   })
 
@@ -54,20 +59,21 @@ describe('FetchProxy', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('returns the body of a same-origin redirect', async () => {
-    const fetch = vi
-      .fn()
-      .mockResolvedValue(textResponse('https://gitlab.com/g/renamed/-/raw/main/a.bpmn', '<xml/>'))
+  it('refuses a redirect without following it', async () => {
+    const url = 'https://gitlab.com/g/p/-/raw/main/a.bpmn'
+    const redirect = opaqueRedirect(url)
+    const fetch = vi.fn().mockResolvedValue(redirect)
 
-    const response = await proxyWith(fetch).fetchText(
-      'https://gitlab.com/g/p/-/raw/main/a.bpmn',
-      gitlabPage,
-    )
-
-    expect(response).toEqual({ ok: true, text: '<xml/>' })
+    expect(await proxyWith(fetch).fetchText(url, gitlabPage)).toEqual({
+      ok: false,
+      error: `Refused the redirect of ${url} for this page`,
+    })
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(fetch.mock.calls[0]![1].redirect).toBe('manual')
+    expect(redirect.text).not.toHaveBeenCalled()
   })
 
-  it('returns the body of a github.com raw file served from raw.githubusercontent.com', async () => {
+  it('follows a github.com raw file to raw.githubusercontent.com', async () => {
     const fetch = vi
       .fn()
       .mockResolvedValue(
@@ -80,16 +86,18 @@ describe('FetchProxy', () => {
     )
 
     expect(response).toEqual({ ok: true, text: '<xml/>' })
+    expect(fetch.mock.calls[0]![1].redirect).toBe('follow')
   })
 
-  it('refuses the body of a redirect to another origin', async () => {
+  it('refuses the body of a followed redirect that ends on another origin', async () => {
+    const url = 'https://github.com/o/r/raw/main/a.bpmn'
     const text = vi.fn()
     const redirected = { ok: true, status: 200, url: 'https://evil.example/x', text }
     const fetch = vi.fn().mockResolvedValue(redirected)
 
-    expect(await proxyWith(fetch).fetchText('https://gitlab.com/a', gitlabPage)).toEqual({
+    expect(await proxyWith(fetch).fetchText(url, githubPage)).toEqual({
       ok: false,
-      error: 'Refused the redirect of https://gitlab.com/a for this page',
+      error: `Refused the redirect of ${url} for this page`,
     })
     expect(text).not.toHaveBeenCalled()
   })
@@ -107,10 +115,12 @@ describe('FetchProxy', () => {
     expect(fetch).toHaveBeenNthCalledWith(1, url, {
       credentials: 'include',
       headers: { Authorization: 'Bearer t' },
+      redirect: 'manual',
     })
     expect(fetch).toHaveBeenNthCalledWith(2, url, {
       credentials: 'include',
       headers: { Authorization: 'Bearer renewed' },
+      redirect: 'manual',
     })
   })
 

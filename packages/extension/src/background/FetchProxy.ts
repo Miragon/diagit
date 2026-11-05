@@ -1,7 +1,7 @@
 import type { AuthPolicy } from '../git-hosts/GitHost'
 import type { FetchTextResponse } from '../platform/messaging/messages'
 import { errorMessage } from '../platform/utils/errorMessage'
-import type { FetchScope } from './FetchScope'
+import type { FetchGrant, FetchScope } from './FetchScope'
 
 type Fetch = typeof fetch
 
@@ -18,8 +18,11 @@ export class FetchProxy {
     const grant = this.scope.grantFor(pageOrigin, url)
     if (!grant) return { ok: false, error: `Refused to fetch ${url} for this page` }
     try {
-      const response = await this.fetchAuthorized(url, grant.withAuth)
-      if (!this.scope.allowsResponseFrom(pageOrigin, response.url)) {
+      const response = await this.fetchAuthorized(url, grant)
+      if (
+        response.type === 'opaqueredirect' ||
+        !this.scope.allowsResponseFrom(pageOrigin, response.url)
+      ) {
         return { ok: false, error: `Refused the redirect of ${url} for this page` }
       }
       if (!response.ok) {
@@ -31,16 +34,21 @@ export class FetchProxy {
     }
   }
 
-  private async fetchAuthorized(url: string, withAuth: boolean): Promise<Response> {
-    const headers = withAuth ? await this.authHeadersFor(url) : undefined
-    const response = await this.send(url, headers)
+  private async fetchAuthorized(url: string, grant: FetchGrant): Promise<Response> {
+    const redirect = grant.followsRedirects ? 'follow' : 'manual'
+    const headers = grant.withAuth ? await this.authHeadersFor(url) : undefined
+    const response = await this.send(url, redirect, headers)
     if (response.status !== UNAUTHORIZED || !headers) return response
     const renewedHeaders = await this.renewedAuthHeadersFor(url, headers)
-    return renewedHeaders ? this.send(url, renewedHeaders) : response
+    return renewedHeaders ? this.send(url, redirect, renewedHeaders) : response
   }
 
-  private send(url: string, headers: HeadersInit | undefined): Promise<Response> {
-    return this.fetch(url, { credentials: 'include', headers })
+  private send(
+    url: string,
+    redirect: RequestRedirect,
+    headers: HeadersInit | undefined,
+  ): Promise<Response> {
+    return this.fetch(url, { credentials: 'include', headers, redirect })
   }
 
   private async authHeadersFor(url: string): Promise<HeadersInit | undefined> {
