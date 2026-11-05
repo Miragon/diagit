@@ -44,12 +44,29 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # On a real release, build the store bundles and attach them to the GitHub
+  # Human approval gate. The `release` environment has a required reviewer, so
+  # the pipeline pauses here until the deployment is approved — nothing is
+  # packaged or published before that. Runs for a real release, or for a manual
+  # re-publish (workflow_dispatch, dry_run unchecked). A dry run only builds and
+  # lints in verify-bundles, so it needs no approval.
+  gate:
+    name: Await release approval
+    needs: release-please
+    if: >-
+      needs.release-please.outputs.releases_created == 'true' ||
+      (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Approved
+        run: echo "Release approved — proceeding to package and publish."
+
+  # On an approved release, build the store bundles and attach them to the GitHub
   # release. Publishing to the Chrome Web Store / AMO / Edge is intentionally a
   # separate, secret-gated step so this pipeline works
   # out of the box without any store credentials.
   package:
-    needs: release-please
+    needs: [release-please, gate]
     if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -108,18 +125,18 @@ jobs:
           ls -la packages/extension/.output/*.zip
           npm run lint:webext -w @diagit/extension
 
-  # Real upload to the stores, reviewer-gated via the `store-publishing`
-  # environment. Runs on its own after a release was packaged, or manually
-  # (workflow_dispatch, dry_run unchecked) to re-publish an existing release.
+  # Real upload to the stores, after the `gate` approval. Runs on its own after a
+  # release was packaged, or manually (workflow_dispatch, dry_run unchecked) to
+  # re-publish an existing release.
   # Always ships the bundles attached to the GitHub release of the tag, never a
   # fresh build of main. Each store runs only when its secrets exist, so
   # unconfigured stores (e.g. Edge before you have its keys) are skipped, and a
   # failing store does not stop the others — the job still ends red.
   # Add the credentials to the `store-publishing` environment.
   publish:
-    needs: [release-please, package]
+    needs: [release-please, gate, package]
     if: >-
-      !cancelled() && (
+      !cancelled() && needs.gate.result == 'success' && (
         (github.event_name == 'push' && needs.package.result == 'success') ||
         (github.event_name == 'workflow_dispatch' && inputs.dry_run == false && needs.package.result != 'failure')
       )
