@@ -17,7 +17,7 @@ export class BpmnViewer implements DiffableViewer {
       moddleExtensions: { camunda: camundaModdle },
     })
     viewer.on('import.parse.complete', ({ error, definitions }) => {
-      if (!error) dropInvalidDiColors(definitions, (value) => CSS.supports('color', value))
+      if (!error) dropInvalidDiColors(definitions)
     })
     try {
       await viewer.importXML(xml)

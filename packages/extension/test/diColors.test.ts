@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dropInvalidDiColors } from '../src/notations/bpmn/utils/diColors'
+import { dropInvalidDiColors, isSafeDiColor } from '../src/notations/bpmn/utils/diColors'
 
 class FakeDiElement {
   constructor(
@@ -16,8 +16,6 @@ class FakeDiElement {
   }
 }
 
-const isColorWithoutUrl = (value: string) => value !== '' && !value.includes('url(')
-
 const definitionsWith = (...planeElement: FakeDiElement[]) => ({
   diagrams: [{ plane: { planeElement } }],
 })
@@ -30,9 +28,11 @@ describe('dropInvalidDiColors', () => {
       'color:background-color': 'url(https://attacker.example/background.svg#a)',
       'color:border-color': 'blue',
     })
-    const edge = new FakeDiElement({ 'bioc:stroke': 'url(https://attacker.example/edge.svg#a)' })
+    const edge = new FakeDiElement({
+      'bioc:stroke': 'var(--missing, url(https://attacker.example/edge.svg#a))',
+    })
 
-    dropInvalidDiColors(definitionsWith(shape, edge), isColorWithoutUrl)
+    dropInvalidDiColors(definitionsWith(shape, edge))
 
     expect(shape.attributes).toEqual({
       'bioc:fill': undefined,
@@ -47,7 +47,7 @@ describe('dropInvalidDiColors', () => {
     const label = new FakeDiElement({ 'color:color': 'url(https://attacker.example/label.svg#a)' })
     const shape = new FakeDiElement({}, label)
 
-    dropInvalidDiColors(definitionsWith(shape), isColorWithoutUrl)
+    dropInvalidDiColors(definitionsWith(shape))
 
     expect(label.attributes).toEqual({ 'color:color': undefined })
   })
@@ -61,13 +61,46 @@ describe('dropInvalidDiColors', () => {
       ],
     }
 
-    dropInvalidDiColors(definitions, isColorWithoutUrl)
+    dropInvalidDiColors(definitions)
 
     expect(subProcessShape.attributes).toEqual({ 'bioc:fill': undefined })
   })
 
   it('accepts definitions without diagrams or planes', () => {
-    expect(() => dropInvalidDiColors({}, isColorWithoutUrl)).not.toThrow()
-    expect(() => dropInvalidDiColors({ diagrams: [{}] }, isColorWithoutUrl)).not.toThrow()
+    expect(() => dropInvalidDiColors({})).not.toThrow()
+    expect(() => dropInvalidDiColors({ diagrams: [{}] })).not.toThrow()
+  })
+})
+
+describe('isSafeDiColor', () => {
+  it.each([
+    '#abc',
+    '#abcd',
+    '#aabbcc',
+    '#aabbcc80',
+    'red',
+    'transparent',
+    'rgb(1, 2, 3)',
+    'rgba(1,2,3,0.5)',
+    'hsl(120 50% 50% / 0.3)',
+    'hsla(120, 50%, 50%, -0.3)',
+  ])('accepts the colour %s', (value) => {
+    expect(isSafeDiColor(value)).toBe(true)
+  })
+
+  it.each([
+    'url(https://attacker.example/x.svg#a)',
+    'var(--a, url(https://attacker.example/x.svg#a))',
+    'env(a, url(https://attacker.example/x.svg#a))',
+    'attr(x)',
+    'if(media(print): red; else: url(x))',
+    'red url(x)',
+    'image(url(x))',
+    'rgb(var(--a))',
+    'rgb(1, 2, 3) url(x)',
+    '#abcde',
+    '',
+  ])('rejects %s', (value) => {
+    expect(isSafeDiColor(value)).toBe(false)
   })
 })
