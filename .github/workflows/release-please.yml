@@ -48,8 +48,9 @@ jobs:
   # packaged or published before that. Runs for a real release, or for a manual
   # re-publish (workflow_dispatch, dry_run unchecked). A dry run only builds and
   # lints in verify-bundles, so it needs no approval. A rejected release stays
-  # a draft without bundles, so a later re-publish fails; recover with "Re-run
-  # failed jobs" on the original run instead.
+  # a draft without bundles: a re-publish naming its tag fails, and one without
+  # a tag picks the latest published release instead. Recover with "Re-run
+  # failed jobs" on the original run.
   gate:
     name: Await release approval
     needs: release-please
