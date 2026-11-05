@@ -56,9 +56,12 @@ describe('FetchScope.grantFor (which urls a page may have fetched)', () => {
 })
 
 describe('FetchScope.grantFor (which fetches may follow redirects)', () => {
-  it('lets a github.com raw file follow its redirect', () => {
+  it('lets a raw file of the page origin follow its redirect', () => {
     expect(
       scope.grantFor('https://github.com', 'https://github.com/o/r/raw/main/a.bpmn?plain=1'),
+    ).toEqual({ withAuth: false, followsRedirects: true })
+    expect(
+      scope.grantFor('https://ghe.corp.example', 'https://ghe.corp.example/o/r/raw/main/a.bpmn'),
     ).toEqual({ withAuth: false, followsRedirects: true })
   })
 
@@ -70,9 +73,6 @@ describe('FetchScope.grantFor (which fetches may follow redirects)', () => {
       withAuth: true,
       followsRedirects: false,
     })
-    expect(
-      scope.grantFor('https://ghe.corp.example', 'https://ghe.corp.example/o/r/raw/main/a.bpmn'),
-    ).toEqual({ withAuth: false, followsRedirects: false })
     expect(
       scope.grantFor('https://gitlab.com', 'https://gitlab.com/g/p/-/raw/main/a.bpmn'),
     ).toEqual({ withAuth: false, followsRedirects: false })
