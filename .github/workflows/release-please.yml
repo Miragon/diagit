@@ -18,9 +18,8 @@ on:
         options: [all, chrome, edge, firefox]
         default: all
 
-permissions:
-  contents: write
-  pull-requests: write
+# No permissions by default; each job asks for what it needs.
+permissions: {}
 
 jobs:
   release-please:
@@ -75,6 +74,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -107,8 +108,12 @@ jobs:
   verify-bundles:
     if: github.event_name == 'workflow_dispatch' && inputs.dry_run
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
