@@ -31,4 +31,5 @@ These are accepted risks, not vulnerabilities:
   contexts, including its content scripts, can read. It is never sent anywhere
   but `api.github.com`.
 - **Self-hosted over `http:`.** Self-hosted instances can be added with an
-  `http:` address, which sends your session cookies in clear text. Use `https:`.
+  `http:` address. Diagit's requests to it then carry your session cookies
+  unencrypted, as the page itself does. Use `https:`.

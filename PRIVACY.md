@@ -17,8 +17,9 @@ servers operated by us.
   File contents are fetched **directly from the git host you are viewing** (on
   github.com, raw files are served from `raw.githubusercontent.com`), using your
   existing browser session (so private repositories work). For pull-request and
-  commit diffs on github.com, the list of changed files comes from GitHub's API
-  at `api.github.com`. Nothing is sent anywhere else.
+  commit diffs on github.com, the list of changed files and the commits to
+  compare come from GitHub's API at `api.github.com`. Nothing is sent anywhere
+  else.
 - The standalone viewer reads files you drop into it locally, in the browser. They
   never leave your machine.
 
@@ -34,9 +35,11 @@ leaves your browser:
   the options page (via GitHub's device flow — no token to paste by hand); the
   extension never sees a client secret. It is sent **only** to `api.github.com`
   (never to any other host) to authenticate the diff-metadata requests and to
-  show which account you connected, and only if you choose to connect. Disconnecting in the options page removes it from
-  your browser; the GitHub App itself stays installed and authorised on GitHub
-  until you uninstall it and revoke its authorisation in your GitHub settings.
+  show which account you connected, and only if you choose to connect. Your
+  GitHub username is stored alongside it. Disconnecting in the options page
+  removes both from your browser; the GitHub App itself stays installed and
+  authorised on GitHub until you uninstall it and revoke its authorisation in
+  your GitHub settings.
 
 ## Permissions
 
@@ -49,8 +52,8 @@ leaves your browser:
   self-hosted domain you grant) — required to read and render diagram files on
   those sites. Access to other sites is only ever requested when you add them.
 - `api.github.com` — used only for pull-request and commit diffs on github.com.
-  Public repositories are read without a token; the optional GitHub access token
-  described above is attached only if you connected.
+  Public repositories work without a token; once you connect, the token is
+  attached to every request to `api.github.com`.
 
 ## Contact
 
