@@ -16,3 +16,19 @@ This is a client-side browser extension. It ships no remote code (all
 dependencies, including bpmn-js, are bundled) and requests the minimum
 permissions needed. Relevant concerns include: content-script injection,
 permission escalation, and handling of untrusted `.bpmn` XML.
+
+## Known limitations
+
+These are accepted risks, not vulnerabilities:
+
+- **Device-code phishing.** Connecting GitHub uses the device flow with a public
+  client ID, so anyone can start a code prompt in Diagit's name and ask you to
+  enter it. The impact is limited: the GitHub App is read-only (contents,
+  metadata, pull requests) and only reaches repositories it is installed on.
+  Only enter a code you requested yourself from the Diagit options page.
+- **Token storage.** The GitHub access token is stored unencrypted in the
+  browser's extension storage (`storage.local`), which the extension's own
+  contexts, including its content scripts, can read. It is never sent anywhere
+  but `api.github.com`.
+- **Self-hosted over `http:`.** Self-hosted instances can be added with an
+  `http:` address, which sends your session cookies in clear text. Use `https:`.
