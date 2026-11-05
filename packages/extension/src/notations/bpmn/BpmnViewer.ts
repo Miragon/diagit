@@ -5,6 +5,7 @@ import { fitWithPadding } from '../../platform/utils/fitWithPadding'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import type { DiffableViewer } from '../Notation'
 import { TransactionBoundaryOverlays } from './transaction-boundaries/TransactionBoundaryOverlays'
+import { dropInvalidDiColors } from './utils/diColors'
 
 export class BpmnViewer implements DiffableViewer {
   static async create(canvas: HTMLElement, xml: string): Promise<BpmnViewer> {
@@ -14,6 +15,9 @@ export class BpmnViewer implements DiffableViewer {
       bpmnRenderer: { defaultStrokeColor: stroke, defaultFillColor: fill },
       zoomScroll: { enabled: false },
       moddleExtensions: { camunda: camundaModdle },
+    })
+    viewer.on('import.parse.complete', ({ error, definitions }) => {
+      if (!error) dropInvalidDiColors(definitions)
     })
     try {
       await viewer.importXML(xml)
