@@ -21,7 +21,7 @@ vi.mock('wxt/browser', () => {
 
 function startedWorker(): void {
   const access = { restoreOnStartup: () => Promise.resolve() }
-  new BackgroundWorker(access as never, {} as never, {} as never, {} as never).start()
+  new BackgroundWorker(access as never, {} as never, {} as never, {} as never, {} as never).start()
 }
 
 describe('BackgroundWorker.start', () => {
