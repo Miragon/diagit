@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://github.com/Miragon/diagit/compare/v0.2.1...v0.3.0) (2026-11-05)
+
+
+### Features
+
+* **extension:** refresh expiring GitHub App user tokens ([#112](https://github.com/Miragon/diagit/issues/112)) ([b683f5a](https://github.com/Miragon/diagit/commit/b683f5a91f708d3896737383a0d8b1d6d09c4596)), closes [#103](https://github.com/Miragon/diagit/issues/103)
+* **extension:** use the Miragon comet as extension icon ([#93](https://github.com/Miragon/diagit/issues/93)) ([d90e627](https://github.com/Miragon/diagit/commit/d90e6270c75de05da6cb3e77af7fc9f5bea8c413))
+* rename to Diagit and render the Miragon notations ([#81](https://github.com/Miragon/diagit/issues/81)) ([2904322](https://github.com/Miragon/diagit/commit/2904322ed0c71e82e5498697915db755e0e636f6))
+* render Excalidraw diagrams inline ([#87](https://github.com/Miragon/diagit/issues/87)) ([74062f3](https://github.com/Miragon/diagit/commit/74062f35989fcb890f70c14525783166e068a9de))
+* show Camunda 7 transaction boundaries and diff async continuations ([#84](https://github.com/Miragon/diagit/issues/84)) ([bfac53e](https://github.com/Miragon/diagit/commit/bfac53ef4184faa23a213d8c0aad16a6e5383ba8))
+
+
+### Bug Fixes
+
+* **extension:** only proxy fetches to the sender tab's origin ([#111](https://github.com/Miragon/diagit/issues/111)) ([68ab5ac](https://github.com/Miragon/diagit/commit/68ab5aca970c8de54d868a5393baacd443ac5ce6))
+* **extension:** point GitHub App install link to miragon-diagit ([#95](https://github.com/Miragon/diagit/issues/95)) ([d104d39](https://github.com/Miragon/diagit/commit/d104d3939872da0218784f1c5cf17090f7c3a85a))
+* **extension:** refuse redirects in the background fetch and add a CSP for extension pages ([#120](https://github.com/Miragon/diagit/issues/120)) ([f67778c](https://github.com/Miragon/diagit/commit/f67778c41cbd56e85b9802d8fd270927050fbb38)), closes [#115](https://github.com/Miragon/diagit/issues/115)
+* **extension:** show permission errors on a bundled page ([#110](https://github.com/Miragon/diagit/issues/110)) ([f27b817](https://github.com/Miragon/diagit/commit/f27b817f783468875a060c179ae18c817318245d)), closes [#104](https://github.com/Miragon/diagit/issues/104)
+* **extension:** stop untrusted diagrams from loading external URLs ([#121](https://github.com/Miragon/diagit/issues/121)) ([c3b4147](https://github.com/Miragon/diagit/commit/c3b4147d5193a0734586dc9a9226dc0f31ef734f))
+* **extension:** strip third-party widget scripts from the Excalidraw bundle ([#94](https://github.com/Miragon/diagit/issues/94)) ([a4ca8c0](https://github.com/Miragon/diagit/commit/a4ca8c0f67dd9e755944a6db6be74c006276c0b4))
+
 ## [0.2.1](https://github.com/emaarco/bpmn-io-browser-plugin/compare/v0.2.0...v0.2.1) (2026-10-05)
 
 

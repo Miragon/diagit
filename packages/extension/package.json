@@ -1,6 +1,6 @@
 {
   "name": "@diagit/extension",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "description": "Diagram viewer & diff browser extension (Chrome, Edge, Firefox) for GitLab & GitHub.",
   "type": "module",
