@@ -95,7 +95,7 @@ export default defineConfig({
   manifest: ({ command }) => ({
     name: 'Diagit',
     description:
-      'Render BPMN, DMN, Wardley Maps, Team Topologies, Event Storming, Excalidraw & more on GitHub & GitLab, with before/after diffs.',
+      'See diagram files as diagrams on GitHub and GitLab, and review model changes in pull requests as a visual before/after diff.',
     permissions: ['scripting', 'storage', 'contextMenus', 'activeTab'],
     action: {
       default_icon: {
