@@ -8,7 +8,7 @@
 > Value Chains and Excalidraw) on GitLab and GitHub — and shows a **visual before/after diff** in
 > merge and pull requests.
 
-![On a GitHub pull request, the changed .bpmn file switches from the plain diagram to a before/after diff, then steps through the added, changed and moved elements](assets/demo.gif)
+![On a GitHub pull request, the changed .bpmn file switches from the plain diagram to a before/after diff, then steps to the added Review result task and back to all changes](assets/demo.gif)
 
 ## Why
 
@@ -44,6 +44,8 @@ Tampermonkey userscripts, now reworked into a tested, store-ready extension.
   serves its API from a separate origin (`api.github.com`) your login cookie can't
   reach. No token to create by hand — the app grants read-only access to just the
   repos you install it on.
+
+![On a GitHub file page, Diagit draws the order-to-cash process with its three lanes above the BPMN source](assets/inline-viewer.png)
 
 ## Supported notations
 
