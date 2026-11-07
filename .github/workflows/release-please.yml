@@ -230,17 +230,15 @@ jobs:
       - name: Publish to Chrome Web Store
         if: ${{ !cancelled() && steps.stores.outputs.chrome == 'true' }}
         env:
-          CHROME_ID: ${{ secrets.CHROME_ID }}
-          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          EXTENSION_ID: ${{ secrets.CHROME_ID }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
         working-directory: packages/extension
         run: |
-          npm exec --no -- chrome-webstore-upload upload \
-            --source "$(ls "$GITHUB_WORKSPACE"/bundles/*-chrome.zip | head -n1)" \
-            --extension-id "$CHROME_ID" --client-id "$CHROME_CLIENT_ID" \
-            --client-secret "$CHROME_CLIENT_SECRET" --refresh-token "$CHROME_REFRESH_TOKEN" \
-            --auto-publish
+          npm exec --no -- chrome-webstore-upload \
+            --source "$(ls "$GITHUB_WORKSPACE"/bundles/*-chrome.zip | head -n1)"
 
       - name: Publish to Edge Add-ons
         if: ${{ !cancelled() && steps.stores.outputs.edge == 'true' }}
