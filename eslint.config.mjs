@@ -58,6 +58,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ['.miragon/**/*.mjs'],
+    languageOptions: {
+      globals: { document: 'readonly', scrollBy: 'readonly', innerHeight: 'readonly' },
+    },
+  },
+  {
     // CommonJS config files (dependency-cruiser).
     files: ['**/*.cjs'],
     languageOptions: {

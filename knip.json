@@ -6,5 +6,5 @@
       "ignoreDependencies": ["@wdio/local-runner"]
     }
   },
-  "ignore": ["docs/**"]
+  "ignore": ["docs/**", ".miragon/**"]
 }

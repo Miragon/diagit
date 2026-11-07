@@ -1,0 +1,49 @@
+{
+  "skillVersion": "1.28.0",
+  "products": [
+    {
+      "id": "diagit",
+      "target": "web",
+      "store": "browser-extension",
+      "label": "Browser extension",
+      "title": "Diagit",
+      "claim": "Diagrams and their changes, right on GitHub and GitLab.",
+      "icon": "packages/extension/public/icon/icon.svg",
+      "out": "assets/store",
+      "web": {
+        "url": "https://github.com/Miragon/",
+        "viewport": "1280x706",
+        "extension": "packages/extension/.output/chrome-mv3"
+      },
+      "recipe": ".miragon/diagit-recipe.mjs",
+      "shots": {
+        "hero": {
+          "path": "process-documentation-starter/blob/main/processes/order-to-cash.bpmn",
+          "journey": ".miragon/journeys/show-diagram.mjs"
+        },
+        "gallery": [
+          {
+            "name": "pull-request-diff",
+            "path": "diagit/pull/12/files",
+            "journey": ".miragon/journeys/show-diff.mjs"
+          },
+          {
+            "name": "wardley-map",
+            "path": "modeler-suite/blob/main/modelers/wardley-maps/plugins/wardley-maps-modeler/skills/wardley-mapping/examples/online-grocery/online-grocery.wmap",
+            "journey": ".miragon/journeys/show-diagram.mjs"
+          },
+          {
+            "name": "event-storming",
+            "path": "modeler-suite/blob/main/modelers/event-storming/example/order-checkout.storm",
+            "journey": ".miragon/journeys/show-diagram.mjs"
+          },
+          {
+            "name": "team-topologies",
+            "path": "modeler-suite/blob/main/modelers/team-topologies/plugins/team-topologies-modeler/skills/tt-format/examples/ride-hailing.tt",
+            "journey": ".miragon/journeys/show-diagram.mjs"
+          }
+        ]
+      }
+    }
+  ]
+}
