@@ -55,6 +55,12 @@
   margin-top: 2px;
 }
 
+.git-diagram-error-report {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--cd-ui-link);
+}
+
 .git-diagram-error-detail {
   margin-top: 6px;
   color: var(--fg-muted);

@@ -12,7 +12,7 @@ export interface PanelHandle {
 export interface ShadowPanelOptions<Handle extends PanelHandle> {
   name: string
   anchor: HTMLElement
-  append: 'first' | 'last' | 'before'
+  append: 'first' | 'last' | 'before' | 'after'
   css: string
   render: (container: HTMLElement) => Handle
 }

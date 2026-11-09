@@ -9,6 +9,7 @@ export const gitlabSelectors = {
     insertClimb: '.file-holder',
   },
   diff: {
+    regionsThatOnlyMentionFiles: '.diff-tree-list, .md',
     fileRoot: '.diff-file, [data-testid="file-holder"], diff-file',
     pathAttr: '[data-path]',
     rapidDiffFileData: 'data-file-data',

@@ -10,24 +10,28 @@ export class GithubDiffScanner {
   constructor(private readonly notations: NotationDetector = notationDetector) {}
 
   scan(doc: Document): ChangedFile[] {
-    const files: ChangedFile[] = []
-    const seen = new Set<HTMLElement>()
-    for (const root of this.fileRoots(doc)) {
-      if (seen.has(root)) continue
-      seen.add(root)
-      const path = this.filePathOf(root)
-      if (!path || !this.notations.isDiffable(path)) continue
+    return this.diagramFileRoots(doc).flatMap(({ root, path }) => {
       const code = this.codeOf(root)
-      if (!code) continue
-      files.push({
+      if (!code) return []
+      return {
         path,
         anchor: code,
-        append: 'before',
+        append: 'before' as const,
         fileRoot: root,
         isCollapsed: () => !isRendered(this.codeOf(root)),
-      })
-    }
-    return files
+      }
+    })
+  }
+
+  recognizedPaths(doc: Document): string[] {
+    return this.diagramFileRoots(doc).map(({ path }) => path)
+  }
+
+  private diagramFileRoots(doc: Document): { root: HTMLElement; path: string }[] {
+    return [...new Set(this.fileRoots(doc))].flatMap((root) => {
+      const path = this.filePathOf(root)
+      return path && this.notations.isDiffable(path) ? { root, path } : []
+    })
   }
 
   private fileRoots(doc: Document): HTMLElement[] {

@@ -7,6 +7,10 @@ export class GithubCommitPage extends GithubDiffPage<CommitRef> {
     return this.routes.commit(location)
   }
 
+  showsDiffs(): boolean {
+    return true
+  }
+
   load(location: Location, page: CommitRef): Promise<GithubDiffData> {
     return this.api.loadCommit(location, page)
   }

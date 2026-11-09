@@ -4,6 +4,7 @@ export const githubSelectors = {
     insertClimb: 'section',
   },
   diff: {
+    regionsThatOnlyMentionFiles: '.markdown-body',
     fileRootLegacy: '.file[data-tagsearch-path], .js-file',
     diffHeaderWrapper: '[data-diff-header-wrapper]',
     modernRootClimb: 'div[id^="diff-"]',

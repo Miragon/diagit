@@ -20,6 +20,7 @@ export const GITHUB_RAW_FILE_PATH = /^\/[^/]+\/[^/]+\/raw\//
 const ENTERPRISE_API_PATH = '/api/v3'
 
 const PULL_REQUEST_PATH = /^\/([^/]+)\/([^/]+)\/pull\/(\d+)/
+const PULL_REQUEST_DIFFS_PATH = /^\/[^/]+\/[^/]+\/pull\/\d+\/(files|changes)/
 const COMMIT_PATH = /^\/([^/]+)\/([^/]+)\/commit\/([0-9a-fA-F]{7,64})/
 
 export class GithubRoutes {
@@ -28,6 +29,10 @@ export class GithubRoutes {
     if (!match) return null
     const [, owner, repo, number] = match
     return { owner: owner!, repo: repo!, number: number!, key: `${owner}/${repo}!${number}` }
+  }
+
+  pullRequestDiffs(location: Pick<Location, 'pathname'>): boolean {
+    return PULL_REQUEST_DIFFS_PATH.test(location.pathname)
   }
 
   commit(location: Pick<Location, 'pathname'>): CommitRef | null {

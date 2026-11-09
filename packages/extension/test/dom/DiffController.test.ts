@@ -28,6 +28,7 @@ function sourceShowing(
 ): DiffSource {
   return {
     pageKey: () => 'octo/flows!1',
+    unrecognizedFiles: async () => [],
     async collect() {
       const code = fileRoot.querySelector<HTMLElement>('.code')!
       await metadata
@@ -100,6 +101,7 @@ describe('DiffController', () => {
     const code = fileRoot.querySelector<HTMLElement>('.code')!
     const failing: DiffSource = {
       pageKey: () => 'octo/flows!1',
+      unrecognizedFiles: async () => [],
       collect: async () => {
         throw new DiffDataError('HTTP 404', 'Connect the app.', [
           {
@@ -116,5 +118,87 @@ describe('DiffController', () => {
     start(failing)
 
     await vi.waitFor(() => expect(code.previousElementSibling?.localName).toBe(DIFF_ERROR_TAG))
+  })
+
+  describe('a changed diagram file whose diff view Diagit does not recognise', () => {
+    afterEach(async () => {
+      context.invalidate()
+      await untilRerunStarted()
+    })
+
+    function sourceMissing(
+      path: string,
+      isRecognized = () => false,
+      pageKey = (): string | null => 'octo/flows!1',
+    ): DiffSource {
+      return {
+        pageKey,
+        collect: async () => [],
+        unrecognizedFiles: async () => {
+          const header = document.querySelector<HTMLElement>('.file-header')!
+          return isRecognized() ? [] : [{ path, header }]
+        },
+      }
+    }
+
+    const changedFileHtml = `
+      <section class="changed-file">
+        <div class="file-header"><span><a>flows/order.bpmn</a></span></div>
+        <table class="lines"></table>
+      </section>`
+
+    function render(html: string): void {
+      document.body.innerHTML = html
+    }
+
+    it('shows an error notice right after the visible file header', async () => {
+      render(changedFileHtml)
+
+      start(sourceMissing('flows/order.bpmn'))
+
+      const header = document.querySelector('.file-header')!
+      await vi.waitFor(() => expect(header.nextElementSibling?.localName).toBe(DIFF_ERROR_TAG))
+    })
+
+    it('shows the notice only once while the page keeps changing', async () => {
+      render(changedFileHtml)
+      start(sourceMissing('flows/order.bpmn'))
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).not.toBeNull())
+
+      document.body.append(document.createElement('div'))
+      await untilRerunStarted()
+
+      expect(document.querySelectorAll(DIFF_ERROR_TAG)).toHaveLength(1)
+    })
+
+    it('removes the notice once the file is recognised', async () => {
+      render(changedFileHtml)
+      let recognized = false
+      start(sourceMissing('flows/order.bpmn', () => recognized))
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).not.toBeNull())
+
+      recognized = true
+      document.body.append(document.createElement('div'))
+
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).toBeNull())
+    })
+
+    it('removes the notice when the page is no longer a pull request', async () => {
+      render(changedFileHtml)
+      let pageKey: string | null = 'octo/flows!1'
+      start(
+        sourceMissing(
+          'flows/order.bpmn',
+          () => false,
+          () => pageKey,
+        ),
+      )
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).not.toBeNull())
+
+      pageKey = null
+      document.body.append(document.createElement('div'))
+
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).toBeNull())
+    })
   })
 })

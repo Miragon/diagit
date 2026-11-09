@@ -8,6 +8,7 @@ import { DIFF_ERROR_TAG, DIFF_PANEL_TAG } from '../../platform/injectedElements'
 import type { DiagramDiffer, NotationLookup } from '../../notations/Notation'
 import { diffableNotations } from '../../notations/diffableNotations'
 import { DiffErrorNotice } from './DiffErrorNotice'
+import { UnrecognizedFileNotices } from './UnrecognizedFileNotices'
 import { DiffPanel } from './DiffPanel'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
@@ -20,13 +21,16 @@ const FILE_ROOT_CHANGES: MutationObserverInit = { attributes: true, childList: t
 export class DiffController {
   private readonly mounting = new WeakSet<Element>()
   private readonly erroring = new WeakSet<Element>()
+  private readonly unrecognizedNotices: UnrecognizedFileNotices
 
   constructor(
     private readonly page: HostPage,
     private readonly source: DiffSource,
     private readonly notations: NotationLookup = diffableNotations,
     private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
-  ) {}
+  ) {
+    this.unrecognizedNotices = new UnrecognizedFileNotices(page, notations)
+  }
 
   start(): void {
     this.page.onChange(RERUN_DEBOUNCE_MS, () => void this.run())
@@ -35,7 +39,10 @@ export class DiffController {
 
   private async run(): Promise<void> {
     const { location, document } = this.page
-    if (!this.source.pageKey(location)) return
+    if (!this.source.pageKey(location)) {
+      this.unrecognizedNotices.removeAll()
+      return
+    }
     let blocks: DiffFileBlock[]
     try {
       blocks = await this.source.collect(location, document)
@@ -52,6 +59,12 @@ export class DiffController {
       this.mounting.add(block.fileRoot)
       void this.mount(block, differ).finally(() => this.mounting.delete(block.fileRoot))
     }
+    await this.flagUnrecognizedFiles(location, document)
+  }
+
+  private async flagUnrecognizedFiles(location: Location, doc: Document): Promise<void> {
+    const files = await this.source.unrecognizedFiles(location, doc).catch(() => null)
+    if (files) this.unrecognizedNotices.showOnly(files)
   }
 
   private showErrors(err: DiffDataError): void {
@@ -67,19 +80,12 @@ export class DiffController {
 
   private async mountError(file: ChangedFile, differ: DiagramDiffer, err: DiffDataError) {
     const label = this.notations.detect(file.path)?.descriptor.label ?? 'Diagram'
-    const notice = new DiffErrorNotice({
-      title: `${label} diff unavailable`,
-      message: err.message,
-      hint: err.hint,
-    })
-    const panel = await this.page.mountPanel({
-      name: DIFF_ERROR_TAG,
+    await DiffErrorNotice.mountOn(this.page, {
       anchor: file.anchor,
       append: file.append,
-      css: [differ.css, diffCss].join('\n'),
-      render: (container) => notice.mount(container),
+      css: differ.css,
+      details: { title: `${label} diff unavailable`, message: err.message, hint: err.hint },
     })
-    this.page.onInvalidated(() => panel.remove())
   }
 
   private async mount(block: DiffFileBlock, differ: DiagramDiffer): Promise<void> {
