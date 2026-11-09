@@ -20,6 +20,7 @@ export default defineConfig({
           name: 'dom',
           environment: 'happy-dom',
           include: ['test/dom/**/*.test.ts'],
+          css: { include: [/platform\/theme\/.*\.css/] },
           server: { deps: { inline: [/@miragon\//] } },
         },
       },

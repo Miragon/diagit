@@ -21,7 +21,7 @@ export class DiffErrorNotice implements PanelHandle {
 
   mount(container: HTMLElement): this {
     container.append(this.root)
-    this.root.dataset.theme = detectHostTheme(this.root)
+    this.root.dataset.cdTheme = detectHostTheme(this.root)
     return this
   }
 

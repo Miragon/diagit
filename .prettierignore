@@ -9,3 +9,6 @@ package-lock.json
 CHANGELOG.md
 .context
 docs/.vitepress/miragon
+.miragon/brand-lint
+.miragon/vendored.json
+packages/extension/src/platform/theme/cd-*

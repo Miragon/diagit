@@ -5,8 +5,13 @@ body {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  color: #1f2328;
-  background: #f6f8fa;
+  color: var(--cd-ui-text);
+  background: var(--cd-ui-grund);
+}
+
+code,
+.user-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 #app {
@@ -16,21 +21,34 @@ body {
 }
 
 h1 {
-  font-size: 20px;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.3;
   margin: 0 0 4px;
 }
 
+a {
+  color: var(--cd-ui-link);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--cd-ui-fokus);
+  outline-offset: 2px;
+}
+
 .intro {
-  color: #656d76;
+  color: var(--cd-ui-text-leise);
   font-size: 14px;
   margin: 0 0 20px;
   line-height: 1.5;
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #d0d7de;
-  border-radius: 8px;
+  background: var(--cd-ui-flaeche);
+  border: 1px solid var(--cd-ui-linie);
+  border-radius: var(--cd-radius-md);
   padding: 16px;
   margin-bottom: 20px;
 }
@@ -42,13 +60,18 @@ h1 {
 }
 
 .input {
-  height: 34px;
-  padding: 0 10px;
+  height: 36px;
+  padding: 0 12px;
+  font: inherit;
   font-size: 14px;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  background: #fff;
-  color: #1f2328;
+  border: 1px solid var(--cd-ui-linie);
+  border-radius: var(--cd-radius-md);
+  background: var(--cd-ui-flaeche-hoch);
+  color: var(--cd-ui-text);
+}
+
+.input:hover {
+  border-color: var(--cd-ui-kontur);
 }
 
 .input.origin {
@@ -68,12 +91,8 @@ h1 {
 
 .auth-hint {
   font-size: 14px;
-  color: #656d76;
+  color: var(--cd-ui-text-leise);
   margin: 0 0 12px;
-}
-
-.auth-hint a {
-  color: #0969da;
 }
 
 .auth-removal {
@@ -82,7 +101,7 @@ h1 {
   gap: 12px;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #eaeef2;
+  border-top: 1px solid var(--cd-ui-linie);
 }
 
 .auth-removal .auth-hint {
@@ -99,40 +118,40 @@ h1 {
 
 .user-code {
   flex: 1;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 28px;
   letter-spacing: 4px;
   font-weight: 600;
-  color: #1f2328;
-  background: #eff1f3;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
+  color: var(--cd-ui-text);
+  background: var(--cd-ui-abschnitt);
+  border: 1px solid var(--cd-ui-linie);
+  border-radius: var(--cd-radius-md);
   padding: 12px 16px;
   text-align: center;
   user-select: all;
 }
 
 .intro code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 13px;
-  background: #eff1f3;
+  background: var(--cd-ui-abschnitt);
   padding: 1px 4px;
-  border-radius: 4px;
-}
-
-.intro a {
-  color: #0969da;
+  border-radius: var(--cd-radius-sm);
 }
 
 .btn {
-  height: 34px;
-  padding: 0 14px;
+  height: 36px;
+  padding: 0 16px;
+  font: inherit;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  background: #fff;
-  color: #1f2328;
+  border: 1px solid var(--cd-ui-linie);
+  border-radius: var(--cd-radius-md);
+  background: var(--cd-ui-flaeche-hoch);
+  color: var(--cd-ui-text);
+  transition:
+    background var(--cd-motion-fast) var(--cd-ease),
+    box-shadow var(--cd-motion-fast) var(--cd-ease),
+    transform var(--cd-motion-fast) var(--cd-ease);
 }
 
 a.btn {
@@ -144,22 +163,45 @@ a.btn {
 }
 
 .btn:hover {
-  background: #f3f4f6;
+  border-color: var(--cd-ui-interaktion);
+  background: var(--cd-ui-hover);
+  color: var(--cd-ui-link);
 }
 
 .btn.primary {
-  background: #1f883d;
-  border-color: #1f883d;
-  color: #fff;
+  background: var(--cd-blau);
+  border-color: var(--cd-blau);
+  color: var(--cd-weiss);
+  box-shadow: var(--cd-shadow-1);
 }
 
 .btn.primary:hover {
-  background: #1a7f37;
+  background: var(--cd-blau-link);
+  border-color: var(--cd-blau-link);
+  box-shadow: var(--cd-shadow-2);
+  transform: translateY(-1px);
 }
 
 .btn.danger {
-  color: #d1242f;
-  border-color: #d0d7de;
+  background: var(--cd-danger);
+  border-color: var(--cd-danger);
+  color: var(--cd-weiss);
+}
+
+.btn.danger:hover {
+  background: var(--cd-danger);
+  color: var(--cd-weiss);
+  box-shadow: var(--cd-shadow-2);
+}
+
+.btn:disabled,
+.btn:disabled:hover {
+  background: var(--cd-ui-hover);
+  border-color: var(--cd-ui-linie);
+  color: var(--cd-ui-text-leise);
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
 }
 
 .btn.copy {
@@ -168,8 +210,7 @@ a.btn {
 }
 
 .btn.copy.copied {
-  color: #1a7f37;
-  border-color: #1a7f37;
+  border-color: var(--cd-ui-success);
 }
 
 .status {
@@ -184,12 +225,20 @@ a.btn {
   margin: 0;
 }
 
+/* Status text: danger may be text in both modes, success only on dark. On
+   light, a dot in the status colour carries it and the text stays neutral. */
 .status.error {
-  color: #d1242f;
+  color: var(--cd-ui-danger);
 }
 
-.status.ok {
-  color: #1a7f37;
+.status.ok::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: var(--cd-radius-pill);
+  background: var(--cd-ui-success);
 }
 
 .list {
@@ -203,7 +252,7 @@ a.btn {
   align-items: center;
   gap: 10px;
   padding: 10px 0;
-  border-top: 1px solid #eaeef2;
+  border-top: 1px solid var(--cd-ui-linie);
 }
 
 .list li:first-child {
@@ -218,14 +267,21 @@ a.btn {
 
 .badge {
   font-size: 12px;
+  font-weight: 600;
   padding: 2px 8px;
-  border-radius: 999px;
-  background: #ddf4ff;
-  color: #0969da;
+  border-radius: var(--cd-radius-pill);
+  background: var(--cd-info);
+  color: var(--cd-weiss);
 }
 
 .empty {
-  color: #656d76;
+  color: var(--cd-ui-text-leise);
   font-size: 14px;
   padding: 8px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
 }

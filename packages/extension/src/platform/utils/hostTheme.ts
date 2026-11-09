@@ -1,3 +1,5 @@
+import brandTokens from '../theme/cd-tokens.generated.json' with { type: 'json' }
+
 export type Theme = 'light' | 'dark'
 
 export function detectHostTheme(context?: Element | null): Theme {
@@ -40,32 +42,9 @@ export interface DiagramColors {
   fill: string
 }
 
-const PRIMER_AND_GITLAB_STROKE_TOKENS = [
-  '--fgColor-default',
-  '--color-fg-default',
-  '--gl-text-color',
-]
-const PRIMER_AND_GITLAB_FILL_TOKENS = [
-  '--bgColor-default',
-  '--color-canvas-default',
-  '--gl-background-color',
-]
-
-export function resolveDiagramColors(el: Element): DiagramColors {
-  const dark = detectHostTheme(el) === 'dark'
-  return {
-    stroke: readCssVar(el, PRIMER_AND_GITLAB_STROKE_TOKENS, dark ? '#e6edf3' : '#1f2328'),
-    fill: readCssVar(el, PRIMER_AND_GITLAB_FILL_TOKENS, dark ? '#0d1117' : '#ffffff'),
-  }
-}
-
-function readCssVar(el: Element, names: string[], fallback: string): string {
-  const style = getComputedStyle(el)
-  for (const name of names) {
-    const value = style.getPropertyValue(name).trim()
-    if (value) return value
-  }
-  return fallback
+export function diagramColors(theme: Theme): DiagramColors {
+  const roles = theme === 'dark' ? brandTokens.dunkel : brandTokens.hell
+  return { stroke: roles['--cd-ui-text'], fill: roles['--cd-ui-plot'] }
 }
 
 function readBackground(el: Element | null): [number, number, number] | null {

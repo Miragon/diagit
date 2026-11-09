@@ -1,13 +1,13 @@
 # `@diagit/extension`
 
-> The browser extension (Chrome, Edge, Firefox) — renders **BPMN, DMN, the Miragon notations and Excalidraw inline**
+> The browser extension (Chrome, Edge, Firefox). It renders **BPMN, DMN, the Miragon notations and Excalidraw inline**
 > on GitLab & GitHub and shows a **before/after diff** in pull/merge requests.
 
 ## Why
 
 A process change should be reviewed as a _diagram_, not as a wall of
 `<bpmn:sequenceFlow>`. This is the front-end that puts the real model back where
-the review happens: on the file page and in the PR/MR — no downloads, no context
+the review happens: on the file page and in the PR/MR. No downloads, no context
 switch to a modeler.
 
 It's the primary delivery path for the [`bpmn-diff`](../bpmn-diff) diff engine, wrapped in
@@ -26,16 +26,16 @@ Building from source is covered in the repo [README](../../README.md#install).
 
 ## What's inside
 
-- **`entrypoints/*.content.ts`** — content scripts per surface: file (blob)
+- **`entrypoints/*.content.ts`**: content scripts per surface: file (blob)
   viewer and PR/MR diff, for GitHub and GitLab. Only `view-router` is declared
   in the manifest: it follows the hosts' client-side navigation and has the
   background load the matching view script on demand.
-- **`entrypoints/background.ts`** — fetches file contents from the host you're
+- **`entrypoints/background.ts`**: fetches file contents from the host you're
   viewing, loads view scripts on demand and manages per-domain permissions
   (self-hosted GitLab/GitHub).
-- **`entrypoints/options` + `viewer`** — the options page and a standalone
+- **`entrypoints/options` + `viewer`**: the options page and a standalone
   drop-in viewer (nothing leaves your machine).
-- **`src/`** — views (`views/`), notations (`notations/`), git hosts (`git-hosts/`), the
+- **`src/`**: views (`views/`), notations (`notations/`), git hosts (`git-hosts/`), the
   background worker (`background/`) and the browser runtime (`platform/`).
 
 ## Develop

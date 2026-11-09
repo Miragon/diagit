@@ -53,6 +53,27 @@ jobs:
       - name: Validate Firefox bundle (web-ext lint)
         run: npm run lint:webext -w @diagit/extension
 
+  # The Miragon corporate identity. The files from Miragon/corporate-identity
+  # (brand-lint and the design tokens) are vendored, because that repo is private.
+  # Fails when someone edited a vendored copy or a file breaks a hard brand rule.
+  brand:
+    name: Miragon brand
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Vendored brand files unchanged
+        run: node .miragon/sync.mjs check
+
+      - name: Brand lint (hard rules fail, soft hints are logged)
+        run: node .miragon/brand-lint/brand-lint.mjs .
+
   e2e:
     name: E2E (${{ matrix.browser }})
     runs-on: ubuntu-latest

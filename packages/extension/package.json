@@ -39,6 +39,7 @@
     "bpmn-js": "18.31.1",
     "camunda-bpmn-moddle": "8.0.2",
     "dmn-js": "17.13.0",
+    "lucide": "1.61.0",
     "webext-alert": "1.1.0",
     "webext-permission-toggle": "7.1.1"
   },

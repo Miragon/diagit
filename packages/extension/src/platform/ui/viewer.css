@@ -1,10 +1,10 @@
 /*
  * Styles for the injected viewer. Scoped to the shadow root, so plain class
- * names are safe — no bleed to/from the host page. Kept deliberately light so it
- * blends into the host's file view rather than looking like a separate dialog.
- * Colours inherit the host's design tokens (Primer on GitHub, GitLab tokens) so
- * the panel follows the host's exact light/dark palette — custom properties
- * cross the shadow boundary. Hard-coded values are only fallbacks.
+ * names are safe — no bleed to/from the host page. Colours, radii and shadows
+ * come from the Miragon design tokens (cd-tokens.generated.css, loaded first
+ * into the same shadow root). The host only decides the mode: the wrap carries
+ * data-cd-theme (light or dark, from detectHostTheme), and the --cd-ui-* roles
+ * resolve against it. Host colours are never taken over.
  */
 
 /* Collapse the whole panel when the host marks the file collapsed/viewed.
@@ -17,21 +17,17 @@
 }
 
 .git-diagram-wrap {
-  --fg: var(--fgColor-default, var(--color-fg-default, #1f2328));
-  --bg: var(--bgColor-default, var(--color-canvas-default, #ffffff));
-  --border: var(--borderColor-default, var(--color-border-default, #d0d7de));
-  --btn-bg: var(--bgColor-muted, var(--color-canvas-subtle, #f6f8fa));
-  /* Subtle neutral hover — NOT --bgColor-emphasis, which is Primer's solid
-     near-black emphasis surface and turned the hovered tab black with unreadable
-     dark text. --control-bgColor-hover is the host's real button-hover token. */
-  --btn-hover: var(
-    --control-bgColor-hover,
-    var(--bgColor-neutral-muted, var(--color-neutral-muted, rgba(129, 139, 152, 0.12)))
-  );
-  --tab-active: var(--fgColor-accent, var(--color-accent-fg, #0969da));
-  --canvas-bg: var(--bgColor-default, var(--color-canvas-default, #ffffff));
-  /* Match the host's rounded buttons/frames (Primer 6px; fallback for GitLab). */
-  --radius: var(--borderRadius-medium, 6px);
+  --fg: var(--cd-ui-text);
+  --fg-muted: var(--cd-ui-text-leise);
+  --bg: var(--cd-ui-flaeche);
+  --border: var(--cd-ui-linie);
+  --btn-bg: var(--cd-ui-flaeche-hoch);
+  --btn-hover: var(--cd-ui-hover);
+  --selected: var(--cd-ui-interaktion);
+  --canvas-bg: var(--cd-ui-plot);
+  --radius: var(--cd-radius-md);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Additive: our container sits in the normal flow above the code, so it just
      needs a little breathing room from the file header and the code below. */
@@ -39,24 +35,12 @@
   margin: 12px 0;
   color: var(--fg);
   background: var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-family: var(--font);
 }
 
-/* Dark theme. Set via data-theme (from detectHostTheme), so hosts that don't
-   expose our design tokens — GitLab, self-hosted, the standalone page — still get
-   correct dark colours. On GitHub the host tokens above still win (exact palette).
-   The dark fallbacks match the bpmn-js renderer's dark stroke/fill in theme.ts. */
-.git-diagram-wrap[data-theme='dark'] {
-  --fg: var(--fgColor-default, var(--color-fg-default, #e6edf3));
-  --bg: var(--bgColor-default, var(--color-canvas-default, #0d1117));
-  --border: var(--borderColor-default, var(--color-border-default, #3d444d));
-  --btn-bg: var(--bgColor-muted, var(--color-canvas-subtle, #21262d));
-  --btn-hover: var(
-    --control-bgColor-hover,
-    var(--bgColor-neutral-muted, var(--color-neutral-muted, rgba(99, 110, 123, 0.2)))
-  );
-  --tab-active: var(--fgColor-accent, var(--color-accent-fg, #4493f8));
-  --canvas-bg: var(--bgColor-default, var(--color-canvas-default, #0d1117));
+.git-diagram-wrap button:focus-visible {
+  outline: 2px solid var(--cd-ui-fokus);
+  outline-offset: 2px;
 }
 
 .git-diagram-toolbar {
@@ -67,7 +51,8 @@
   padding: 10px 16px;
 }
 
-/* Model / Code segmented switch */
+/* Model / Code segmented switch. The selected tab is hover plus a 2px bar in
+   the interaction role, never a blue fill. */
 .git-diagram-tabs {
   display: inline-flex;
   border: 1px solid var(--border);
@@ -80,9 +65,11 @@
   border: none;
   background: var(--btn-bg);
   color: var(--fg);
+  font-family: var(--font);
   font-size: 13px;
+  font-weight: 600;
   line-height: 1;
-  padding: 6px 12px;
+  padding: 8px 12px;
 }
 
 .git-diagram-tab + .git-diagram-tab {
@@ -94,46 +81,74 @@
 }
 
 .git-diagram-tab.is-active {
-  background: var(--tab-active);
-  color: #ffffff;
+  background: var(--btn-hover);
+  box-shadow: inset 0 -2px 0 var(--selected);
 }
 
-/* Floating overlay in the canvas' bottom-left corner — never covered by the
-   host's sticky file header, and clear of the bpmn.io / dmn.io watermark that
-   the viewer libraries render in the bottom-right. */
+.git-diagram-tab:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Zoom island in the canvas' bottom-left corner: never covered by the host's
+   sticky file header, and clear of the bpmn.io / dmn.io watermark that the
+   viewer libraries render in the bottom-right. Glass with shadow-1. */
 .git-diagram-controls {
   position: absolute;
-  left: 8px;
-  bottom: 8px;
+  left: var(--cd-shell-rand);
+  bottom: var(--cd-shell-rand);
   z-index: 5;
   display: flex;
-  gap: 4px;
-  padding: 4px;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--btn-bg);
+  background: color-mix(
+    in srgb,
+    var(--cd-ui-flaeche-hoch) var(--cd-ui-chrome-deckkraft),
+    transparent
+  );
+  backdrop-filter: blur(8px);
+  box-shadow: var(--cd-shadow-1);
+}
+
+.git-diagram-toolbar .git-diagram-controls {
+  position: static;
+}
+
+.git-diagram-controls-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 2px;
+  background: var(--border);
 }
 
 .git-diagram-btn {
   cursor: pointer;
-  min-width: 30px;
-  height: 28px;
-  line-height: 1;
-  font-size: 13px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--btn-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cd-shell-ziel);
+  height: var(--cd-shell-ziel);
+  padding: 0;
+  border: none;
+  border-radius: var(--cd-radius-sm);
+  background: transparent;
   color: var(--fg);
-  padding: 0 8px;
+}
+
+.git-diagram-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .git-diagram-btn:hover {
   background: var(--btn-hover);
+  color: var(--selected);
 }
 
-.git-diagram-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
+.git-diagram-btn:focus-visible {
+  outline-offset: -2px;
 }
 
 .git-diagram-canvas {
@@ -151,7 +166,7 @@
 /* Focused pane: wheel zoom is live. */
 .git-diagram-canvas.is-active,
 .git-diagram-di-area.is-active {
-  outline: 2px solid var(--tab-active);
+  outline: 2px solid var(--selected);
   outline-offset: -2px;
 }
 
@@ -161,13 +176,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--fg);
-  opacity: 0.7;
+  color: var(--fg-muted);
   font-size: 14px;
   pointer-events: none;
 }
 
-/* Keep bpmn-js / dmn-js labels in the host's text colour; the Miragon renderers colour their own. */
+/* Keep bpmn-js / dmn-js labels in the text role; the Miragon renderers colour their own. */
 .git-diagram-canvas:not(.renderer-colours) .djs-label,
 .git-diagram-canvas:not(.renderer-colours) text {
   fill: var(--fg) !important;

@@ -50,7 +50,7 @@ export class GithubApiAuth implements AuthPolicy {
       case 401:
         return `Your GitHub connection looks expired or revoked.${tokenCanHelp ? RECONNECT_APP_HINT : ''}`
       case 403:
-        return `GitHub returned 403 — the anonymous rate limit is exhausted, or the app is not authorised for this organisation (SSO).${connectApp}`
+        return `GitHub returned 403: the anonymous rate limit is exhausted, or the app is not authorised for this organisation (SSO).${connectApp}`
       case 404:
         return `This looks like a private repository the page login cannot reach from api.github.com.${connectApp}`
       default:

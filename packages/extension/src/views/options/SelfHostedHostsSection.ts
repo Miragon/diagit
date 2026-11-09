@@ -7,7 +7,7 @@ import { errorMessage } from '../../platform/utils/errorMessage'
 import { normalizeOrigin, originToPattern } from '../../platform/utils/origin'
 
 const INTRO =
-  'gitlab.com and github.com work out of the box. For a self-hosted GitLab or GitHub Enterprise instance, the quickest way is to open a .bpmn file (or a merge request) there and click the extension icon — or right-click the page and choose "Enable Diagit on this domain". You can also add a domain manually below.'
+  'gitlab.com and github.com work out of the box. For a self-hosted GitLab or GitHub Enterprise instance, the quickest way is to open a .bpmn file (or a merge request) there and click the extension icon, or right-click the page and choose "Enable Diagit on this domain". You can also add a domain manually below.'
 
 export interface HostChoices {
   all(): readonly GitHost[]

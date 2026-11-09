@@ -1,0 +1,783 @@
+{
+  "$description": "AUTOMATISCH GENERIERT aus brand/marke.yaml, brand/regeln.yaml, brand/vokabular.yaml, brand/slop.yaml. Nicht von Hand ändern: Quelle bearbeiten und `npm run brand:build` ausführen. Konfiguration für brand-lint.mjs.",
+  "regeln": {
+    "A1": {
+      "titel": "du-Ansprache, klein",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "A2": {
+      "titel": "Kein Em-Dash als Verbinder",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "A3": {
+      "titel": "Korrekte Umlaute",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "A4": {
+      "titel": "Aktiv statt passiv",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "A5": {
+      "titel": "Konkret statt Floskel",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "A6": {
+      "titel": "Belegen statt behaupten",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "A7": {
+      "titel": "Aktueller Claim",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "A8": {
+      "titel": "Klingt nach Mensch",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "A9": {
+      "titel": "Unerschrocken, aber wohlwollend",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "A10": {
+      "titel": "Schreibweisen",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "A11": {
+      "titel": "Gendern",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B1": {
+      "titel": "Exakte Palettenfarben",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "B2": {
+      "titel": "Blau führt, Grün akzentuiert",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B3": {
+      "titel": "Grün nicht als Fließtext auf Weiß",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "B4": {
+      "titel": "Kontrast AA in beiden Modi",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B5": {
+      "titel": "Logo unverändert",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "B6": {
+      "titel": "Richtige Logo-Variante",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B7": {
+      "titel": "Schutzraum und Mindestgröße",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B8": {
+      "titel": "Schrift Geist",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B9": {
+      "titel": "Funktionsicons aus Lucide",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B10": {
+      "titel": "Social-Formate",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B11": {
+      "titel": "Kein AI-Einheitslook",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "B12": {
+      "titel": "Modeler-Icon aus dem Set, unverändert",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "C1": {
+      "titel": "Tokens statt Hex",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "C2": {
+      "titel": "8-Punkt-Raster",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "C3": {
+      "titel": "Fokus und Bewegung",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "C4": {
+      "titel": "Alt-Texte",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "C5": {
+      "titel": "Eine Sprache je Oberfläche",
+      "schwere": "weich",
+      "stattdessen": null
+    },
+    "C6": {
+      "titel": "Dark Mode aus den Rollen",
+      "schwere": "hart",
+      "stattdessen": null
+    },
+    "S1": {
+      "titel": "Antithesen-Reflex",
+      "schwere": "weich",
+      "stattdessen": "Die Aussage direkt machen. Eine Antithese pro Text ist eine Pointe, fünf sind eine Masche. Regeln dürfen weiter „X, nicht Y\" sagen, das ist dort die klarste Form."
+    },
+    "S2": {
+      "titel": "Fett-Stichwort-Listen",
+      "schwere": "weich",
+      "stattdessen": "Fließtext, eine Tabelle oder eine schlichte Liste. Fett nur für das eine Wort, das wirklich zählt."
+    },
+    "S3": {
+      "titel": "Dreierketten",
+      "schwere": "weich",
+      "stattdessen": "Eine Eigenschaft nennen und belegen."
+    },
+    "S4": {
+      "titel": "Doppelpunkt-Pointe und Schlussformel",
+      "schwere": "weich",
+      "stattdessen": "Aufhören, wenn es gesagt ist. Das Ergebnis konkret benennen."
+    },
+    "S5": {
+      "titel": "Rhetorische Einstiegsfrage",
+      "schwere": "weich",
+      "stattdessen": "Mit der Zahl, dem Fall oder der Behauptung anfangen."
+    },
+    "S6": {
+      "titel": "Leere Verstärker",
+      "schwere": "weich",
+      "stattdessen": "Das Wort streichen oder durch einen Beleg ersetzen."
+    },
+    "S7": {
+      "titel": "Adjektiv-Paare ohne Beleg",
+      "schwere": "weich",
+      "stattdessen": "Ein Beispiel oder eine Zahl."
+    },
+    "S8": {
+      "titel": "Zusammenfassung am Ende",
+      "schwere": "weich",
+      "stattdessen": "Mit dem nächsten Schritt enden oder einfach aufhören."
+    },
+    "U1": {
+      "titel": "Template-Hero",
+      "schwere": "weich",
+      "stattdessen": "Mit dem echten Artefakt einsteigen (Modell, Code, Screenshot, Zahl). Layout aus dem 12er-Raster, gern asymmetrisch (8/4)."
+    },
+    "U2": {
+      "titel": "Icon-Kachel-Raster",
+      "schwere": "weich",
+      "stattdessen": "Inhalte nach Gewicht ordnen. Ist es eine Aufzählung, dann als Liste oder Tabelle. Ein Icon nur, wo es Bedeutung trägt."
+    },
+    "U3": {
+      "titel": "Glas auf Verlauf",
+      "schwere": "weich",
+      "stattdessen": "Blau als ruhige Fläche. Der Mesh-Verlauf ist ein seltener Markenmoment: der Kopf der Startseite und Höhepunkte auf LinkedIn-Kacheln (gradient.mesh-social), kein Hintergrund für alles. Glas nur als Chip ohne Blur oder als dunkle Box auf einem Foto."
+    },
+    "U4": {
+      "titel": "AI-Symbolik",
+      "schwere": "weich",
+      "stattdessen": "Das Lucide-Icon für die konkrete Funktion, etwa Suchen, Prüfen oder Erzeugen."
+    },
+    "U5": {
+      "titel": "Verlaufstext",
+      "schwere": "weich",
+      "stattdessen": "Geist 700 in Schwarz oder Weiß. Höchstens ein Wort in Grün (auf dunklem Grund) oder Blau."
+    },
+    "U6": {
+      "titel": "Effekte als Hierarchie",
+      "schwere": "weich",
+      "stattdessen": "Hierarchie über Größe, Gewicht und Weißraum. Radius und Schatten aus den Tokens, sparsam."
+    },
+    "U7": {
+      "titel": "Erfundene Belege",
+      "schwere": "weich",
+      "stattdessen": "Echte Zahlen mit Quelle, echte Artefakte, oder weglassen."
+    },
+    "U8": {
+      "titel": "Emoji als Gestaltung",
+      "schwere": "weich",
+      "stattdessen": "Lucide-Icons oder eine schlichte Liste."
+    },
+    "U9": {
+      "titel": "Violett-Default",
+      "schwere": "weich",
+      "stattdessen": "Die Palette. Blau führt, Grün akzentuiert."
+    },
+    "U10": {
+      "titel": "Navy-Dark-Default",
+      "schwere": "weich",
+      "stattdessen": "Schwarz als Grund und darüber die neutralen Stufen aus den Rollen (--cd-ui-*). Dunkelblau nur im Verlauf."
+    }
+  },
+  "claim": {
+    "aktuell": "Schneller automatisieren. Mit deinem Team.",
+    "veraltet": [
+      "Prozesse analysieren, transformieren und mit AI schneller umsetzen.",
+      "Prozesse analysieren, transformieren und mit KI schneller umsetzen.",
+      "Wir beschleunigen die Transformation deiner Prozesse."
+    ]
+  },
+  "vokabular": [
+    {
+      "begriff": "innovative Lösungen",
+      "muster": "innovative[nr]? Lösung(en)?"
+    },
+    {
+      "begriff": "digitale Zukunft",
+      "muster": "digitale[nr]? Zukunft"
+    },
+    {
+      "begriff": "Synergien",
+      "muster": null
+    },
+    {
+      "begriff": "ganzheitlich",
+      "muster": "ganzheitlich\\w*"
+    },
+    {
+      "begriff": "in der heutigen schnelllebigen Welt",
+      "muster": "(in der heutigen|schnelllebigen) (schnelllebigen )?(Welt|Zeit)"
+    },
+    {
+      "begriff": "unverbindliches Beratungsgespräch",
+      "muster": "unverbindliche[ns]? Beratungsgespräch"
+    },
+    {
+      "begriff": "individuelles Angebot",
+      "muster": "individuelle[ns]? Angebot"
+    },
+    {
+      "begriff": "Optimierungspotenzial",
+      "muster": null
+    },
+    {
+      "begriff": "Mehrwert",
+      "muster": "Mehrwert(e)?"
+    },
+    {
+      "begriff": "nahtlos",
+      "muster": "nahtlose?[nrms]?"
+    },
+    {
+      "begriff": "maßgeschneidert",
+      "muster": "maßgeschneiderte?[nrms]?"
+    },
+    {
+      "begriff": "Game Changer",
+      "muster": "game[- ]?changer"
+    },
+    {
+      "begriff": "auf das nächste Level",
+      "muster": "(auf das|aufs) nächste Level"
+    },
+    {
+      "begriff": "Lass uns eintauchen",
+      "muster": "(lass uns|tauchen wir) (tiefer )?(ein|eintauchen)"
+    },
+    {
+      "begriff": "spannende Reise",
+      "muster": "spannende[nr]? Reise"
+    },
+    {
+      "begriff": "Es ist wichtig zu beachten",
+      "muster": "es ist (wichtig|entscheidend) zu (beachten|betonen)"
+    },
+    {
+      "begriff": "State of the Art",
+      "muster": "state[- ]of[- ]the[- ]art"
+    },
+    {
+      "begriff": "zukunftssicher",
+      "muster": "zukunftssichere?[nrms]?"
+    },
+    {
+      "begriff": "revolutionieren",
+      "muster": "revolutionier\\w*"
+    }
+  ],
+  "schreibweisen": [
+    {
+      "richtig": "AI",
+      "falsch": [
+        "KI"
+      ]
+    },
+    {
+      "richtig": "Miragon AI",
+      "falsch": [
+        "Miragon.ai",
+        "Miragon-AI"
+      ]
+    },
+    {
+      "richtig": "designIQ",
+      "falsch": [
+        "DesignIQ",
+        "DESIGNIQ",
+        "Design-IQ"
+      ]
+    },
+    {
+      "richtig": "Pulse",
+      "falsch": [
+        "PULSE",
+        "Miragon-Pulse",
+        "MiragonPulse"
+      ]
+    },
+    {
+      "richtig": "bpmn-cli",
+      "falsch": [
+        "Miragon BPMN CLI",
+        "Miragon BPMN-CLI"
+      ]
+    },
+    {
+      "richtig": "analyzr",
+      "falsch": [
+        "Analyzr",
+        "ANALYZR"
+      ]
+    },
+    {
+      "richtig": "Miragon",
+      "falsch": [
+        "MIRAGON"
+      ]
+    },
+    {
+      "richtig": "CIB seven",
+      "falsch": [
+        "CIB Seven",
+        "CIB SEVEN"
+      ]
+    },
+    {
+      "richtig": "Camunda 8",
+      "falsch": [
+        "Camunda8"
+      ]
+    },
+    {
+      "richtig": "Camunda 7",
+      "falsch": [
+        "Camunda7"
+      ]
+    },
+    {
+      "richtig": "technologieoffen",
+      "falsch": [
+        "technologieneutral",
+        "Technologieneutral"
+      ]
+    }
+  ],
+  "versalien": [
+    "Miragon AI",
+    "designIQ",
+    "Pulse",
+    "operate",
+    "bpmn-cli",
+    "analyzr",
+    "Miragon",
+    "CIB seven"
+  ],
+  "kacheln": {
+    "labels": [
+      "Insights",
+      "Praxis",
+      "Standpunkt",
+      "Gedanke",
+      "Aus dem Projekt",
+      "Open Source",
+      "Neu",
+      "Release",
+      "Wir suchen",
+      "BPMN-Tipp",
+      "Event Storming",
+      "Wardley Mapping",
+      "Team Topologies",
+      "BPMN",
+      "DMN"
+    ],
+    "termine": [
+      "Talk",
+      "Meetup",
+      "Webinar",
+      "Training",
+      "Workshop",
+      "Konferenz"
+    ]
+  },
+  "werkzeuge": [
+    "designIQ",
+    "Pulse",
+    "operate",
+    "bpmn-cli",
+    "analyzr"
+  ],
+  "slopText": [
+    {
+      "id": "S1",
+      "art": "dichte",
+      "pro_1000_woerter": 2.5,
+      "muster": [
+        "\\b(kein|keine|keinen|keinem|keiner|nicht)\\b(?=[^.!?;:\\n]*?\\p{L}{3})[^.!?;:\\n]{1,80}?,\\s+sondern\\b"
+      ]
+    },
+    {
+      "id": "S2",
+      "art": "fett-liste",
+      "max_pro_datei": 5
+    },
+    {
+      "id": "S4",
+      "art": "muster",
+      "muster": [
+        "(^|[.!?]\\s+|\\n[^\\S\\n]*)(Das Ergebnis|Kurz gesagt|Kurzum|Die Folge|Der Clou|Das Beste daran|Fazit|Unterm Strich|Die Wahrheit ist)\\s*:"
+      ]
+    },
+    {
+      "id": "S5",
+      "art": "muster",
+      "muster": [
+        "(^\\s*|\\n[^\\S\\n]*\\n[^\\S\\n]*)(Kennst du das|Schon mal|Hast du dich (schon mal |jemals )?gefragt|Stell dir vor|Was wäre, wenn)[^\\n]*"
+      ]
+    },
+    {
+      "id": "S6",
+      "art": "dichte",
+      "pro_1000_woerter": 4,
+      "muster": [
+        "\\b(wirklich|absolut|extrem|unglaublich|enorm)\\b"
+      ]
+    }
+  ],
+  "slopCss": [
+    {
+      "id": "U5",
+      "art": "css",
+      "muster": [
+        "background-clip:\\s*text"
+      ]
+    }
+  ],
+  "farben": {
+    "erlaubt": [
+      "#00E676",
+      "#1D1D1D",
+      "#282828",
+      "#2B50D4",
+      "#2F2F2F",
+      "#335DE5",
+      "#383838",
+      "#464646",
+      "#6B6666",
+      "#6B8AFF",
+      "#8F8A8A",
+      "#BBBBBB",
+      "#CD1839",
+      "#DAFBEB",
+      "#E6E2E2",
+      "#EEF1FD",
+      "#F9F7F7",
+      "#FB6D73",
+      "#FBEEF0",
+      "#FFB000",
+      "#FFF1D2",
+      "#FFFFFF"
+    ],
+    "tokens": {
+      "#335DE5": "--cd-blau",
+      "#00E676": "--cd-gruen",
+      "#F9F7F7": "--cd-grau",
+      "#1D1D1D": "--cd-schwarz",
+      "#FFFFFF": "--cd-weiss",
+      "#2B50D4": "--cd-blau-link",
+      "#6B8AFF": "--cd-blau-hell",
+      "#DAFBEB": "--cd-success-soft",
+      "#FFB000": "--cd-warning",
+      "#FFF1D2": "--cd-warning-soft",
+      "#CD1839": "--cd-danger",
+      "#FBEEF0": "--cd-danger-soft",
+      "#FB6D73": "--cd-danger-hell",
+      "#EEF1FD": "--cd-info-soft",
+      "#E6E2E2": "--cd-linie",
+      "#8F8A8A": "--cd-kontur",
+      "#6B6666": "--cd-text-leise",
+      "#2F2F2F": "--cd-ui-flaeche-hoch",
+      "#383838": "--cd-ui-hover",
+      "#464646": "--cd-ui-linie",
+      "#BBBBBB": "--cd-ui-text-leise"
+    },
+    "kandidaten": {
+      "#282828": [
+        "--cd-ui-flaeche",
+        "--cd-ui-abschnitt",
+        "--cd-ui-success-flaeche",
+        "--cd-ui-warning-flaeche",
+        "--cd-ui-danger-flaeche",
+        "--cd-ui-info-flaeche"
+      ]
+    },
+    "schwarz": "#1D1D1D",
+    "variablen": {
+      "--cd-blau": {
+        "hell": "#335DE5",
+        "dunkel": "#335DE5",
+        "keinTextAufDunkel": true
+      },
+      "--cd-gruen": {
+        "hell": "#00E676",
+        "dunkel": "#00E676"
+      },
+      "--cd-grau": {
+        "hell": "#F9F7F7",
+        "dunkel": "#F9F7F7"
+      },
+      "--cd-schwarz": {
+        "hell": "#1D1D1D",
+        "dunkel": "#1D1D1D"
+      },
+      "--cd-weiss": {
+        "hell": "#FFFFFF",
+        "dunkel": "#FFFFFF"
+      },
+      "--cd-blau-link": {
+        "hell": "#2B50D4",
+        "dunkel": "#2B50D4",
+        "keinTextAufDunkel": true
+      },
+      "--cd-blau-hell": {
+        "hell": "#6B8AFF",
+        "dunkel": "#6B8AFF"
+      },
+      "--cd-success": {
+        "hell": "#00E676",
+        "dunkel": "#00E676"
+      },
+      "--cd-success-soft": {
+        "hell": "#DAFBEB",
+        "dunkel": "#DAFBEB"
+      },
+      "--cd-success-hell": {
+        "hell": "#00E676",
+        "dunkel": "#00E676"
+      },
+      "--cd-warning": {
+        "hell": "#FFB000",
+        "dunkel": "#FFB000"
+      },
+      "--cd-warning-soft": {
+        "hell": "#FFF1D2",
+        "dunkel": "#FFF1D2"
+      },
+      "--cd-warning-hell": {
+        "hell": "#FFB000",
+        "dunkel": "#FFB000"
+      },
+      "--cd-danger": {
+        "hell": "#CD1839",
+        "dunkel": "#CD1839",
+        "keinTextAufDunkel": true
+      },
+      "--cd-danger-soft": {
+        "hell": "#FBEEF0",
+        "dunkel": "#FBEEF0"
+      },
+      "--cd-danger-hell": {
+        "hell": "#FB6D73",
+        "dunkel": "#FB6D73"
+      },
+      "--cd-info": {
+        "hell": "#335DE5",
+        "dunkel": "#335DE5",
+        "keinTextAufDunkel": true
+      },
+      "--cd-info-soft": {
+        "hell": "#EEF1FD",
+        "dunkel": "#EEF1FD"
+      },
+      "--cd-info-hell": {
+        "hell": "#6B8AFF",
+        "dunkel": "#6B8AFF"
+      },
+      "--cd-linie": {
+        "hell": "#E6E2E2",
+        "dunkel": "#E6E2E2",
+        "nurHell": "--cd-ui-linie"
+      },
+      "--cd-kontur": {
+        "hell": "#8F8A8A",
+        "dunkel": "#8F8A8A"
+      },
+      "--cd-text-leise": {
+        "hell": "#6B6666",
+        "dunkel": "#6B6666",
+        "keinTextAufDunkel": true,
+        "nurHell": "--cd-ui-text-leise"
+      },
+      "--cd-ui-grund": {
+        "hell": "#F9F7F7",
+        "dunkel": "#1D1D1D",
+        "rolle": true
+      },
+      "--cd-ui-flaeche": {
+        "hell": "#FFFFFF",
+        "dunkel": "#282828",
+        "rolle": true
+      },
+      "--cd-ui-flaeche-hoch": {
+        "hell": "#FFFFFF",
+        "dunkel": "#2F2F2F",
+        "rolle": true
+      },
+      "--cd-ui-hover": {
+        "hell": "#EEF1FD",
+        "dunkel": "#383838",
+        "rolle": true
+      },
+      "--cd-ui-plot": {
+        "hell": "#FFFFFF",
+        "dunkel": "#1D1D1D",
+        "rolle": true
+      },
+      "--cd-ui-seite": {
+        "hell": "#FFFFFF",
+        "dunkel": "#1D1D1D",
+        "rolle": true
+      },
+      "--cd-ui-abschnitt": {
+        "hell": "#F9F7F7",
+        "dunkel": "#282828",
+        "rolle": true
+      },
+      "--cd-ui-linie": {
+        "hell": "#E6E2E2",
+        "dunkel": "#464646",
+        "rolle": true
+      },
+      "--cd-ui-kontur": {
+        "hell": "#8F8A8A",
+        "dunkel": "#8F8A8A",
+        "rolle": true
+      },
+      "--cd-ui-text": {
+        "hell": "#1D1D1D",
+        "dunkel": "#FFFFFF",
+        "rolle": true
+      },
+      "--cd-ui-text-leise": {
+        "hell": "#6B6666",
+        "dunkel": "#BBBBBB",
+        "rolle": true
+      },
+      "--cd-ui-link": {
+        "hell": "#2B50D4",
+        "dunkel": "#00E676",
+        "rolle": true
+      },
+      "--cd-ui-icon-akzent": {
+        "hell": "#335DE5",
+        "dunkel": "#00E676",
+        "rolle": true
+      },
+      "--cd-ui-fokus": {
+        "hell": "#2B50D4",
+        "dunkel": "#6B8AFF",
+        "rolle": true
+      },
+      "--cd-ui-interaktion": {
+        "hell": "#335DE5",
+        "dunkel": "#6B8AFF",
+        "rolle": true
+      },
+      "--cd-ui-success": {
+        "hell": "#00E676",
+        "dunkel": "#00E676",
+        "rolle": true
+      },
+      "--cd-ui-warning": {
+        "hell": "#FFB000",
+        "dunkel": "#FFB000",
+        "rolle": true
+      },
+      "--cd-ui-danger": {
+        "hell": "#CD1839",
+        "dunkel": "#FB6D73",
+        "rolle": true,
+        "textAufDunkel": [
+          "grund",
+          "flaeche",
+          "flaeche-hoch",
+          "seite",
+          "abschnitt"
+        ]
+      },
+      "--cd-ui-info": {
+        "hell": "#335DE5",
+        "dunkel": "#6B8AFF",
+        "rolle": true,
+        "textAufDunkel": [
+          "grund",
+          "flaeche",
+          "seite",
+          "abschnitt"
+        ]
+      },
+      "--cd-ui-success-flaeche": {
+        "hell": "#DAFBEB",
+        "dunkel": "#282828",
+        "rolle": true
+      },
+      "--cd-ui-warning-flaeche": {
+        "hell": "#FFF1D2",
+        "dunkel": "#282828",
+        "rolle": true
+      },
+      "--cd-ui-danger-flaeche": {
+        "hell": "#FBEEF0",
+        "dunkel": "#282828",
+        "rolle": true
+      },
+      "--cd-ui-info-flaeche": {
+        "hell": "#EEF1FD",
+        "dunkel": "#282828",
+        "rolle": true
+      },
+      "--cd-ui-wortmarke": {
+        "hell": "#00E676",
+        "dunkel": "#FFFFFF",
+        "rolle": true
+      }
+    }
+  }
+}

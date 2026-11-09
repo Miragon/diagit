@@ -27,7 +27,7 @@ export class GithubAccessSection {
     app.append(
       h('h1', { text: 'GitHub access (private repos)' }),
       h('p', { class: 'intro' }, [
-        'Only needed for private repositories on github.com — their diff metadata comes from ',
+        'Only needed for private repositories on github.com: their diff metadata comes from ',
         h('code', { text: 'api.github.com' }),
         ', a separate origin your github.com login cookie does not cover (public repos, GitLab and GitHub Enterprise work without it).',
       ]),

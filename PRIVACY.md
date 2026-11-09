@@ -33,7 +33,7 @@ leaves your browser:
 - an optional GitHub access token, used only for private repositories on
   github.com, plus the refresh token GitHub issues with it when the token expires.
   You obtain them by installing the GitHub App and connecting once from
-  the options page (via GitHub's device flow — no token to paste by hand); the
+  the options page (via GitHub's device flow, no token to paste by hand); the
   extension never sees a client secret. The access token is sent **only** to
   `api.github.com` (never to any other host) to authenticate the diff-metadata
   requests and to show which account you connected, and only if you choose to
@@ -45,15 +45,15 @@ leaves your browser:
 
 ## Permissions
 
-- `scripting`, `storage` — load the viewer when you open a diagram, register it
+- `scripting`, `storage`: load the viewer when you open a diagram, register it
   on self-hosted instances you add, and remember that list and the optional
   GitHub access token.
-- `contextMenus`, `activeTab` — let you grant the viewer on the self-hosted
+- `contextMenus`, `activeTab`: let you grant the viewer on the self-hosted
   instance in the current tab via the toolbar icon or the right-click menu.
 - Host access (`gitlab.com`, `github.com`, `raw.githubusercontent.com`, plus any
-  self-hosted domain you grant) — required to read and render diagram files on
+  self-hosted domain you grant): required to read and render diagram files on
   those sites. Access to other sites is only ever requested when you add them.
-- `api.github.com` — used only for pull-request and commit diffs on github.com.
+- `api.github.com`: used only for pull-request and commit diffs on github.com.
   Public repositories work without a token; once you connect, the token is
   attached to every request to `api.github.com`.
 

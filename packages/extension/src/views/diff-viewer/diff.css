@@ -1,13 +1,19 @@
 /*
  * Styles for the injected merge-request diff. Scoped to the shadow root. Bundled
- * together with viewer.css, so it inherits the design tokens (--fg, --bg,
- * --border, --btn-bg, --btn-hover, --canvas-bg) and the shared toolbar/tab/button
+ * together with viewer.css, so it inherits its aliases (--fg, --bg, --border,
+ * --btn-bg, --btn-hover, --canvas-bg) and the shared toolbar/tab/button
  * components defined there. Only diff-specific layout + marker colours live here.
+ *
+ * Change markers use the Miragon status colours: added = success, removed =
+ * danger, changed = info, moved = warning. Green and amber stay below 3:1 on
+ * white, so in light mode they are fills with a contour in --cd-schwarz (design
+ * system §3.6). Dark mode never tints a surface: the shape keeps its plot fill
+ * and the status role (the -hell values) carries the change on a wider stroke.
  */
 
 /* One self-contained box: the toolbar (Plain/Diff tabs) and the diagram share a
-   single square border, instead of naked tabs floating above a separate diagram
-   card. `overflow: hidden` keeps the square corners crisp over the canvas. */
+   single border, instead of naked tabs floating above a separate diagram card.
+   `overflow: hidden` keeps the corners crisp over the canvas. */
 .git-diagram-wrap.git-diagram-di-root {
   margin: 0;
   border: 1px solid var(--border);
@@ -28,14 +34,16 @@
   background: var(--bg);
 }
 
-/* Notice shown when the diff metadata could not be loaded (see diffError.ts). */
+/* Notice shown when the diff metadata could not be loaded: a status box with a
+   bar in the danger role. */
 .git-diagram-wrap.git-diagram-error {
   padding: 10px 12px;
   border: 1px solid var(--border);
+  border-left: 3px solid var(--cd-ui-danger);
   border-radius: var(--radius);
-  background: var(--bg);
+  background: var(--cd-ui-danger-flaeche);
   color: var(--fg);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -49,9 +57,9 @@
 
 .git-diagram-error-detail {
   margin-top: 6px;
-  opacity: 0.55;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
   word-break: break-all;
 }
 
@@ -74,7 +82,7 @@
   background: var(--canvas-bg);
 }
 
-/* Keep diagram labels in the host's text colour (light or dark). */
+/* Keep diagram labels in the text role (light or dark). */
 .git-diagram-di-canvas .djs-label,
 .git-diagram-di-canvas text {
   fill: var(--fg) !important;
@@ -86,26 +94,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--fg);
-  opacity: 0.6;
+  color: var(--fg-muted);
 }
 
+/* Legend and change navigator: a permanent island over the canvas, so glass. */
 .git-diagram-di-overlay {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: var(--cd-shell-rand);
+  left: var(--cd-shell-rand);
   z-index: 10;
-  background: var(--btn-bg);
+  padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 6px 8px;
-  font-size: 12px;
+  background: color-mix(
+    in srgb,
+    var(--cd-ui-flaeche-hoch) var(--cd-ui-chrome-deckkraft),
+    transparent
+  );
+  backdrop-filter: blur(8px);
+  box-shadow: var(--cd-shadow-1);
+  font-size: 13px;
 }
 
 .git-diagram-di-legend {
   display: flex;
   gap: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: var(--fg);
 }
 
@@ -114,30 +128,11 @@
   display: inline-block;
   width: 11px;
   height: 11px;
-  border-radius: 0;
+  border-radius: 2px;
   margin-right: 5px;
   vertical-align: -1px;
-  border: 1px solid;
-}
-
-.git-diagram-di-legend .k-add::before {
-  background: #b6f0c8;
-  border-color: #22a06b;
-}
-
-.git-diagram-di-legend .k-rem::before {
-  background: #ffc9c9;
-  border-color: #d1242f;
-}
-
-.git-diagram-di-legend .k-chg::before {
-  background: #b6e3ff;
-  border-color: #0969da;
-}
-
-.git-diagram-di-legend .k-mov::before {
-  background: #ffe1a6;
-  border-color: #bf8700;
+  border: 1px solid var(--marker-stroke);
+  background: var(--marker-fill);
 }
 
 .git-diagram-di-nav {
@@ -147,116 +142,114 @@
 
 .git-diagram-di-navbtn {
   cursor: pointer;
-  font-size: 12px;
-  padding: 2px 8px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--cd-radius-sm);
   background: var(--btn-bg);
   color: var(--fg);
 }
 
-.git-diagram-di-navbtn:hover {
+.git-diagram-di-navbtn:hover:not(:disabled) {
+  border-color: var(--selected);
   background: var(--btn-hover);
+  color: var(--cd-ui-link);
 }
 
 .git-diagram-di-navbtn:disabled {
-  opacity: 0.5;
-  cursor: default;
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+/* Marker colours per change category, light mode. */
+.git-diagram-di-added,
+.git-diagram-di-legend .k-add {
+  --marker-stroke: var(--cd-schwarz);
+  --marker-fill: var(--cd-success-soft);
+}
+
+.git-diagram-di-removed,
+.git-diagram-di-legend .k-rem {
+  --marker-stroke: var(--cd-danger);
+  --marker-fill: var(--cd-danger-soft);
+}
+
+.git-diagram-di-changed,
+.git-diagram-di-legend .k-chg {
+  --marker-stroke: var(--cd-info);
+  --marker-fill: var(--cd-info-soft);
+}
+
+.git-diagram-di-moved,
+.git-diagram-di-legend .k-mov {
+  --marker-stroke: var(--cd-schwarz);
+  --marker-fill: var(--cd-warning-soft);
+}
+
+/* Dark mode: the status roles on the stroke, no tinted surfaces. */
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-added,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-add {
+  --marker-stroke: var(--cd-ui-success);
+}
+
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-removed,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-rem {
+  --marker-stroke: var(--cd-ui-danger);
+}
+
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-changed,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-chg {
+  --marker-stroke: var(--cd-ui-info);
+}
+
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-moved,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-mov {
+  --marker-stroke: var(--cd-ui-warning);
+}
+
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-added,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-removed,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-changed,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-moved,
+.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k {
+  --marker-fill: var(--canvas-bg);
+  --marker-stroke-width: 3px;
 }
 
 /* Element markers */
-.djs-element.git-diagram-di-added .djs-visual > :nth-child(1) {
-  stroke: #22a06b !important;
-  fill: #e6ffed !important;
-}
-
-.djs-element.git-diagram-di-removed .djs-visual > :nth-child(1) {
-  stroke: #d1242f !important;
-  fill: #ffebe9 !important;
-}
-
-.djs-element.git-diagram-di-changed .djs-visual > :nth-child(1) {
-  stroke: #0969da !important;
-  fill: #ddf4ff !important;
-}
-
+.djs-element.git-diagram-di-added .djs-visual > :nth-child(1),
+.djs-element.git-diagram-di-removed .djs-visual > :nth-child(1),
+.djs-element.git-diagram-di-changed .djs-visual > :nth-child(1),
 .djs-element.git-diagram-di-moved .djs-visual > :nth-child(1) {
-  stroke: #bf8700 !important;
+  stroke: var(--marker-stroke) !important;
+  fill: var(--marker-fill) !important;
 }
 
-.djs-element.git-diagram-di-active {
-  filter: drop-shadow(0 0 6px #ff9800);
-}
-
-/* Connections (sequence flows) have no fill — colour the stroke only */
-.djs-connection.git-diagram-di-added .djs-visual > :nth-child(1) {
-  stroke: #22a06b !important;
-}
-
-.djs-connection.git-diagram-di-removed .djs-visual > :nth-child(1) {
-  stroke: #d1242f !important;
-}
-
-.djs-connection.git-diagram-di-changed .djs-visual > :nth-child(1) {
-  stroke: #0969da !important;
+/* Connections (sequence flows) have no fill. An added or moved flow would be
+   a green or amber line below 3:1 on white, so in light mode it stays black and
+   is told apart by width (added) or dashes (moved). */
+.djs-connection.git-diagram-di-added .djs-visual > :nth-child(1),
+.djs-connection.git-diagram-di-removed .djs-visual > :nth-child(1),
+.djs-connection.git-diagram-di-changed .djs-visual > :nth-child(1),
+.djs-connection.git-diagram-di-moved .djs-visual > :nth-child(1) {
+  stroke: var(--marker-stroke) !important;
+  stroke-width: var(--marker-stroke-width, 3px) !important;
+  fill: none !important;
 }
 
 .djs-connection.git-diagram-di-moved .djs-visual > :nth-child(1) {
-  stroke: #bf8700 !important;
+  stroke-dasharray: 6 4 !important;
 }
 
-/* Dark theme: the light pastel fills above would hide the now-light diagram
-   labels. Use a translucent tint over the dark shape + a bright accent stroke so
-   both the change colour and the label stay legible. */
-.git-diagram-wrap[data-theme='dark'] .djs-element.git-diagram-di-added .djs-visual > :nth-child(1) {
-  stroke: #3fb950 !important;
-  fill: rgba(63, 185, 80, 0.25) !important;
+.djs-shape.git-diagram-di-added .djs-visual > :nth-child(1),
+.djs-shape.git-diagram-di-removed .djs-visual > :nth-child(1),
+.djs-shape.git-diagram-di-changed .djs-visual > :nth-child(1),
+.djs-shape.git-diagram-di-moved .djs-visual > :nth-child(1) {
+  stroke-width: var(--marker-stroke-width, 2px) !important;
 }
 
-.git-diagram-wrap[data-theme='dark']
-  .djs-element.git-diagram-di-removed
-  .djs-visual
-  > :nth-child(1) {
-  stroke: #f85149 !important;
-  fill: rgba(248, 81, 73, 0.25) !important;
-}
-
-.git-diagram-wrap[data-theme='dark']
-  .djs-element.git-diagram-di-changed
-  .djs-visual
-  > :nth-child(1) {
-  stroke: #58a6ff !important;
-  fill: rgba(56, 139, 253, 0.25) !important;
-}
-
-.git-diagram-wrap[data-theme='dark'] .djs-element.git-diagram-di-moved .djs-visual > :nth-child(1) {
-  stroke: #d29922 !important;
-}
-
-.git-diagram-wrap[data-theme='dark']
-  .djs-connection.git-diagram-di-added
-  .djs-visual
-  > :nth-child(1) {
-  stroke: #3fb950 !important;
-}
-
-.git-diagram-wrap[data-theme='dark']
-  .djs-connection.git-diagram-di-removed
-  .djs-visual
-  > :nth-child(1) {
-  stroke: #f85149 !important;
-}
-
-.git-diagram-wrap[data-theme='dark']
-  .djs-connection.git-diagram-di-changed
-  .djs-visual
-  > :nth-child(1) {
-  stroke: #58a6ff !important;
-}
-
-.git-diagram-wrap[data-theme='dark']
-  .djs-connection.git-diagram-di-moved
-  .djs-visual
-  > :nth-child(1) {
-  stroke: #d29922 !important;
+.djs-element.git-diagram-di-active {
+  filter: drop-shadow(0 0 6px var(--cd-ui-interaktion));
 }
