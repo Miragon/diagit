@@ -23,6 +23,27 @@ function withFileBox(path = 'flows/order.bpmn', content = ''): Document {
   return document
 }
 
+function withRapidDiffFile(path = 'flows/order.bpmn', isOpen = true): Document {
+  const fileData = JSON.stringify({ old_path: path, new_path: path })
+  document.body.innerHTML = `
+    <diff-file data-testid="rd-diff-file" data-file-data='${fileData}'>
+      <article class="rd-diff-file">
+        <header data-testid="rd-diff-file-header"></header>
+        <details class="rd-diff-file-details" data-file-body ${isOpen ? 'open' : ''}>
+          <summary></summary>
+          <div data-testid="rd-diff-file-body"><table></table></div>
+        </details>
+      </article>
+    </diff-file>`
+  return document
+}
+
+function giveBox(el: Element): void {
+  const box = new DOMRect(0, 0, 100, 100)
+  vi.spyOn(el, 'getClientRects').mockReturnValue([box] as unknown as DOMRectList)
+  vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(box)
+}
+
 beforeEach(() => {
   vi.spyOn(Date, 'now').mockReturnValue(1_000_000)
 })
@@ -85,5 +106,46 @@ describe('GitLab merge-request diff', () => {
     const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, doc)
 
     expect(block!.isCollapsed()).toBe(true)
+  })
+
+  it('finds a BPMN file in the Rapid Diffs view and anchors the panel in its body', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [],
+    })
+
+    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(
+      location,
+      withRapidDiffFile(),
+    )
+
+    expect(block).toMatchObject({ path: 'flows/order.bpmn', append: 'first' })
+    expect(block!.anchor.dataset.testid).toBe('rd-diff-file-body')
+  })
+
+  it('treats a closed Rapid Diffs file as collapsed although its hidden content keeps a box', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [],
+    })
+    const doc = withRapidDiffFile('flows/order.bpmn', false)
+    giveBox(doc.querySelector('table')!)
+
+    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, doc)
+
+    expect(block!.isCollapsed()).toBe(true)
+  })
+
+  it('treats an open Rapid Diffs file with rendered content as expanded', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [],
+    })
+    const doc = withRapidDiffFile('flows/order.bpmn', true)
+    giveBox(doc.querySelector('table')!)
+
+    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, doc)
+
+    expect(block!.isCollapsed()).toBe(false)
   })
 })

@@ -24,6 +24,7 @@ export class GitlabDiffScanner {
   }
 
   private isCollapsed(root: HTMLElement): boolean {
+    if (root.querySelector(gitlabSelectors.diff.rapidDiffClosedBody)) return true
     const content = root.querySelector<HTMLElement>(gitlabSelectors.diff.collapseContent)
     if (!content) return true
     const hostContent = Array.from(content.children).filter(
@@ -33,12 +34,19 @@ export class GitlabDiffScanner {
   }
 
   private filePathOf(root: HTMLElement): string | null {
+    const rapidDiffFileData = root.getAttribute(gitlabSelectors.diff.rapidDiffFileData)
+    if (rapidDiffFileData) return this.rapidDiffPathOf(rapidDiffFileData)
     const attribute = gitlabSelectors.diff.pathAttr
     const withData = root.matches(attribute) ? root : root.querySelector(attribute)
     if (withData) return withData.getAttribute('data-path')
     const titleEl = root.querySelector(gitlabSelectors.diff.titleEl)
     if (titleEl) return titleEl.getAttribute('title') || titleEl.textContent?.trim() || null
     return null
+  }
+
+  private rapidDiffPathOf(fileData: string): string | null {
+    const { new_path, old_path } = JSON.parse(fileData) as { new_path?: string; old_path?: string }
+    return new_path || old_path || null
   }
 
   private contentOf(root: HTMLElement): HTMLElement {
