@@ -12,7 +12,7 @@ Add Diagit from your browser's store:
 - [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/diagit/)
 - [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)
 
-There is nothing to configure for github.com and gitlab.com. The Diagit icon appears in the browser toolbar.
+Public repositories on github.com and all repositories on gitlab.com work right away. Diffs in private repositories on github.com need the GitHub App ([Private repos on github.com](./private-repos)), and a self-hosted instance needs its domain allowed once ([Self-hosted instances](./self-hosted)). The Diagit icon appears in the browser toolbar.
 
 ## 2. Open a model file
 
@@ -27,7 +27,7 @@ Drag to move the diagram, zoom with **−** and **+**, and press **Fit** to see 
 
 ## 3. Review a change in a pull request
 
-Open a pull request or merge request that changes a `.bpmn` file and go to **Files changed**. Diagit adds a panel above the file's text diff. Switch it from **Plain** to **Diff**:
+Open a pull request or merge request that changes a `.bpmn` file and go to **Files changed** (on GitLab: **Changes**). Diagit adds a panel above the file's text diff. Switch it from **Plain** to **Diff**:
 
 <figure class="shot">
   <img src="/shots/pr-diff.png" alt="Diagit's Diff view in a pull request: the old process on the left, the new one on the right, the added payment step and reminder marked green, the renamed check task blue" />

@@ -1,11 +1,11 @@
 # Private repos on github.com
 
-Connect Diagit to GitHub once, so it can show diagrams and diffs in private repositories on github.com.
+Connect Diagit to GitHub once, so it can show the diff in pull requests and commits of private repositories on github.com. Diagrams on file pages work without this step, with the login you already have.
 
 **Requirements:** a GitHub account with access to the repositories.
 
 ::: tip Not needed everywhere
-Public repositories, GitLab and GitHub Enterprise work without this step. Diagit reads them with the login you already have in the browser.
+Public repositories, GitLab and GitHub Enterprise work without this step. Diagit reads them with the login you already have in the browser. A self-hosted GitLab or GitHub Enterprise needs its domain allowed once instead, see [Self-hosted instances](./self-hosted).
 :::
 
 ## Why this step exists
@@ -19,6 +19,12 @@ Open Diagit's options and follow **install the GitHub App**, or go to [github.co
 ## 2. Connect GitHub
 
 Back in the options, press **Connect GitHub**. Diagit shows a code. Open `github.com/login/device`, enter the code and confirm. The options then show **Connected as @your-login**.
+
+## Troubleshooting
+
+::: details The diff shows "GitHub returned 403"
+Either the anonymous rate limit of `api.github.com` is used up, which can happen in public repositories when you are not connected, or your organisation uses SSO and has not authorised the app. Connect GitHub as described above, and, if your organisation uses SSO, authorise the app for it.
+:::
 
 ## Disconnect
 
