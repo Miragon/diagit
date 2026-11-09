@@ -45,11 +45,22 @@ Diagit recognises a model by its file ending. Every notation is drawn on the fil
 
 ## Install
 
-1. Add Diagit from your browser's store: [Chrome Web Store](https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh), [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/diagit/) or [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen). There is nothing to configure for github.com and gitlab.com.
-2. Open a model file in a repository, for example a `.bpmn` file. Diagit draws the diagram above the source.
-3. Open a pull request that changes a `.bpmn` file, go to **Files changed** and switch the Diagit panel from **Plain** to **Diff**.
+Diagit is published in the extension stores of three browsers:
 
-The full walk-through, with troubleshooting, is in [Getting started](https://miragon.github.io/diagit/getting-started). To build the extension from source and load it unpacked, see [CONTRIBUTING.md](CONTRIBUTING.md#loading-the-extension-unpacked).
+| Browser | Store                                                                                                |
+| ------- | ---------------------------------------------------------------------------------------------------- |
+| Chrome  | [Chrome Web Store](https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh) |
+| Firefox | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/diagit/)                                  |
+| Edge    | [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)   |
+
+There is nothing to configure for github.com and gitlab.com. To build the extension from source and load it unpacked, see [CONTRIBUTING.md](CONTRIBUTING.md#loading-the-extension-unpacked).
+
+## Get started
+
+1. Open a model file in a repository, for example a `.bpmn` file. Diagit draws the diagram above the source.
+2. Open a pull request that changes a `.bpmn` file, go to **Files changed** and switch the Diagit panel from **Plain** to **Diff**.
+
+The full walk-through, with troubleshooting, is in [Getting started](https://miragon.github.io/diagit/getting-started).
 
 ## Help and feedback
 
