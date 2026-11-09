@@ -30,7 +30,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   mount(container: HTMLElement): this {
     container.append(this.wrap)
-    this.wrap.dataset.theme = detectHostTheme(this.wrap)
+    this.wrap.dataset.cdTheme = detectHostTheme(this.wrap)
     void this.load()
     return this
   }

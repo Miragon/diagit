@@ -1,5 +1,5 @@
 import DmnNavigatedViewer from 'dmn-js/lib/NavigatedViewer'
-import { resolveDiagramColors } from '../../platform/utils/hostTheme'
+import { detectHostTheme, diagramColors } from '../../platform/utils/hostTheme'
 import { fitWithPadding, type FitCanvas } from '../../platform/utils/fitWithPadding'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import type { DiagramViewer } from '../Notation'
@@ -8,7 +8,7 @@ const DMN_FIT_PADDING = 64
 
 export class DmnViewer implements DiagramViewer {
   static async create(canvas: HTMLElement, xml: string): Promise<DmnViewer> {
-    const { stroke, fill } = resolveDiagramColors(canvas)
+    const { stroke, fill } = diagramColors(detectHostTheme(canvas))
     const viewer = new DmnNavigatedViewer({
       container: canvas,
       drd: {

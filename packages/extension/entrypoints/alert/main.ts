@@ -1,3 +1,4 @@
+import '../../src/platform/theme/cd-tokens.generated.css'
 import '../options/options.css'
 import './alert.css'
 

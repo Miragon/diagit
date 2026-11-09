@@ -1,6 +1,6 @@
 import NavigatedViewer from 'bpmn-js/lib/NavigatedViewer'
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json' with { type: 'json' }
-import { resolveDiagramColors } from '../../platform/utils/hostTheme'
+import { detectHostTheme, diagramColors } from '../../platform/utils/hostTheme'
 import { fitWithPadding } from '../../platform/utils/fitWithPadding'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import type { DiffableViewer } from '../Notation'
@@ -9,7 +9,7 @@ import { dropInvalidDiColors } from './utils/diColors'
 
 export class BpmnViewer implements DiffableViewer {
   static async create(canvas: HTMLElement, xml: string): Promise<BpmnViewer> {
-    const { stroke, fill } = resolveDiagramColors(canvas)
+    const { stroke, fill } = diagramColors(detectHostTheme(canvas))
     const viewer = new NavigatedViewer({
       container: canvas,
       bpmnRenderer: { defaultStrokeColor: stroke, defaultFillColor: fill },

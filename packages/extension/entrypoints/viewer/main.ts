@@ -1,4 +1,6 @@
+import '../../src/platform/theme/cd-tokens.generated.css'
 import './viewer.css'
+import '../../src/platform/theme/cd-canvas.css'
 
 import { notationDetector } from '../../src/notations/NotationDetector'
 import { allNotations } from '../../src/notations/allNotations'

@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "miragon-agent-skills": {
+      "source": { "source": "github", "repo": "Miragon/skills" }
+    }
+  },
+  "enabledPlugins": {
+    "miragon-brand@miragon-agent-skills": true
+  }
+}

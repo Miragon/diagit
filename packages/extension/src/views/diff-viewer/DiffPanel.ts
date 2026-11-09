@@ -55,7 +55,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   mount(container: HTMLElement): this {
     container.append(this.root)
-    this.root.dataset.theme = detectHostTheme(this.root)
+    this.root.dataset.cdTheme = detectHostTheme(this.root)
     this.plainTab.addEventListener('click', () => this.show('plain'))
     this.diffTab.addEventListener('click', () => this.show('diff'))
     this.show('plain')

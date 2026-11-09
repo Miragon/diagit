@@ -46,6 +46,23 @@ describe('BlobViewerController', () => {
     await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
   })
 
+  it('themes the panel with the Miragon tokens', async () => {
+    document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
+
+    new BlobViewerController(
+      pageAt('/o/r/blob/main/order.bpmn'),
+      blobPage,
+      new FakeNotationLookup(),
+    ).start()
+
+    const file = document.getElementById('file')!
+    await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
+    const panelStyles = file.previousElementSibling!.shadowRoot!.querySelectorAll('style')
+    const panelCss = [...panelStyles].map((style) => style.textContent).join('\n')
+    expect(panelCss).toContain('--cd-ui-text')
+    expect(panelCss).not.toContain(':root')
+  })
+
   it('renders nothing on a blob page without a diagram', async () => {
     document.body.innerHTML = '<section><div class="code"></div></section>'
 

@@ -1,5 +1,15 @@
 {
-  "_comment": "Activates brand-lint from the miragon-brand plugin (Claude Code hook and CI). The repo is English, so the German-only copy rules are off: du (A1), umlauts (A3), German passive (A4), German claim (A7), gender forms (A11) and C5 (one language per surface, German by default). A modeler repo removes C5 from the list: there C5 checks that the whole tool speaks one language (modeler-tool-design, guide section 2). Em dashes as connectors (A2), spellings (A10), the anti-slop patterns (S*), palette, token and dark-mode rules stay on. The docs kit in docs/.vitepress/miragon/ is linted at its source in Miragon/corporate-identity. Pictures a tool renders (docs/public/shots/) keep the tool's colours.",
-  "ignorieren": ["docs/.vitepress/miragon/", "docs/public/shots/", "CHANGELOG.md"],
+  "_comment": "Activates brand-lint from the miragon-brand plugin: the Claude Code hook while editing, and the brand job in .github/workflows/ci.yml, which runs the copy vendored in .miragon/brand-lint/. The repo is English, so the German-only copy rules are off: du (A1), umlauts (A3), German passive (A4), German claim (A7), gender forms (A11) and C5 (one language per surface, German by default). Em dashes as connectors (A2), spellings (A10), the anti-slop patterns (S*), palette, token and dark-mode rules stay on. Files vendored from Miragon/corporate-identity (the docs kit, brand-lint itself, the design tokens) are checked at their source. Pictures and diagrams a tool renders (docs/public/shots/, test and e2e fixtures) keep the tool's colours, and test data may carry raw colours on purpose.",
+  "ignorieren": [
+    "docs/.vitepress/miragon/",
+    "docs/public/shots/",
+    ".miragon/brand-lint/",
+    "packages/extension/src/platform/theme/cd-",
+    "packages/extension/test/",
+    "packages/extension/e2e/",
+    "packages/bpmn-diff/test/",
+    "CHANGELOG.md",
+    "packages/extension/CHANGELOG.md"
+  ],
   "aus": ["A1", "A3", "A4", "A7", "A11", "C5"]
 }

@@ -1,3 +1,4 @@
+import { createElement, Maximize, Minus, Plus, type IconNode } from 'lucide'
 import { h } from '../utils/dom'
 
 export interface Zoomable {
@@ -6,19 +7,30 @@ export interface Zoomable {
 }
 
 const ZOOM_STEP = 1.2
+const ICON_STROKE_WIDTH = 2.5
 
 export class ZoomControls {
   readonly element: HTMLElement
 
   constructor(target: Zoomable) {
-    this.element = h('div', { class: 'git-diagram-controls' }, [
-      this.button('Zoom out', '−', () => target.zoomBy(1 / ZOOM_STEP)),
-      this.button('Fit', 'Fit', () => target.fit()),
-      this.button('Zoom in', '+', () => target.zoomBy(ZOOM_STEP)),
-    ])
+    this.element = h(
+      'div',
+      { class: 'git-diagram-controls', role: 'group', 'aria-label': 'Zoom' },
+      [
+        this.button('Zoom out', Minus, () => target.zoomBy(1 / ZOOM_STEP)),
+        this.button('Zoom in', Plus, () => target.zoomBy(ZOOM_STEP)),
+        h('span', { class: 'git-diagram-controls-divider', 'aria-hidden': 'true' }),
+        this.button('Fit to view', Maximize, () => target.fit()),
+      ],
+    )
   }
 
-  private button(title: string, text: string, onClick: () => void): HTMLButtonElement {
-    return h('button', { class: 'git-diagram-btn', type: 'button', title, text, onClick })
+  private button(label: string, icon: IconNode, onClick: () => void): HTMLButtonElement {
+    const svg = createElement(icon, { 'stroke-width': ICON_STROKE_WIDTH, 'aria-hidden': 'true' })
+    return h(
+      'button',
+      { class: 'git-diagram-btn', type: 'button', title: label, 'aria-label': label, onClick },
+      [svg],
+    )
   }
 }

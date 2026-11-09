@@ -74,7 +74,7 @@ await page.locator('.djs-element').first().waitFor({ state: 'attached', timeout:
 await page.waitForTimeout(1000)
 await save(
   'file-page.png',
-  await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 590 } }),
+  await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } }),
 )
 
 await page.goto(`http://localhost:${port}/octo/flows/pull/1/files`)

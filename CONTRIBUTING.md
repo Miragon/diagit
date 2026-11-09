@@ -52,7 +52,7 @@ npm run size
 On top of that, one [WebdriverIO](https://webdriver.io) suite loads the **real
 built extension** into a browser and runs the same specs on **Chrome, Edge and
 Firefox** (`packages/extension/e2e`). It serves GitHub-shaped fixture pages from a
-local server — no live github.com — and asserts the diagram actually renders.
+local server (no live github.com) and asserts the diagram actually renders.
 
 ```bash
 # 1. build the extension in E2E mode (its view router also matches localhost)
@@ -69,13 +69,13 @@ WDIO_HEADED=1        npm run test:e2e -w @diagit/extension  # visible browser wi
 WDIO_SCREENSHOTS=1   npm run test:e2e -w @diagit/extension  # PNG per test
 ```
 
-`WDIO_HEADED=1` opens a real window (the specs run fast — drop a `browser.debug()`
+`WDIO_HEADED=1` opens a real window (the specs run fast, so drop a `browser.debug()`
 into one to freeze it and look). `WDIO_SCREENSHOTS=1` writes a PNG of each test's
-end state — the rendered diagram above the host DOM — to
+end state (the rendered diagram above the host DOM) to
 `packages/extension/.output/e2e-screenshots/`, which works headless too and is
 uploadable as a CI artifact.
 
-> Re-run `e2e:build` after changing extension code — the suite drives the built
+> Re-run `e2e:build` after changing extension code: the suite drives the built
 > `.output` extension, not your source directly. CI runs this suite per browser
 > (Chrome & Edge required, Firefox soaking).
 
@@ -93,22 +93,22 @@ npm run build       -w @diagit/extension   # normal build (real github.com)
 npm run test:e2e:live -w @diagit/extension # WDIO_LIVE against real github.com
 ```
 
-It runs **weekly** (`.github/workflows/canary.yml`), **not** on PRs — real GitHub
+It runs **weekly** (`.github/workflows/canary.yml`), **not** on PRs. Real GitHub
 is A/B-tested and occasionally flaky, so it must never block a merge. When it goes
 red, GitHub changed its DOM: update the selector file (and refresh the fixtures).
 A GitLab canary is a tracked follow-up.
 
 ## Loading the extension unpacked
 
-You don't need the Chrome Web Store / AMO to run this — load the built extension
+You don't need the Chrome Web Store / AMO to run this. Load the built extension
 directly. Build it once (`npm run build -w @diagit/extension`), which
 produces two artifacts:
 
-- `packages/extension/.output/chrome-mv3` — for **all Chromium browsers**
-- `packages/extension/.output/firefox-mv3` — for **Firefox and its forks**
+- `packages/extension/.output/chrome-mv3`: for **all Chromium browsers**
+- `packages/extension/.output/firefox-mv3`: for **Firefox and its forks**
 
 > For active development, prefer `npm run dev` (Chromium) or
-> `npm run dev -w @diagit/extension -- -b firefox` — it hot-reloads
+> `npm run dev -w @diagit/extension -- -b firefox`. It hot-reloads
 > instead of requiring a rebuild + reload for each change.
 
 ### Chromium browsers (Chrome, Edge, Vivaldi, Brave, Opera, Arc, …)
@@ -144,8 +144,8 @@ on the extension card to pick up changes.
 
 `gitlab.com` and `github.com` work immediately. For a **self-hosted** GitLab EE /
 GitHub Enterprise instance, open a `.bpmn` file (or a merge request) there and
-click the extension's toolbar icon — or right-click the page → _Enable Diagit on this
-domain_ — to grant access to just that site. You can also
+click the extension's toolbar icon (or right-click the page → _Enable Diagit on this
+domain_) to grant access to just that site. You can also
 manage domains in the options page.
 
 ## Before you open a PR
@@ -166,31 +166,35 @@ npm run format     # prettier
 - **Commits & PR titles** follow [Conventional Commits](https://www.conventionalcommits.org/)
   (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, …). The PR title is checked in
   CI and drives the automated release notes (release-please).
-- **Architecture**: keep `packages/bpmn-diff` free of DOM and bpmn-js — it's the pure,
+- **Architecture**: keep `packages/bpmn-diff` free of DOM and bpmn-js: it's the pure,
   testable diff core. The layering is enforced by dependency-cruiser in both
   packages (`npm run lint:deps`).
 - **Classes first**: behaviour lives in classes; pure helpers go to a `utils/`
   folder. ESLint rejects top-level functions anywhere else.
 - **Dependencies** are pinned to exact versions.
+- Every surface follows the Miragon design system. Colours come from the vendored
+  tokens in `packages/extension/src/platform/theme/` as `--cd-ui-*` roles, never as raw values;
+  the git host only decides light or dark. CI checks this with brand-lint (job `brand`). Details
+  and the update path are in `CLAUDE.md`.
 
 ## Where things live
 
-- `packages/bpmn-diff/src/domain` — the diff algorithm (pure).
-- `packages/bpmn-diff/src/adapter` — BPMN XML → parsed model (bpmn-moddle).
-- `packages/extension/entrypoints` — one-line WXT entrypoints that wire the classes below.
-- `packages/extension/src/views` — what the user sees, one folder per view: `blob-viewer`
+- `packages/bpmn-diff/src/domain`: the diff algorithm (pure).
+- `packages/bpmn-diff/src/adapter`: BPMN XML → parsed model (bpmn-moddle).
+- `packages/extension/entrypoints`: one-line WXT entrypoints that wire the classes below.
+- `packages/extension/src/views`: what the user sees, one folder per view: `blob-viewer`
   (diagram above a file), `diff-viewer` (before/after diff in PRs/MRs), `standalone-viewer`,
   `options`, plus the `view-router` that picks the view for a page. Views never import each other.
-- `packages/extension/src/notations` — one folder per notation behind the `Notation`
+- `packages/extension/src/notations`: one folder per notation behind the `Notation`
   interface (descriptor, viewer, CSS, optional differ); each folder's `descriptor.ts` and
   `notationCatalog.ts` are light and import-safe, everything else loads a renderer. Only views
   pick a registry (`allNotations`, `diffableNotations`), so each bundle carries just the
   renderers it needs.
-- `packages/extension/src/git-hosts` — where files come from: one folder per git host behind the
+- `packages/extension/src/git-hosts`: where files come from: one folder per git host behind the
   `GitHost` interface (routes, REST API, DOM scanner, blob page, diff pages), the `DiffSource`
   seam, the `HostRegistry` and `self-hosted/` instance access.
-- `packages/extension/src/background` — the background worker (fetch proxy, script injection).
-- `packages/extension/src/platform` — the browser runtime everything builds on: messaging,
+- `packages/extension/src/background`: the background worker (fetch proxy, script injection).
+- `packages/extension/src/platform`: the browser runtime everything builds on: messaging,
   settings, the content-script `HostPage`, shared UI and `utils/`. It imports nothing outside itself.
 
 Imports point down: `views` / `background` → `notations` / `git-hosts` → `platform`. The rules live in

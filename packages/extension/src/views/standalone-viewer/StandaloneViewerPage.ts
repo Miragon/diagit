@@ -4,7 +4,11 @@ import { errorMessage } from '../../platform/utils/errorMessage'
 
 export class StandaloneViewerPage {
   private readonly fileInput: HTMLInputElement
-  private readonly openButton = h('button', { class: 'btn', type: 'button', text: 'Open file…' })
+  private readonly openButton = h('button', {
+    class: 'btn primary',
+    type: 'button',
+    text: 'Open file…',
+  })
   private readonly canvas = h('div', { class: 'canvas' })
   private readonly dropzone: HTMLElement
   private readonly stage: HTMLElement
@@ -25,18 +29,16 @@ export class StandaloneViewerPage {
       style: 'display:none',
     })
     this.dropzone = h('div', { class: 'dropzone' }, [
-      h('span', { text: `Drop a ${extensionList} file here, or use “Open file…”.` }),
+      h('div', { class: 'dropzone-card' }, [
+        h('img', { class: 'dropzone-icon', src: '/icon/icon.svg', alt: '' }),
+        h('span', { text: `Drop a ${extensionList} file here, or use “Open file…”.` }),
+      ]),
     ])
     this.stage = h('div', { class: 'stage' }, [this.canvas, this.dropzone])
   }
 
   mount(app: HTMLElement): void {
-    const toolbar = h('div', { class: 'toolbar' }, [
-      h('strong', { text: 'Diagram Viewer' }),
-      h('span', { class: 'spacer' }),
-      this.openButton,
-      this.fileInput,
-    ])
+    const toolbar = h('div', { class: 'toolbar' }, [this.openButton, this.fileInput])
     app.append(toolbar, this.stage)
     this.listen()
   }
@@ -89,6 +91,8 @@ export class StandaloneViewerPage {
 
   private showError(text: string): void {
     this.dropzone.classList.remove('hidden', 'dragover')
-    this.dropzone.replaceChildren(h('span', { class: 'error', text }))
+    this.dropzone.replaceChildren(
+      h('div', { class: 'dropzone-card error', role: 'alert' }, [h('span', { text })]),
+    )
   }
 }

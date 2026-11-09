@@ -1,3 +1,4 @@
+import '../../src/platform/theme/cd-tokens.generated.css'
 import './options.css'
 
 import { githubTokens, hostRegistry } from '../../src/git-hosts/hosts'

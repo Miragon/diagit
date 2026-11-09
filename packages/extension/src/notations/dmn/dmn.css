@@ -6,7 +6,7 @@
    drdRenderer colours don't reach it and dmn-js' hard-coded light palette makes
    it look out of place in dark mode. Nudge it clear of the corner (dmn-js pins
    it at top/left: 20px, where it clips under the host's file header) and theme
-   it from the host tokens the chrome already inherits. */
+   it from the same role aliases as the chrome. */
 .dmn-definitions {
   top: 55px;
   left: 25px;
@@ -23,8 +23,7 @@
 /* Decision-table view: dmn-js renders it as an HTML table with a hard-coded
    light palette (grey text/borders on white), so on a dark page it stays a white
    block. It exposes every colour as a variable, so remap the greyscale ones to
-   the host tokens the chrome already inherits — this themes it for light *and*
-   dark alike. Accent colours (blue action icons) are left as dmn-js' own. */
+   the role aliases of the chrome, which themes it for light and dark alike. */
 .dmn-decision-table-container {
   --decision-table-color: var(--fg);
   --decision-table-background-color: var(--bg);
@@ -37,6 +36,7 @@
   --table-head-clause-color: var(--fg);
   --table-head-variable-color: var(--fg);
   --hit-policy-explanation-color: var(--fg);
+  --decision-table-font-family: var(--font);
   --table-row-alternative-background-color: var(--btn-bg);
   --view-drd-button-color: var(--fg);
   --view-drd-button-background-color: var(--btn-bg);
