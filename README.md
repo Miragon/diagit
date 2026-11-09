@@ -53,7 +53,12 @@ Diagit is published in the extension stores of three browsers:
 | Firefox | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/diagit/)                                  |
 | Edge    | [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)   |
 
-There is nothing to configure for github.com and gitlab.com. To build the extension from source and load it unpacked, see [CONTRIBUTING.md](CONTRIBUTING.md#loading-the-extension-unpacked).
+Public repositories on github.com and all repositories on gitlab.com work right away, with the login you already have. Two setups need one step first:
+
+- **Private repositories on github.com:** connect the read-only GitHub App once, see [Private repos on github.com](https://miragon.github.io/diagit/private-repos).
+- **Self-hosted GitLab or GitHub Enterprise:** allow the domain once with a click on the Diagit icon, see [Self-hosted instances](https://miragon.github.io/diagit/self-hosted).
+
+To build the extension from source and load it unpacked, see [CONTRIBUTING.md](CONTRIBUTING.md#loading-the-extension-unpacked).
 
 ## Get started
 
