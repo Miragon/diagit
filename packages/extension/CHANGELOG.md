@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/Miragon/diagit/compare/v0.3.0...v0.3.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **gitlab:** support the Rapid Diffs merge request view ([#133](https://github.com/Miragon/diagit/issues/133)) ([693cde2](https://github.com/Miragon/diagit/commit/693cde2c6743ab91eb3b162394c57fd5d4396b07))
+
 ## [0.3.0](https://github.com/Miragon/diagit/compare/v0.2.1...v0.3.0) (2026-11-07)
 
 
