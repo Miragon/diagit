@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BlobPage } from '../../src/git-hosts/BlobPage'
-import { HOST_TAG } from '../../src/platform/injectedElements'
+import { HOST_TAG, PLACEMENT_NOTICE_TAG } from '../../src/platform/injectedElements'
 import { BlobViewerController } from '../../src/views/blob-viewer/BlobViewerController'
 import { HostPage } from '../../src/platform/page/HostPage'
 import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
@@ -74,5 +74,71 @@ describe('BlobViewerController', () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(document.querySelector(HOST_TAG)).toBeNull()
+  })
+
+  describe('when the page offers no place for the view', () => {
+    const ALL_MOUNT_RETRIES_MS = 7_000
+
+    function startOn(pathname: string): void {
+      new BlobViewerController(pageAt(pathname), blobPage, new FakeNotationLookup()).start()
+    }
+
+    function noticeText(): string {
+      return document.querySelector(PLACEMENT_NOTICE_TAG)?.shadowRoot?.textContent ?? ''
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('shows a notice once every attempt to place the view has failed', async () => {
+      document.body.innerHTML = '<main><p>The host moved the code somewhere new.</p></main>'
+      startOn('/o/r/blob/main/order.bpmn')
+
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+
+      expect(noticeText()).toContain('view could not be added')
+      expect(noticeText()).toContain('Report this problem')
+    })
+
+    it('stays quiet on a file that is not a diagram', async () => {
+      document.body.innerHTML = '<main></main>'
+      startOn('/o/r/blob/main/README.md')
+
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+
+      expect(document.querySelector(PLACEMENT_NOTICE_TAG)).toBeNull()
+    })
+
+    it('keeps the notice away once it was dismissed', async () => {
+      document.body.innerHTML = '<main></main>'
+      startOn('/o/r/blob/main/order.bpmn')
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+
+      const dismiss = document
+        .querySelector(PLACEMENT_NOTICE_TAG)!
+        .shadowRoot!.querySelector<HTMLButtonElement>('button')!
+      dismiss.click()
+      document.querySelector('main')!.append(document.createElement('p'))
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+
+      expect(document.querySelector(PLACEMENT_NOTICE_TAG)).toBeNull()
+    })
+
+    it('removes the notice once the view finds its place', async () => {
+      document.body.innerHTML = '<main></main>'
+      startOn('/o/r/blob/main/order.bpmn')
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+
+      document.querySelector('main')!.innerHTML = '<section><div class="code"></div></section>'
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+
+      expect(document.querySelector(HOST_TAG)).not.toBeNull()
+      expect(document.querySelector(PLACEMENT_NOTICE_TAG)).toBeNull()
+    })
   })
 })
