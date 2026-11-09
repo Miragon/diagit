@@ -25,6 +25,10 @@ Diagit puts the diagram back where you read and review it. It draws the model on
 
 ![On a GitHub pull request, the changed .bpmn file switches from the plain diagram to a before/after diff, then steps to the added Review result task and back to all changes](assets/demo.gif)
 
+## Supported notations
+
+Diagit recognises a model by its file ending. Every notation is drawn on the file page; the before/after diff covers BPMN so far.
+
 | Notation        | File endings       | File page | PR / MR diff |
 | --------------- | ------------------ | --------- | ------------ |
 | BPMN            | `.bpmn`            | yes       | yes          |
@@ -59,7 +63,10 @@ Diagit collects no data and has no server. File contents only travel between you
 The [documentation](https://miragon.github.io/diagit/) explains every feature, setup step and limit.
 Found a bug or missing something? Open an [issue](https://github.com/Miragon/diagit/issues).
 Report security issues privately, as described in [SECURITY.md](SECURITY.md).
-How to build, test and change the project is in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Contributing
+
+Contributions are welcome. How to build, test and change the project is in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
