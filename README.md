@@ -51,11 +51,11 @@ Diagit recognises a model by its file ending. Every notation is drawn on the fil
 
 The full walk-through, with troubleshooting, is in [Getting started](https://miragon.github.io/diagit/getting-started). To build the extension from source and load it unpacked, see [CONTRIBUTING.md](CONTRIBUTING.md#loading-the-extension-unpacked).
 
-## Documentation and feedback
+## Help and feedback
 
-The [documentation](https://miragon.github.io/diagit/) explains every feature, setup step and limit.
-Found a bug or missing something? Open an [issue](https://github.com/Miragon/diagit/issues).
-Report security issues privately, as described in [SECURITY.md](SECURITY.md).
+- **Documentation:** every feature, setup step and limit is explained at [miragon.github.io/diagit](https://miragon.github.io/diagit/).
+- **Bugs and ideas:** found a bug or missing something? [Open an issue](https://github.com/Miragon/diagit/issues).
+- **Security:** report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
