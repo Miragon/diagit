@@ -1,113 +1,77 @@
 # Diagit
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/bjphfmmlciflmdcnpfpbnkmgnkiabfdh?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh)
+[![Firefox Add-ons](https://img.shields.io/amo/v/diagit?label=Firefox%20Add-ons&logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/diagit/)
+[![Edge Add-ons](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fpphcelcgicmpdkkbginmkdogceepigen&query=%24.version&prefix=v&label=Edge%20Add-ons&logo=microsoftedge&logoColor=white&color=blue)](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)
 [![CI](https://github.com/Miragon/diagit/actions/workflows/ci.yml/badge.svg)](https://github.com/Miragon/diagit/actions/workflows/ci.yml)
-[![license](https://img.shields.io/github/license/Miragon/diagit)](./LICENSE)
+[![License: MIT](https://img.shields.io/github/license/Miragon/diagit)](LICENSE)
 
-> A browser extension (Chrome, Edge, Firefox) that renders **diagram models
-> inline** (BPMN, DMN, Wardley Maps, Team Topologies, Event Storming, Context Maps,
-> Value Chains and Excalidraw) on GitLab and GitHub — and shows a **visual before/after diff** in
-> merge and pull requests.
+![Diagit, a browser extension: diagrams and their changes, right on GitHub and GitLab. Next to the claim, a GitHub file page shows the order-to-cash process drawn above its BPMN source](assets/store/cover.png)
 
-![On a GitHub pull request, the changed .bpmn file switches from the plain diagram to a before/after diff, then steps to the added Review result task and back to all changes](assets/demo.gif)
+A browser extension that draws BPMN, DMN, Wardley Maps and other model files above their source on GitHub and GitLab, and shows BPMN changes as a before/after diff in pull and merge requests.
 
 ## Why
 
-BPMN and DMN files are XML. On a git host that means a code review of a process
-change is a wall of `<bpmn:sequenceFlow>` — you can't _see_ what actually moved,
-got added, or was removed. This extension puts the real diagram back where the
-review happens: it draws the model inline on the file, and in a pull/merge
-request it highlights the **added / removed / changed / moved** elements over a
-before/after view.
+Models kept in Git are text files. On GitHub or GitLab you see their source, and reviewing a change means reading a wall of XML or JSON instead of the process, map or team structure it describes.
 
-It's built on the [bpmn.io](https://bpmn.io) toolkits
-([bpmn-js](https://github.com/bpmn-io/bpmn-js),
-[dmn-js](https://github.com/bpmn-io/dmn-js)) and the Miragon modeler renderers
-(Wardley Maps, Team Topologies, Event Storming, Context Maps, Value Chains), plus
-[Excalidraw](https://github.com/excalidraw/excalidraw)'s own export code, and grew out of two internal
-Tampermonkey userscripts, now reworked into a tested, store-ready extension.
+## What you get
 
-## Features
+- **Wherever your repos live.** github.com, gitlab.com, GitHub Enterprise and self-hosted GitLab.
+- **Files from your disk.** A viewer page in the extension opens local models; nothing leaves your machine. [Open a file from your disk](https://miragon.github.io/diagit/notations#open-a-file-from-your-disk)
+- **A visual diff for BPMN.** Added, removed, changed and moved elements are marked, in GitHub commits too. [Review a model change](https://miragon.github.io/diagit/review-changes)
 
-- **Inline viewer** — open a supported file on GitLab or GitHub and the
-  diagram appears above the source (drag to pan; the +/− and fit buttons zoom).
-- **Merge / pull-request diff** — every changed `.bpmn` in an MR/PR (and on a
-  GitHub single-commit page) gets a before/after view that marks added / removed
-  / changed / moved elements (semantic diff, including `zeebe:*` properties) with
-  prev/next navigation.
-- **Standalone viewer** — a built-in page to drop in any local diagram
-  file; nothing leaves your machine, no site permissions needed.
-- **Self-hosted** — one click (toolbar icon or right-click) grants the viewer on
-  your GitLab EE / GitHub Enterprise instance; manage domains in the options page.
-- **Private repos** — public repos, GitLab and GitHub Enterprise work out of the
-  box. **Private repos on github.com** additionally need you to install the
-  GitHub App and click **Connect GitHub** in the options page, because github.com
-  serves its API from a separate origin (`api.github.com`) your login cookie can't
-  reach. No token to create by hand — the app grants read-only access to just the
-  repos you install it on.
-
-![On a GitHub file page, Diagit draws the order-to-cash process with its three lanes above the BPMN source](assets/inline-viewer.png)
+![On a GitHub pull request, the changed .bpmn file switches from the plain diagram to a before/after diff, then jumps to the added task "Review result" and back to all changes](assets/demo.gif)
 
 ## Supported notations
 
-| Notation        | Files              | Inline viewer | PR / MR diff |
-| --------------- | ------------------ | ------------- | ------------ |
-| BPMN            | `.bpmn`            | yes           | yes          |
-| DMN             | `.dmn`             | yes           | no           |
-| Wardley Map     | `.owm`, `.wmap`    | yes           | no           |
-| Team Topologies | `.tt`, `.ttm.json` | yes           | no           |
-| Event Storming  | `.storm`           | yes           | no           |
-| Context Map     | `.cm`, `.cm.json`  | yes           | no           |
-| Value Chain     | `.vc`, `.vc.json`  | yes           | no           |
-| Excalidraw      | `.excalidraw`      | yes           | no           |
+| Notation        | File endings       | File page | PR / MR diff |
+| --------------- | ------------------ | --------- | ------------ |
+| BPMN            | `.bpmn`            | yes       | yes          |
+| DMN             | `.dmn`             | yes       | not yet      |
+| Wardley Map     | `.owm`, `.wmap`    | yes       | not yet      |
+| Team Topologies | `.tt`, `.ttm.json` | yes       | not yet      |
+| Event Storming  | `.storm`           | yes       | not yet      |
+| Context Map     | `.cm`, `.cm.json`  | yes       | not yet      |
+| Value Chain     | `.vc`, `.vc.json`  | yes       | not yet      |
+| Excalidraw      | `.excalidraw`      | yes       | not yet      |
 
 ## Install
 
-| Browser | Store                                                                                                | Status    |
-| ------- | ---------------------------------------------------------------------------------------------------- | --------- |
-| Chrome  | [Chrome Web Store](https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh) | Available |
-| Firefox | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/diagit/)                                  | Available |
-| Edge    | [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)   | Available |
+| Browser | Store                                                                                                |
+| ------- | ---------------------------------------------------------------------------------------------------- |
+| Chrome  | [Chrome Web Store](https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh) |
+| Firefox | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/diagit/)                                  |
+| Edge    | [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)   |
 
-Until your browser's store listing is live, you can build it yourself and load
-it as an unpacked extension:
+Diffs in private github.com repos need the [GitHub App](https://miragon.github.io/diagit/private-repos); self-hosted instances need [their domain allowed](https://miragon.github.io/diagit/self-hosted) once.
 
-```bash
-npm install
-npm run build -w @diagit/extension
-```
+## Get started
 
-Then load the output for your browser:
+1. Open a model file in a GitHub or GitLab repository, for example a `.bpmn` file.
+2. In a pull request (**Files changed**) or merge request (**Changes**), switch Diagit from **Plain** to **Diff**.
 
-- **Chromium** (Chrome, Edge, Brave, Vivaldi, Opera, Arc): open the extensions
-  page, enable **Developer mode**, **Load unpacked** →
-  `packages/extension/.output/chrome-mv3`.
-- **Firefox**: `about:debugging#/runtime/this-firefox` → **Load Temporary
-  Add-on** → `packages/extension/.output/firefox-mv3/manifest.json`.
+The full walk-through is in [Getting started](https://miragon.github.io/diagit/getting-started).
 
-`gitlab.com` and `github.com` work immediately; for a self-hosted instance, open
-a `.bpmn` file there and click the extension's toolbar icon to grant access. For
-**private github.com repositories**, install the GitHub App and click **Connect
-GitHub** in the options page (see **Private repos** above).
+## Help and feedback
 
-> Full per-browser instructions (permanent Firefox installs, signing, dev mode)
-> are in [CONTRIBUTING.md](./CONTRIBUTING.md#loading-the-extension-unpacked).
-
-## Privacy
-
-The extension collects **no data** — it only fetches file contents from the git
-host you're already viewing. See [PRIVACY.md](./PRIVACY.md).
+- **Documentation:** [miragon.github.io/diagit](https://miragon.github.io/diagit/)
+- **Bugs and ideas:** [open an issue](https://github.com/Miragon/diagit/issues)
+- **Security:** report privately, see [SECURITY.md](SECURITY.md)
 
 ## Contributing
 
-Contributions are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for the
-monorepo layout, scripts, and how to build, test, and load the extension locally.
+Contributions are welcome. Building from source, tests and conventions: [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Privacy
+
+Diagit collects no data and has no server. See [PRIVACY.md](PRIVACY.md).
 
 ## Credits
 
-- [bpmn-js](https://github.com/bpmn-io/bpmn-js) and
-  [dmn-js](https://github.com/bpmn-io/dmn-js) by [bpmn.io](https://bpmn.io) — the
-  toolkits that render every diagram.
+- [bpmn-js](https://github.com/bpmn-io/bpmn-js) and [dmn-js](https://github.com/bpmn-io/dmn-js) by [bpmn.io](https://bpmn.io)
+- The renderers of the [Miragon modelers](https://github.com/Miragon/modeler-suite) for the other notations
+- [Excalidraw](https://github.com/excalidraw/excalidraw)'s export code
 
 ## License
 
-[MIT](./LICENSE) © Miragon GmbH
+[MIT](LICENSE) © Miragon GmbH
