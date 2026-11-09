@@ -9,7 +9,10 @@ export const stores = [
     url: 'https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen',
   },
 ]
-export const status = { label: 'Pre-1.0:', text: '0.2.1, expect changes between releases.' }
+export const status = {
+  label: 'Pre-1.0:',
+  text: '0.3.0, expect changes between releases.', // x-release-please-version
+}
 export const next = {
   text: 'Open your first model on GitHub',
   link: '/getting-started#open-a-diagram',

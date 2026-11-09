@@ -11,7 +11,17 @@
   "packages": {
     "packages/extension": {
       "package-name": "diagit",
-      "initial-version": "0.1.0"
+      "initial-version": "0.1.0",
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "/docs/.vitepress/theme/data.ts"
+        },
+        {
+          "type": "generic",
+          "path": "/.github/ISSUE_TEMPLATE/fix.yml"
+        }
+      ]
     }
   }
 }
