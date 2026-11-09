@@ -4,8 +4,7 @@ import type { GithubTokenSet } from './GithubTokenStore'
 
 const GITHUB_APP_CLIENT_ID = 'Iv23liayyRyhjA7nIqfG'
 
-export const GITHUB_APP_INSTALL_URL =
-  'https://github.com/apps/miragon-diagit/installations/new'
+export const GITHUB_APP_INSTALL_URL = 'https://github.com/apps/miragon-diagit/installations/new'
 
 export const GITHUB_INSTALLED_APPS_URL = 'https://github.com/settings/installations'
 

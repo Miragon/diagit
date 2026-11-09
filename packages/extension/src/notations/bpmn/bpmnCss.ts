@@ -4,5 +4,7 @@ import bpmnFontCss from 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css?inl
 import viewerCss from '../../platform/ui/viewer.css?inline'
 import transactionBoundariesCss from './transaction-boundaries/transactionBoundaries.css?inline'
 
-export const BPMN_ASSET_CSS = [diagramCss, bpmnCss, bpmnFontCss, transactionBoundariesCss].join('\n')
+export const BPMN_ASSET_CSS = [diagramCss, bpmnCss, bpmnFontCss, transactionBoundariesCss].join(
+  '\n',
+)
 export const BPMN_PANEL_CSS = [BPMN_ASSET_CSS, viewerCss].join('\n')
