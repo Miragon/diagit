@@ -48,16 +48,6 @@ Diagit recognises a model by its file ending. Every notation is drawn on the fil
 
 The full walk-through, with troubleshooting, is in [Getting started](https://miragon.github.io/diagit/getting-started). To build the extension from source and load it unpacked, see [CONTRIBUTING.md](CONTRIBUTING.md#loading-the-extension-unpacked).
 
-## Privacy
-
-Diagit collects no data and has no server. File contents only travel between your browser and the Git host you are viewing. See [PRIVACY.md](PRIVACY.md) and [Privacy and permissions](https://miragon.github.io/diagit/privacy).
-
-## Credits
-
-- [bpmn-js](https://github.com/bpmn-io/bpmn-js) and [dmn-js](https://github.com/bpmn-io/dmn-js) by [bpmn.io](https://bpmn.io) draw BPMN and DMN.
-- The renderers of the Miragon modelers draw Wardley Maps, Team Topologies, Event Storming, Context Maps and Value Chains.
-- [Excalidraw](https://github.com/excalidraw/excalidraw)'s own export code draws Excalidraw files.
-
 ## Documentation and feedback
 
 The [documentation](https://miragon.github.io/diagit/) explains every feature, setup step and limit.
@@ -67,6 +57,16 @@ Report security issues privately, as described in [SECURITY.md](SECURITY.md).
 ## Contributing
 
 Contributions are welcome. How to build, test and change the project is in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Privacy
+
+Diagit collects no data and has no server. File contents only travel between your browser and the Git host you are viewing. See [PRIVACY.md](PRIVACY.md) and [Privacy and permissions](https://miragon.github.io/diagit/privacy).
+
+## Credits
+
+- [bpmn-js](https://github.com/bpmn-io/bpmn-js) and [dmn-js](https://github.com/bpmn-io/dmn-js) by [bpmn.io](https://bpmn.io) draw BPMN and DMN.
+- The renderers of the Miragon modelers draw Wardley Maps, Team Topologies, Event Storming, Context Maps and Value Chains.
+- [Excalidraw](https://github.com/excalidraw/excalidraw)'s own export code draws Excalidraw files.
 
 ## License
 
