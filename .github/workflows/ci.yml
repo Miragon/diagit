@@ -68,13 +68,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Brand files unchanged since the last copy
-        run: node .miragon/brand-assets/brand-assets.mjs --verify
+        run: sha256sum -c .miragon/brand-assets.sha256
 
       - name: Brand lint (hard rules fail, soft hints are logged)
         run: node .miragon/brand-lint/brand-lint.mjs .

@@ -23,16 +23,16 @@ the plugin is installed (`.claude/settings.json` enables it). Copy and tone foll
   app icon is the comet on blue.
 - UI copy is English, sentence case, with the shared terms from §2 of the guide.
 
-The files copied from miragon-brand (brand-lint, the design tokens, `cd-canvas.css` and
-`brand-assets.mjs` itself) are listed in `.miragon/brand-assets.yaml`. Never edit a copy by hand.
+The files copied from miragon-brand (brand-lint, the design tokens and `cd-canvas.css`) are
+listed in `.miragon/brand-assets.yaml`, their checksums in `.miragon/brand-assets.sha256`. Never
+edit a copy by hand.
 
-Checks: `node .miragon/brand-assets/brand-assets.mjs --verify` (copies unchanged since the last
-copy) and `node .miragon/brand-lint/brand-lint.mjs .` (hard brand rules). Both run in CI (job
-`brand`).
+Checks: `sha256sum -c .miragon/brand-assets.sha256` (copies unchanged since the last copy) and
+`node .miragon/brand-lint/brand-lint.mjs .` (hard brand rules). Both run in CI (job `brand`).
 
 To update to a new miragon-brand release: update the plugin, run
 `node <miragon-brand>/scripts/brand-assets.mjs --check` to see which copies are behind, then
-`node <miragon-brand>/scripts/brand-assets.mjs` (copies every file, writes `skillVersion` and each
-`sha256`), run `listing.mjs --check` of the product-shots skill for `.miragon/product-shots.yaml`,
+`node <miragon-brand>/scripts/brand-assets.mjs` (copies every file, writes `skillVersion` and the
+checksums), run `listing.mjs --check` of the product-shots skill for `.miragon/product-shots.yaml`,
 check the docs kit as the `docs-site` skill describes, then build, test and look at the views in
 light and dark.

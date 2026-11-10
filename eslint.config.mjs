@@ -15,7 +15,6 @@ export default tseslint.config(
       '.context/**',
       'docs/.vitepress/miragon/**',
       '.miragon/brand-lint/**',
-      '.miragon/brand-assets/**',
       'docs/.vitepress/cache/**',
     ],
   },
