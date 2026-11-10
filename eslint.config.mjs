@@ -65,13 +65,6 @@ export default tseslint.config(
     },
   },
   {
-    // Node scripts that vendor and check the Miragon brand files.
-    files: ['.miragon/sync.mjs'],
-    languageOptions: {
-      globals: { process: 'readonly', console: 'readonly' },
-    },
-  },
-  {
     // CommonJS config files (dependency-cruiser).
     files: ['**/*.cjs'],
     languageOptions: {

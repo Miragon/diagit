@@ -23,10 +23,16 @@ the plugin is installed (`.claude/settings.json` enables it). Copy and tone foll
   app icon is the comet on blue.
 - UI copy is English, sentence case, with the shared terms from §2 of the guide.
 
-Checks: `node .miragon/sync.mjs check` (vendored copies unchanged) and
+The files copied from miragon-brand (brand-lint, the design tokens and `cd-canvas.css`) are
+listed in `.miragon/brand-assets.yaml`, their checksums in `.miragon/brand-assets.sha256`. Never
+edit a copy by hand.
+
+Checks: `sha256sum -c .miragon/brand-assets.sha256` (copies unchanged since the last copy) and
 `node .miragon/brand-lint/brand-lint.mjs .` (hard brand rules). Both run in CI (job `brand`).
 
-To update to a new miragon-brand release: update the plugin, run `node .miragon/sync.mjs` (copies
-brand-lint and the tokens from the newest installed plugin and rewrites `.miragon/vendored.json`),
+To update to a new miragon-brand release: update the plugin, run
+`node <miragon-brand>/scripts/brand-assets.mjs --check` to see which copies are behind, then
+`node <miragon-brand>/scripts/brand-assets.mjs` (copies every file, writes `skillVersion` and the
+checksums), run `listing.mjs --check` of the product-shots skill for `.miragon/product-shots.yaml`,
 check the docs kit as the `docs-site` skill describes, then build, test and look at the views in
 light and dark.
