@@ -1,0 +1,23 @@
+# miragon-brand/brand-assets: neu kopieren mit brand-assets.mjs, die Kopien nie von Hand ändern
+# Alle Dateien, die dieses Repo aus dem Plugin miragon-brand kopiert. "source" ist relativ zum Plugin,
+# "out" relativ zum Repo, "sha256" setzt brand-assets.mjs. Neue Einträge mit: brand-assets.mjs --add <source> <out>
+skillVersion: 1.32.0
+files:
+  - source: scripts/brand-assets.mjs
+    out: .miragon/brand-assets/brand-assets.mjs
+    sha256: 58d7cad194627943eb8ae3a185cfe170c7cf1dd85b0f9af18d92f33cdc1fdeba
+  - source: scripts/brand-lint.mjs
+    out: .miragon/brand-lint/brand-lint.mjs
+    sha256: 7a113a19c797024e00c58c4570af0a17f29a9d6265388d0891ef1545eb6c275e
+  - source: scripts/brand-lint.generated.json
+    out: .miragon/brand-lint/brand-lint.generated.json
+    sha256: b6676213f188c1497c86701fd80f1377e953176c369824add7d86678b2bab1bf
+  - source: skills/modeler-tool-design/assets/cd-tokens.generated.css
+    out: packages/extension/src/platform/theme/cd-tokens.generated.css
+    sha256: 3a6d628685274163294fd45a65f042009501a98026a3d7cd7400776bebb76fc9
+  - source: skills/modeler-tool-design/assets/cd-tokens.generated.json
+    out: packages/extension/src/platform/theme/cd-tokens.generated.json
+    sha256: 549a244fba0951e9b77fed0f5d2172cb793191913326f08749e167ac7fdbb127
+  - source: skills/modeler-tool-design/assets/cd-canvas.css
+    out: packages/extension/src/platform/theme/cd-canvas.css
+    sha256: b49da7068bcbc95a682d93e19267c1d8308033ef421f6c120ce30eeb62eeb13a

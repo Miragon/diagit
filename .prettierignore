@@ -10,5 +10,6 @@ CHANGELOG.md
 .context
 docs/.vitepress/miragon
 .miragon/brand-lint
-.miragon/vendored.json
+.miragon/brand-assets
+.miragon/brand-assets.yaml
 packages/extension/src/platform/theme/cd-*

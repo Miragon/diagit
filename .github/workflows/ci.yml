@@ -54,8 +54,9 @@ jobs:
         run: npm run lint:webext -w @diagit/extension
 
   # The Miragon corporate identity. The files from Miragon/corporate-identity
-  # (brand-lint and the design tokens) are vendored, because that repo is private.
-  # Fails when someone edited a vendored copy or a file breaks a hard brand rule.
+  # (brand-lint and the design tokens) are copied with brand-assets.mjs and listed in
+  # .miragon/brand-assets.yaml, because that repo is private.
+  # Fails when someone edited a copy or a file breaks a hard brand rule.
   brand:
     name: Miragon brand
     runs-on: ubuntu-latest
@@ -67,9 +68,13 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          cache: npm
 
-      - name: Vendored brand files unchanged
-        run: node .miragon/sync.mjs check
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Brand files unchanged since the last copy
+        run: node .miragon/brand-assets/brand-assets.mjs --verify
 
       - name: Brand lint (hard rules fail, soft hints are logged)
         run: node .miragon/brand-lint/brand-lint.mjs .

@@ -15,6 +15,7 @@ export default tseslint.config(
       '.context/**',
       'docs/.vitepress/miragon/**',
       '.miragon/brand-lint/**',
+      '.miragon/brand-assets/**',
       'docs/.vitepress/cache/**',
     ],
   },
@@ -62,13 +63,6 @@ export default tseslint.config(
     files: ['.miragon/**/*.mjs'],
     languageOptions: {
       globals: { document: 'readonly', scrollBy: 'readonly', innerHeight: 'readonly' },
-    },
-  },
-  {
-    // Node scripts that vendor and check the Miragon brand files.
-    files: ['.miragon/sync.mjs'],
-    languageOptions: {
-      globals: { process: 'readonly', console: 'readonly' },
     },
   },
   {

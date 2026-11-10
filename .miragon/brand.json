@@ -4,6 +4,7 @@
     "docs/.vitepress/miragon/",
     "docs/public/shots/",
     ".miragon/brand-lint/",
+    ".miragon/brand-assets/",
     "packages/extension/src/platform/theme/cd-",
     "packages/extension/test/",
     "packages/extension/e2e/",
