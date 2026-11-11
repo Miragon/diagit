@@ -65,12 +65,12 @@ describe('HostAccess.grant', () => {
     expect(browserApi.tabs.reload).toHaveBeenCalledWith(1)
   })
 
-  it('keeps the label the options page gave the host', async () => {
-    await access.label(origin, 'gitlab')
+  it('lists an origin the options page added', async () => {
+    await access.add(origin)
 
     await access.grant([pattern])
 
-    expect(await access.list()).toEqual([{ origin, type: 'gitlab' }])
+    expect(await access.list()).toEqual([{ origin }])
   })
 
   it('ignores patterns that are not a concrete origin', async () => {

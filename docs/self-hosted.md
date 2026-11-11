@@ -16,10 +16,10 @@ Reload the page. Diagit now draws the model, as on github.com and gitlab.com.
 
 ## Add or remove a domain in the options
 
-Open the options: click the Diagit icon on any page that is not a Git host, or open the extension's options from the browser's extension menu. Under **Self-hosted instances**, enter the address, choose **GitLab** or **GitHub**, and press **Add instance**. **Remove** takes a domain away again.
+Open the options: click the Diagit icon on any page that is not a Git host, or open the extension's options from the browser's extension menu. Under **Self-hosted instances**, enter the address and press **Add instance**. **Remove** takes a domain away again.
 
 <figure class="shot">
-  <img src="/shots/options.png" alt="Diagit's options page with the sections Self-hosted instances, with an address field, a host type and Add instance, and GitHub access for private repos, with Connect GitHub" />
+  <img src="/shots/options.png" alt="Diagit's options page with the sections Self-hosted instances, with an address field and Add instance, and GitHub access for private repos, with Connect GitHub" />
   <figcaption>Diagit's options page</figcaption>
 </figure>
 

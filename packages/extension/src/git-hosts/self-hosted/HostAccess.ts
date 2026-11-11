@@ -42,8 +42,8 @@ export class HostAccess {
     return this.store.list()
   }
 
-  async label(origin: string, type: string): Promise<void> {
-    await this.store.save({ origin, type })
+  async add(origin: string): Promise<void> {
+    await this.store.save({ origin })
   }
 
   async grant(patterns: string[]): Promise<void> {

@@ -223,10 +223,6 @@ input:focus-visible {
   font-weight: 600;
 }
 
-.instances th:nth-child(2) {
-  width: 140px;
-}
-
 .instances th:last-child {
   width: 128px;
 }

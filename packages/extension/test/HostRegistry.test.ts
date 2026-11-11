@@ -97,10 +97,6 @@ describe('HostRegistry.isSupportedUrl', () => {
 })
 
 describe('HostRegistry contributions', () => {
-  it('offers GitLab first, matching the self-hosted placeholder on the options page', () => {
-    expect(hostRegistry.all().map((host) => host.id)).toEqual(['gitlab', 'github'])
-  })
-
   it('lists every view script once, matching the content-script entrypoints', () => {
     expect(hostRegistry.allViewScripts()).toEqual([
       'gitlab-blob',

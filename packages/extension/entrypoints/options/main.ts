@@ -19,7 +19,7 @@ const pageChrome = new OptionsPageChrome(environment.extensionVersion, browser.r
 const hostAccess = HostAccess.forHosts(hostRegistry)
 
 app.append(pageChrome.header())
-new SelfHostedHostsSection(hostAccess, hostRegistry).mount(app)
+new SelfHostedHostsSection(hostAccess).mount(app)
 new GithubAccessSection(new GithubDeviceFlow(), githubTokens).mount(app)
 new HelpSection(new DebugInfo(environment), async () => ({
   selfHostedInstances: (await hostAccess.list()).length,

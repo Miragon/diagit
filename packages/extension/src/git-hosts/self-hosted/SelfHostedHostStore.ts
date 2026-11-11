@@ -4,7 +4,6 @@ const STORAGE_KEY = 'selfHostedHosts'
 
 export interface SelfHostedHost {
   origin: string
-  type?: string
 }
 
 export class SelfHostedHostStore {
@@ -16,9 +15,8 @@ export class SelfHostedHostStore {
 
   async save(host: SelfHostedHost): Promise<void> {
     const hosts = await this.list()
-    const existing = hosts.find((saved) => saved.origin === host.origin)
     const others = hosts.filter((saved) => saved.origin !== host.origin)
-    await this.write([...others, { ...existing, ...host }])
+    await this.write([...others, host])
   }
 
   async remove(origin: string): Promise<void> {
