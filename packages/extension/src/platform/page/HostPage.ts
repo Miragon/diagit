@@ -44,7 +44,7 @@ export class HostPage {
   }
 
   onChange(delayMs: number, onChange: () => void): void {
-    const schedule = this.onElementChange(this.document.body, BODY_CHANGES, delayMs, onChange)
+    const { schedule } = this.watch(this.document.body, BODY_CHANGES, delayMs, onChange)
     this.onNavigation(schedule)
   }
 
@@ -54,27 +54,14 @@ export class HostPage {
     delayMs: number,
     onChange: () => void,
   ): () => void {
-    let pending: ReturnType<typeof setTimeout> | null = null
-    const schedule = () => {
-      if (pending) return
-      pending = setTimeout(() => {
-        pending = null
-        onChange()
-      }, delayMs)
-    }
-    const observer = new MutationObserver(schedule)
-    observer.observe(target, init)
-    this.ctx.onInvalidated(() => {
-      observer.disconnect()
-      if (pending) clearTimeout(pending)
-    })
-    return schedule
+    return this.watch(target, init, delayMs, onChange).stop
   }
 
   async mountPanel<Handle extends PanelHandle>(
     options: ShadowPanelOptions<Handle>,
   ): Promise<ShadowPanel<Handle>> {
-    const ui = await createShadowRootUi<Handle>(this.ctx, {
+    const panelScope = this.panelScope()
+    const ui = await createShadowRootUi<Handle>(panelScope.ctx, {
       name: options.name,
       position: 'inline',
       anchor: options.anchor,
@@ -87,7 +74,55 @@ export class HostPage {
       },
       onRemove: (handle) => handle?.destroy(),
     })
+    const removeUi = ui.remove
+    ui.remove = () => {
+      panelScope.release()
+      removeUi()
+    }
     ui.mount()
     return ui
+  }
+
+  private watch(
+    target: Node,
+    init: MutationObserverInit,
+    delayMs: number,
+    onChange: () => void,
+  ): { schedule: () => void; stop: () => void } {
+    let pending: ReturnType<typeof setTimeout> | null = null
+    const schedule = () => {
+      if (pending) return
+      pending = setTimeout(() => {
+        pending = null
+        onChange()
+      }, delayMs)
+    }
+    const observer = new MutationObserver(schedule)
+    observer.observe(target, init)
+    const disconnect = () => {
+      observer.disconnect()
+      if (pending) clearTimeout(pending)
+      pending = null
+    }
+    const stopDisconnectingOnInvalidation = this.ctx.onInvalidated(disconnect)
+    const stop = () => {
+      stopDisconnectingOnInvalidation()
+      disconnect()
+    }
+    return { schedule, stop }
+  }
+
+  private panelScope(): { ctx: ContentScriptContext; release: () => void } {
+    const unsubscribes: Array<() => void> = []
+    const ctx = Object.create(this.ctx, {
+      onInvalidated: {
+        value: (listener: () => void) => {
+          const unsubscribe = this.ctx.onInvalidated(listener)
+          unsubscribes.push(unsubscribe)
+          return unsubscribe
+        },
+      },
+    }) as ContentScriptContext
+    return { ctx, release: () => unsubscribes.splice(0).forEach((unsubscribe) => unsubscribe()) }
   }
 }

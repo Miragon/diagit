@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DiffDataError, type DiffSource } from '../../src/git-hosts/DiffSource'
 import { DIFF_ERROR_TAG, DIFF_PANEL_TAG } from '../../src/platform/injectedElements'
 import { DiffController } from '../../src/views/diff-viewer/DiffController'
+import { DiffPanel } from '../../src/views/diff-viewer/DiffPanel'
 import { HostPage } from '../../src/platform/page/HostPage'
 import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
@@ -63,6 +64,7 @@ const untilRerunStarted = () =>
 
 afterEach(() => {
   context.invalidate()
+  vi.restoreAllMocks()
   document.body.innerHTML = ''
 })
 
@@ -92,6 +94,19 @@ describe('DiffController', () => {
     await vi.waitFor(() =>
       expect(reRenderedCode.previousElementSibling?.localName).toBe(DIFF_PANEL_TAG),
     )
+  })
+
+  it('releases the panel and its watchers once the host removes the file', async () => {
+    const destroy = vi.spyOn(DiffPanel.prototype, 'destroy')
+    const fileRoot = renderFileBox()
+    start(sourceShowing(fileRoot, Promise.resolve()))
+    const listenersWithoutPanel = context.pendingInvalidationListeners
+    await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).not.toBeNull())
+
+    fileRoot.remove()
+
+    await vi.waitFor(() => expect(destroy).toHaveBeenCalled())
+    expect(context.pendingInvalidationListeners).toBe(listenersWithoutPanel)
   })
 
   it('replaces the panels when the page moves to other revisions of the same files', async () => {
