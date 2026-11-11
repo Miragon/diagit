@@ -1,4 +1,4 @@
-import '../../src/platform/theme/cd-tokens.generated.css'
+import '../../src/platform/theme/base.css'
 import './options.css'
 
 import { browser } from 'wxt/browser'
