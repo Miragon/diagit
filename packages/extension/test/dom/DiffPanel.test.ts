@@ -207,7 +207,7 @@ describe('DiffPanel', () => {
     const activeTab = (container: HTMLElement) =>
       container.querySelector('.diagit-tab.is-active')?.textContent
     const untilLoaded = (container: HTMLElement) =>
-      vi.waitFor(() => expect(container.textContent).toMatch(/Added: 0|could not be/))
+      vi.waitFor(() => expect(container.textContent).toContain('Added: 0'))
 
     it('opens on Diff when the file has an old and a new version', async () => {
       const differ = new FakeDiffer()
@@ -245,7 +245,9 @@ describe('DiffPanel', () => {
     it('stays on Plain when a version could not be loaded', async () => {
       const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
 
-      await untilLoaded(container)
+      await vi.waitFor(() =>
+        expect(container.textContent).toContain('Changes could not be computed'),
+      )
 
       expect(activeTab(container)).toBe('Plain')
     })
