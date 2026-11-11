@@ -90,4 +90,21 @@ describe('HostPage.mountPanel', () => {
     expect(destroy).toHaveBeenCalled()
     expect(context.pendingInvalidationListeners).toBe(before)
   })
+
+  it('still removes the panel when the content script is invalidated', async () => {
+    const anchor = document.body.appendChild(document.createElement('div'))
+    const destroy = vi.fn()
+    await page.mountPanel({
+      name: 'diagit-test-panel',
+      anchor,
+      append: 'first',
+      css: '',
+      render: () => ({ destroy }),
+    })
+
+    context.invalidate()
+
+    expect(destroy).toHaveBeenCalled()
+    expect(anchor.querySelector('diagit-test-panel')).toBeNull()
+  })
 })

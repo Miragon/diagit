@@ -113,12 +113,16 @@ export class HostPage {
   }
 
   private panelScope(): { ctx: ContentScriptContext; release: () => void } {
-    let release = () => {}
+    const unsubscribes: Array<() => void> = []
     const ctx = Object.create(this.ctx, {
       onInvalidated: {
-        value: (listener: () => void) => (release = this.ctx.onInvalidated(listener)),
+        value: (listener: () => void) => {
+          const unsubscribe = this.ctx.onInvalidated(listener)
+          unsubscribes.push(unsubscribe)
+          return unsubscribe
+        },
       },
     }) as ContentScriptContext
-    return { ctx, release: () => release() }
+    return { ctx, release: () => unsubscribes.splice(0).forEach((unsubscribe) => unsubscribe()) }
   }
 }
