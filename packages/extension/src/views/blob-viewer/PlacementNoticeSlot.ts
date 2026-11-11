@@ -2,14 +2,17 @@ import { CircleAlert } from 'lucide'
 import { PLACEMENT_NOTICE_TAG } from '../../platform/injectedElements'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { Toast } from '../../platform/ui/Toast'
-import { diagitRepository } from '../../platform/DiagitRepository'
+import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 
 export class PlacementNoticeSlot {
   private notice: ShadowPanel<Toast> | null = null
   private shownPath: string | null = null
   private dismissedPath: string | null = null
 
-  constructor(private readonly page: HostPage) {}
+  constructor(
+    private readonly page: HostPage,
+    private readonly reportContext: ReportContext,
+  ) {}
 
   async show(path: string, label: string): Promise<void> {
     if (this.shownPath === path || this.dismissedPath === path) return
@@ -26,6 +29,7 @@ export class PlacementNoticeSlot {
           url: diagitRepository.problemReportUrl(
             `${label} view not added to a file page`,
             `Diagit showed "${label} view could not be added" on a file page.`,
+            this.reportContext,
           ),
         },
       ],

@@ -4,13 +4,14 @@ import { h } from '../../platform/utils/dom'
 import { errorMessage } from '../../platform/utils/errorMessage'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
-import { diagitRepository } from '../../platform/DiagitRepository'
+import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 
 export interface ModelPanelOptions {
   notation: Notation
   loadXml: () => Promise<string>
+  reportContext: ReportContext
   onRendered?: () => void
 }
 
@@ -70,6 +71,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
         reportUrl: diagitRepository.problemReportUrl(
           `${this.label} file not loaded on a file page`,
           `Diagit showed "${title}" on a file page.`,
+          this.options.reportContext,
         ),
       })
       return
@@ -80,7 +82,9 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       viewer = await this.options.notation.createViewer(this.canvas, xml)
     } catch (err) {
-      this.showError(ErrorNotice.unreadableModel(this.label, 'on a file page', err))
+      this.showError(
+        ErrorNotice.unreadableModel(this.label, 'on a file page', err, this.options.reportContext),
+      )
       return
     }
     if (this.destroyed) {

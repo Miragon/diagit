@@ -5,6 +5,7 @@ import { DiffController } from '../../src/views/diff-viewer/DiffController'
 import { HostPage } from '../../src/platform/page/HostPage'
 import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
+import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 const RERUN_DEBOUNCE_MS = 300
 
@@ -48,7 +49,12 @@ function sourceShowing(
 }
 
 function start(source: DiffSource): void {
-  new DiffController(new HostPage(context.ctx), source, new FakeNotationLookup()).start()
+  new DiffController(
+    new HostPage(context.ctx),
+    source,
+    FAKE_REPORT_CONTEXT,
+    new FakeNotationLookup(),
+  ).start()
 }
 
 const untilRerunStarted = () =>
@@ -176,6 +182,21 @@ describe('DiffController', () => {
 
       const header = document.querySelector('.file-header')!
       await vi.waitFor(() => expect(header.nextElementSibling?.localName).toBe(DIFF_ERROR_TAG))
+    })
+
+    it('reports the problem with place and environment but without the file path', async () => {
+      render(changedFileHtml)
+
+      start(sourceMissing('flows/order.bpmn'))
+
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).not.toBeNull())
+      const report = document
+        .querySelector(DIFF_ERROR_TAG)!
+        .shadowRoot!.querySelector<HTMLAnchorElement>('.diagit-error-report')!
+      const fields = new URL(report.href).searchParams
+      expect(fields.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
+      expect(fields.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)
+      expect(decodeURIComponent(report.href)).not.toContain('order.bpmn')
     })
 
     it('shows the notice only once while the page keeps changing', async () => {

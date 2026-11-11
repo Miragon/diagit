@@ -1,5 +1,5 @@
 import type { HostPage, PanelHandle, ShadowPanel, ShadowPanelOptions } from '../page/HostPage'
-import { diagitRepository } from '../DiagitRepository'
+import { diagitRepository, type ReportContext } from '../DiagitRepository'
 import { BackgroundClient } from '../messaging/BackgroundClient'
 import { h } from '../utils/dom'
 import { errorMessage } from '../utils/errorMessage'
@@ -42,7 +42,12 @@ export class ErrorNotice implements PanelHandle {
     })
   }
 
-  static unreadableModel(label: string, place: string, err: unknown): ErrorNoticeDetails {
+  static unreadableModel(
+    label: string,
+    place: string,
+    err: unknown,
+    reportContext: ReportContext,
+  ): ErrorNoticeDetails {
     const title = `${label} view could not be rendered`
     return {
       title,
@@ -51,6 +56,7 @@ export class ErrorNotice implements PanelHandle {
       reportUrl: diagitRepository.problemReportUrl(
         `${label} file not rendered ${place}`,
         `Diagit showed "${title}" ${place}.`,
+        reportContext,
       ),
     }
   }
