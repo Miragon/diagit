@@ -2,7 +2,7 @@ import { browser } from 'wxt/browser'
 import type { HostPage, ShadowPanel } from '../page/HostPage'
 import { SettingsStore } from '../settings/SettingsStore'
 import { StarPromptToast } from './StarPromptToast'
-import { STORE_LISTING_BY_EXTENSION_ID } from './storeListings'
+import { STORE_LISTINGS } from './storeListings'
 import starPromptCss from './starPrompt.css?inline'
 
 export const STAR_PROMPT_TAG = 'diagit-star-prompt'
@@ -55,7 +55,7 @@ export class StarPrompt {
 
   private async show(): Promise<void> {
     const toast = new StarPromptToast({
-      storeListingUrl: STORE_LISTING_BY_EXTENSION_ID[this.extensionId()],
+      storeListingUrl: this.storeListingUrl(),
       onDone: () => void this.dismiss(),
     })
     this.toast = await this.page.mountPanel({
@@ -65,6 +65,11 @@ export class StarPrompt {
       css: starPromptCss,
       render: (container) => toast.mount(container),
     })
+  }
+
+  private storeListingUrl(): string | undefined {
+    const extensionId = this.extensionId()
+    return STORE_LISTINGS.find((listing) => listing.extensionId === extensionId)?.reviewUrl
   }
 
   private async dismiss(): Promise<void> {

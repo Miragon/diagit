@@ -1,9 +1,26 @@
 export const GITHUB_REPOSITORY_URL = 'https://github.com/Miragon/diagit'
 
-export const STORE_LISTING_BY_EXTENSION_ID: Readonly<Record<string, string>> = {
-  bjphfmmlciflmdcnpfpbnkmgnkiabfdh:
-    'https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh/reviews',
-  pphcelcgicmpdkkbginmkdogceepigen:
-    'https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen',
-  'diagit@miragon.io': 'https://addons.mozilla.org/firefox/addon/diagit/reviews/',
+export interface StoreListing {
+  browser: 'chrome' | 'edge' | 'firefox'
+  extensionId: string
+  reviewUrl: string
 }
+
+export const STORE_LISTINGS: readonly StoreListing[] = [
+  {
+    browser: 'chrome',
+    extensionId: 'bjphfmmlciflmdcnpfpbnkmgnkiabfdh',
+    reviewUrl:
+      'https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh/reviews',
+  },
+  {
+    browser: 'edge',
+    extensionId: 'pphcelcgicmpdkkbginmkdogceepigen',
+    reviewUrl: 'https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen',
+  },
+  {
+    browser: 'firefox',
+    extensionId: 'diagit@miragon.io',
+    reviewUrl: 'https://addons.mozilla.org/firefox/addon/diagit/reviews/',
+  },
+]
