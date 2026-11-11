@@ -27,7 +27,7 @@ export class DiffController {
   constructor(
     private readonly page: HostPage,
     private readonly source: DiffSource,
-    reportContext: ReportContext,
+    private readonly reportContext: ReportContext,
     private readonly notations: NotationLookup = diffableNotations,
     private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
   ) {
@@ -81,7 +81,7 @@ export class DiffController {
   }
 
   private async mountError(file: ChangedFile, err: DiffDataError) {
-    const label = this.notations.detect(file.path)?.descriptor.label ?? 'Diagram'
+    const label = this.labelFor(file)
     await ErrorNotice.mountOn(
       this.page,
       { name: DIFF_ERROR_TAG, anchor: file.anchor, append: file.append },
@@ -98,6 +98,8 @@ export class DiffController {
       render: (container) =>
         new DiffPanel({
           differ,
+          label: this.labelFor(block),
+          reportContext: this.reportContext,
           loadOld: block.loadOld,
           loadNew: block.loadNew,
           onRendered: () => void this.diagramViews.save(this.page.location.pathname),
@@ -117,6 +119,10 @@ export class DiffController {
     }
     this.page.onElementChange(block.fileRoot, FILE_ROOT_CHANGES, COLLAPSE_DEBOUNCE_MS, sync)
     sync()
+  }
+
+  private labelFor(file: ChangedFile): string {
+    return this.notations.detect(file.path)?.descriptor.label ?? 'Diagram'
   }
 
   private differFor(file: ChangedFile): DiagramDiffer | null {

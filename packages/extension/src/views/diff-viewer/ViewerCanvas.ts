@@ -1,6 +1,7 @@
 import type { DiagramViewer } from '../../notations/Notation'
+import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 import { h } from '../../platform/utils/dom'
-import { errorMessage } from '../../platform/utils/errorMessage'
+import type { DiffNotices } from './DiffNotices'
 
 const LOADING_LABEL = 'Loading diagram…'
 
@@ -17,6 +18,7 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
     createViewer: CreateViewer<Viewer>,
     xml: string | null,
     emptyLabel: string,
+    notices: DiffNotices,
   ): Promise<Viewer | null> {
     this.element.replaceChildren()
     if (!xml) {
@@ -26,9 +28,15 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
     try {
       this.viewer = await createViewer(this.element, xml)
     } catch (err) {
-      this.element.append(this.label(`render error: ${errorMessage(err)}`))
+      this.showError(notices.notRendered(err))
     }
     return this.viewer
+  }
+
+  showError(details: ErrorNoticeDetails): void {
+    this.element.replaceChildren(
+      h('div', { class: 'diagit-diff-empty' }, [new ErrorNotice(details).element]),
+    )
   }
 
   destroy(): void {

@@ -201,3 +201,8 @@
 .djs-element.diagit-diff-active {
   filter: drop-shadow(0 0 6px var(--cd-ui-interaktion));
 }
+
+.diagit-diff-empty .diagit-error {
+  max-width: 420px;
+  margin: 0 var(--cd-shell-rand);
+}
