@@ -1,4 +1,4 @@
-import type { ChangedFile, DiffLoaders, DiffPage } from '../DiffSource'
+import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSource'
 import type { GithubApiAuth } from './GithubApiAuth'
 import type { GithubDiffScanner } from './GithubDiffScanner'
 import type { GithubDiffData, GithubRestApi } from './GithubRestApi'
@@ -51,7 +51,7 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
     }
   }
 
-  errorHint(location: Location, err: unknown): string {
-    return this.auth.errorHint(location, err)
+  errorHelp(location: Location, err: unknown): Promise<ErrorHelp> {
+    return this.auth.errorHelp(location, err)
   }
 }

@@ -93,6 +93,7 @@ describe('GitLab merge-request diff', () => {
 
     expect(err).toBeInstanceOf(DiffDataError)
     expect((err as DiffDataError).files).toHaveLength(1)
+    expect((err as DiffDataError).help.action).toBeUndefined()
     expect(http.requests).toHaveLength(1)
   })
 

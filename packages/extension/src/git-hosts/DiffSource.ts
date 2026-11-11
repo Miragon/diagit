@@ -1,4 +1,7 @@
+import type { ErrorNoticeDetails } from '../platform/ui/ErrorNotice'
 import type { VisibleFileHeader } from './FileHeaderLocator'
+
+export type ErrorHelp = Pick<ErrorNoticeDetails, 'hint' | 'action'>
 
 interface DiffPanelSlot {
   anchor: HTMLElement
@@ -21,7 +24,7 @@ export interface DiffFileBlock extends ChangedFile, DiffLoaders {}
 export class DiffDataError extends Error {
   constructor(
     message: string,
-    readonly hint: string,
+    readonly help: ErrorHelp,
     readonly files: ChangedFile[],
   ) {
     super(message)
@@ -43,5 +46,5 @@ export interface DiffPage<Page extends { key: string }, Data> {
   load(location: Location, page: Page): Promise<Data>
   changedPaths(data: Data): string[]
   loaders(location: Location, file: ChangedFile, data: Data): DiffLoaders
-  errorHint(location: Location, err: unknown): string
+  errorHelp(location: Location, err: unknown): Promise<ErrorHelp>
 }

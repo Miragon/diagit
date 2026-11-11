@@ -135,7 +135,7 @@ describe('GitHub pull-request diff — failed metadata', () => {
 
     expect(err).toBeInstanceOf(DiffDataError)
     expect(err.files.map((file) => file.path)).toEqual(['flows/order.bpmn'])
-    expect(err.hint).toMatch(/private repository/i)
+    expect(err.help.hint).toMatch(/private repository/i)
   })
 
   it('lists a changed diagram file the scanner did not recognise', async () => {

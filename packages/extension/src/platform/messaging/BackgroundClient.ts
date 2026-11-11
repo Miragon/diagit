@@ -1,6 +1,11 @@
 import { browser } from 'wxt/browser'
 import { FetchError, type HttpClient } from './HttpClient'
-import type { FetchTextRequest, FetchTextResponse, InjectViewScriptRequest } from './messages'
+import type {
+  FetchTextRequest,
+  FetchTextResponse,
+  InjectViewScriptRequest,
+  OpenOptionsRequest,
+} from './messages'
 
 export class BackgroundClient implements HttpClient {
   async fetchText(url: string): Promise<string> {
@@ -18,5 +23,10 @@ export class BackgroundClient implements HttpClient {
   async injectViewScript(script: string): Promise<boolean> {
     const request: InjectViewScriptRequest = { type: 'injectViewScript', script }
     return Boolean(await browser.runtime.sendMessage(request).catch(() => false))
+  }
+
+  async openOptions(): Promise<void> {
+    const request: OpenOptionsRequest = { type: 'openOptions' }
+    await browser.runtime.sendMessage(request).catch(() => undefined)
   }
 }

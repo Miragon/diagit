@@ -103,15 +103,22 @@ describe('DiffController', () => {
       pageKey: () => 'octo/flows!1',
       unrecognizedFiles: async () => [],
       collect: async () => {
-        throw new DiffDataError('HTTP 404', 'Connect the app.', [
+        throw new DiffDataError(
+          'HTTP 404',
           {
-            path: 'flows/order.bpmn',
-            anchor: code,
-            append: 'before',
-            fileRoot,
-            isCollapsed: () => false,
+            hint: 'Connect the app.',
+            action: { label: 'Install', url: 'https://github.com/apps/x' },
           },
-        ])
+          [
+            {
+              path: 'flows/order.bpmn',
+              anchor: code,
+              append: 'before',
+              fileRoot,
+              isCollapsed: () => false,
+            },
+          ],
+        )
       },
     }
 
@@ -126,6 +133,9 @@ describe('DiffController', () => {
     )
     expect(notice.querySelector('.diagit-error-hint')?.textContent).toBe('Connect the app.')
     expect(notice.querySelector('.diagit-error-detail')?.textContent).toBe('HTTP 404')
+    expect(notice.querySelector('.diagit-error-actions a')?.getAttribute('href')).toBe(
+      'https://github.com/apps/x',
+    )
   })
 
   describe('a changed diagram file whose diff view Diagit does not recognise', () => {
