@@ -22,6 +22,10 @@ export class ChangeNavigator {
     return this.ids.length > 0
   }
 
+  get position(): number | null {
+    return this.index < 0 ? null : this.index + 1
+  }
+
   next(): void {
     this.go(1)
   }

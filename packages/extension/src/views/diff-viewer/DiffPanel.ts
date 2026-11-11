@@ -7,6 +7,7 @@ import { h } from '../../platform/utils/dom'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
+import { ChangeControls } from './ChangeControls'
 import { ChangeNavigator } from './ChangeNavigator'
 import { DiffNotices } from './DiffNotices'
 import { DiffPane } from './DiffPane'
@@ -30,6 +31,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private readonly plainCanvas = new ViewerCanvas<DiffableViewer>()
   private readonly plainTab = this.tab('Plain')
   private readonly diffTab = this.tab('Diff')
+  private readonly changeControls = new ChangeControls()
   private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, [
     this.oldPane.element,
     this.newPane.element,
@@ -44,6 +46,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private readonly root = h('div', { class: 'diagit-wrap diagit-diff-root' }, [
     h('div', { class: 'diagit-toolbar' }, [
       h('div', { class: 'diagit-tabs' }, [this.plainTab, this.diffTab]),
+      this.changeControls.element,
       new ZoomControls(this).element,
     ]),
     this.diagramArea,
@@ -110,6 +113,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     const isDiff = view === 'diff'
     this.diffGrid.style.display = isDiff ? '' : 'none'
     this.plainGrid.style.display = isDiff ? 'none' : ''
+    this.changeControls.element.style.display = isDiff ? '' : 'none'
     this.diffTab.classList.toggle('is-active', isDiff)
     this.plainTab.classList.toggle('is-active', !isDiff)
     if (!isDiff) void this.ensurePlainRendered()
@@ -148,20 +152,20 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
     const diff = await this.computeDiff(oldModel, newModel)
     if (this.destroyed) return
-    for (const pane of [this.oldPane, this.newPane]) {
-      if (diff) pane.showDiff(diff)
-      else pane.showDiffUnavailable()
-    }
-    const navigator = ChangeNavigator.forDiff(diff ?? NO_CHANGES, [
-      this.oldPane.viewer,
-      this.newPane.viewer,
-    ])
-    this.oldPane.bind(navigator)
-    this.newPane.bind(navigator)
+    const bothVersionsLoaded = this.bothVersionsLoaded(oldModel, newModel)
+    if (!diff) this.changeControls.showDiffUnavailable()
+    else if (bothVersionsLoaded) this.showDiff(diff)
 
-    if (!this.viewPickedByUser && this.bothVersionsLoaded(oldModel, newModel)) this.show('diff')
+    if (!this.viewPickedByUser && bothVersionsLoaded) this.show('diff')
     else if (this.modelView === 'plain') void this.ensurePlainRendered()
     else this.fit()
+  }
+
+  private showDiff(diff: DiagramDiff): void {
+    this.oldPane.showDiff(diff)
+    this.newPane.showDiff(diff)
+    const viewers = [this.oldPane.viewer, this.newPane.viewer]
+    this.changeControls.showDiff(diff, ChangeNavigator.forDiff(diff, viewers))
   }
 
   private bothVersionsLoaded(oldModel: LoadedModel, newModel: LoadedModel): boolean {

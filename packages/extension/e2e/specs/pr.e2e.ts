@@ -21,6 +21,20 @@ describe('GitHub PR diff (content script)', () => {
     await expect($('table[data-diff-anchor]')).toBeExisting()
   })
 
+  it('shows one legend and one change navigator that tells the selected change', async () => {
+    await browser.url('/octo/flows/pull/1/files')
+
+    const host = $('diagit-diff')
+    await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+    await expect(host.shadow$$('.diagit-diff-legend')).toBeElementsArrayOfSize(1)
+
+    await host.shadow$('button=Next').click()
+
+    await expect(host.shadow$('.diagit-diff-position')).toHaveText(
+      expect.stringMatching(/^1 of \d+$/),
+    )
+  })
+
   it('does not stack a second panel when the file is re-rendered (Viewed toggle)', async () => {
     await browser.url('/octo/flows/pull/1/files')
 
