@@ -141,10 +141,9 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   private loadWhenNearViewport(): void {
     this.viewportObserver = new IntersectionObserver(
-      (entries) => {
-        if (!this.viewportObserver || !entries.some((entry) => entry.isIntersecting)) return
-        this.viewportObserver.disconnect()
-        this.viewportObserver = null
+      (entries, observer) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return
+        observer.disconnect()
         void this.load()
       },
       { rootMargin: ONE_SCREEN_AROUND_THE_VIEWPORT },
@@ -216,6 +215,10 @@ export class DiffPanel implements PanelHandle, Zoomable {
       'No current model (file deleted).',
       this.notices,
     )
+    if (this.destroyed) {
+      this.plainCanvas.destroy()
+      return
+    }
     this.applyInteractive()
     if (viewer) this.options.onRendered?.()
     if (this.modelView === 'plain') viewer?.fit()

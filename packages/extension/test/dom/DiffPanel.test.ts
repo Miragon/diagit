@@ -32,6 +32,7 @@ function mountAwayFromViewport(
   differ: FakeDiffer,
   loadOld: () => Promise<string | null>,
   loadNew = loadOld,
+  onRendered?: () => void,
 ) {
   const container = document.createElement('div')
   document.body.append(container)
@@ -41,6 +42,7 @@ function mountAwayFromViewport(
     loadNew,
     label: 'BPMN',
     reportContext: FAKE_REPORT_CONTEXT,
+    onRendered,
   }).mount(container)
   return container
 }
@@ -102,15 +104,61 @@ describe('DiffPanel', () => {
       expect(loadNew).not.toHaveBeenCalled()
     })
 
-    it('ignores a late report once loading has started', async () => {
-      const loadNew = vi.fn(async () => '<new/>')
-      const container = mountAwayFromViewport(new FakeDiffer(), async () => '<old/>', loadNew)
-      const observer = FakeIntersectionObserver.instances[0]!
+    it('counts a diagram view once a panel that stays on Plain rendered its diagram', async () => {
+      const onRendered = vi.fn()
+      mountAwayFromViewport(
+        new FakeDiffer(),
+        async () => null,
+        async () => '<new/>',
+        onRendered,
+      )
 
       FakeIntersectionObserver.bringNear()
-      observer.report(container, true)
 
-      await vi.waitFor(() => expect(loadNew).toHaveBeenCalledTimes(1))
+      await vi.waitFor(() => expect(onRendered).toHaveBeenCalled())
+    })
+
+    it('counts no diagram view when there is no diagram to show', async () => {
+      const onRendered = vi.fn()
+      const container = mountAwayFromViewport(
+        new FakeDiffer(),
+        async () => '<old/>',
+        downloadFailed,
+        onRendered,
+      )
+
+      FakeIntersectionObserver.bringNear()
+      await untilLoaded(container)
+
+      expect(onRendered).not.toHaveBeenCalled()
+    })
+
+    it('releases a diagram that finishes rendering after the panel was destroyed', async () => {
+      const differ = new FakeDiffer()
+      const createViewer = differ.createViewer.bind(differ)
+      let finishRendering!: () => void
+      const rendering = new Promise<void>((done) => (finishRendering = done))
+      const slowCreateViewer = vi
+        .spyOn(differ, 'createViewer')
+        .mockImplementation(async (canvas) => {
+          await rendering
+          return createViewer(canvas)
+        })
+      const onRendered = vi.fn()
+      mountAwayFromViewport(
+        differ,
+        async () => null,
+        async () => '<new/>',
+        onRendered,
+      )
+      FakeIntersectionObserver.bringNear()
+      await vi.waitFor(() => expect(slowCreateViewer).toHaveBeenCalled())
+
+      panel!.destroy()
+      finishRendering()
+
+      await vi.waitFor(() => expect(differ.viewers[0]?.destroyed).toBe(true))
+      expect(onRendered).not.toHaveBeenCalled()
     })
 
     it('builds the Diff tab of a panel that stays on Plain only once it is opened', async () => {
