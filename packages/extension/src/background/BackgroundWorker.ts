@@ -83,10 +83,17 @@ export class BackgroundWorker {
 
   private async onToolbarClick(tab: Tab): Promise<void> {
     if (!tab.url || !this.hosts.isSupportedUrl(tab.url)) {
-      await browser.runtime.openOptionsPage().catch(() => undefined)
+      await this.openOptionsPage()
       return
     }
     const origins = [originToPattern(new URL(tab.url).origin)]
-    await browser.permissions.request({ origins }).catch(() => false)
+    const allowedBeforeClick = browser.permissions.contains({ origins }).catch(() => false)
+    const requestWithinUserGesture = browser.permissions.request({ origins }).catch(() => false)
+    if (await allowedBeforeClick) await this.openOptionsPage()
+    await requestWithinUserGesture
+  }
+
+  private async openOptionsPage(): Promise<void> {
+    await browser.runtime.openOptionsPage().catch(() => undefined)
   }
 }
