@@ -45,6 +45,14 @@ describe('ChangeNavigator', () => {
     expect(navigator.position).toBeNull()
   })
 
+  it('starts at the last change when stepping back with nothing selected', () => {
+    const navigator = new ChangeNavigator(['A', 'B', 'C'], [])
+
+    navigator.previous()
+
+    expect(navigator.position).toBe(3)
+  })
+
   it('wraps around backwards and fits every viewer on "All"', () => {
     const viewer = new FakeDiffableViewer(['A', 'B'])
     const navigator = new ChangeNavigator(['A', 'B'], [viewer, null])

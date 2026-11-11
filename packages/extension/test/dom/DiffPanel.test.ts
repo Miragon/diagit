@@ -124,6 +124,8 @@ describe('DiffPanel', () => {
     expect(position(container)).toBe('1 of 3')
     buttonNamed(container, 'All').click()
     expect(position(container)).toBe('3 changes')
+    buttonNamed(container, 'Prev').click()
+    expect(position(container)).toBe('3 of 3')
   })
 
   it('counts a single change in the singular', async () => {
@@ -229,7 +231,7 @@ describe('DiffPanel', () => {
     const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
 
     await vi.waitFor(() => expect(container.textContent).toContain('Changes could not be computed'))
-    expect(container.textContent!.split('Changes could not be computed')).toHaveLength(2)
+    expect(container.querySelectorAll('.diagit-diff-legend')).toHaveLength(1)
     expect(container.textContent).not.toContain('Added: 0')
   })
 
