@@ -1,0 +1,113 @@
+.diagit-toast {
+  position: fixed;
+  right: var(--cd-shell-rand);
+  bottom: var(--cd-shell-rand);
+  z-index: var(--cd-shell-ebene-toast);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--cd-shell-luecke);
+  max-width: min(480px, 100vw - 24px);
+  min-height: var(--cd-shell-zeile);
+  padding: 4px 4px 4px 16px;
+  border: 1px solid var(--cd-ui-linie);
+  border-left: 4px solid var(--cd-ui-info);
+  border-radius: var(--cd-radius-md);
+  background: var(--cd-ui-flaeche-hoch);
+  box-shadow: var(--cd-shadow-3);
+  color: var(--cd-ui-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  animation: diagit-toast-in var(--cd-motion-base) var(--cd-ease);
+}
+
+@keyframes diagit-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagit-toast {
+    animation: none;
+  }
+}
+
+.diagit-toast-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--cd-ui-info);
+}
+
+.diagit-toast-text {
+  margin: 0;
+}
+
+.diagit-toast-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--cd-shell-luecke);
+}
+
+.diagit-toast button {
+  cursor: pointer;
+  height: var(--cd-shell-ziel);
+  border: none;
+  border-radius: var(--cd-radius-md);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.diagit-toast button:focus-visible {
+  outline: 2px solid var(--cd-ui-fokus);
+  outline-offset: 2px;
+}
+
+.diagit-toast-primary {
+  padding: 0 12px;
+  background: var(--cd-blau);
+  color: var(--cd-weiss);
+  box-shadow: var(--cd-shadow-1);
+  transition:
+    background var(--cd-motion-fast) var(--cd-ease),
+    box-shadow var(--cd-motion-fast) var(--cd-ease),
+    transform var(--cd-motion-fast) var(--cd-ease);
+}
+
+.diagit-toast-primary:hover,
+.diagit-toast-primary:active {
+  background: var(--cd-blau-link);
+  box-shadow: var(--cd-shadow-2);
+  transform: translateY(-1px);
+}
+
+.diagit-toast-ghost {
+  padding: 0 12px;
+  background: transparent;
+  color: var(--cd-ui-text);
+}
+
+.diagit-toast-ghost:hover,
+.diagit-toast-close:hover {
+  background: var(--cd-ui-hover);
+}
+
+.diagit-toast-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cd-shell-ziel);
+  padding: 0;
+  background: transparent;
+  color: var(--cd-ui-text);
+}
+
+.diagit-toast-close svg {
+  width: 16px;
+  height: 16px;
+}

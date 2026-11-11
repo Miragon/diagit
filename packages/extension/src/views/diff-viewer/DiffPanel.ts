@@ -12,6 +12,7 @@ import { ViewerCanvas } from './ViewerCanvas'
 
 export interface DiffPanelOptions extends DiffLoaders {
   differ: DiagramDiffer
+  onRendered?: () => void
 }
 
 type ModelView = 'plain' | 'diff'
@@ -130,6 +131,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       return
     }
     this.applyInteractive()
+    if (this.oldPane.viewer || this.newPane.viewer) this.options.onRendered?.()
 
     const diff = oldXml && newXml ? await this.diffOrNoChanges(oldXml, newXml) : NO_CHANGES
     if (this.destroyed) return

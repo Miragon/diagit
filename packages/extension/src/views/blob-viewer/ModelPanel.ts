@@ -9,6 +9,7 @@ import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 export interface ModelPanelOptions {
   notation: Notation
   loadXml: () => Promise<string>
+  onRendered?: () => void
 }
 
 export class ModelPanel implements PanelHandle, Zoomable {
@@ -80,6 +81,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
     this.viewer = viewer
     this.placeholder.remove()
     viewer.fit()
+    this.options.onRendered?.()
     this.detachFocusZoom = enableFocusZoom(this.canvas, (active) =>
       this.viewer?.setInteractive(active),
     )
