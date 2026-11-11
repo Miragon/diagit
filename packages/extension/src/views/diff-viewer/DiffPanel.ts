@@ -54,8 +54,10 @@ export class DiffPanel implements PanelHandle, Zoomable {
   ])
   private modelView: ModelView = 'plain'
   private viewPickedByUser = false
+  private base: LoadedModel | null = null
   private head: LoadedModel | null = null
   private plainRendered = false
+  private diffRendered = false
   private interactive = false
   private destroyed = false
   private resizeObserver: ResizeObserver | null = null
@@ -120,7 +122,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.changeControls.element.style.display = isDiff ? '' : 'none'
     this.diffTab.classList.toggle('is-active', isDiff)
     this.plainTab.classList.toggle('is-active', !isDiff)
-    if (!isDiff) void this.ensurePlainRendered()
+    if (isDiff) void this.ensureDiffRendered()
+    else void this.ensurePlainRendered()
     this.fit()
   }
 
@@ -156,10 +159,18 @@ export class DiffPanel implements PanelHandle, Zoomable {
       Promise.resolve().then(loadNew),
     ])
     if (this.destroyed) return
+    this.base = oldModel
     this.head = newModel
+    const opensOnDiff = !this.viewPickedByUser && this.bothVersionsLoaded(oldModel, newModel)
+    this.show(opensOnDiff ? 'diff' : this.modelView)
+  }
 
-    await this.renderPane(this.oldPane, oldModel, 'not in source')
-    await this.renderPane(this.newPane, newModel, 'deleted')
+  private async ensureDiffRendered(): Promise<void> {
+    if (this.diffRendered || this.destroyed || !this.base || !this.head) return
+    this.diffRendered = true
+    const { base, head } = this
+    await this.renderPane(this.oldPane, base, 'not in source')
+    await this.renderPane(this.newPane, head, 'deleted')
     if (this.destroyed) {
       this.destroyViewers()
       return
@@ -167,15 +178,11 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.applyInteractive()
     if (this.oldPane.viewer || this.newPane.viewer) this.options.onRendered?.()
 
-    const diff = await this.computeDiff(oldModel, newModel)
+    const diff = await this.computeDiff(base, head)
     if (this.destroyed) return
-    const bothVersionsLoaded = this.bothVersionsLoaded(oldModel, newModel)
     if (!diff) this.changeControls.showDiffUnavailable()
-    else if (bothVersionsLoaded) this.showDiff(diff)
-
-    if (!this.viewPickedByUser && bothVersionsLoaded) this.show('diff')
-    else if (this.modelView === 'plain') void this.ensurePlainRendered()
-    else this.fit()
+    else if (this.bothVersionsLoaded(base, head)) this.showDiff(diff)
+    if (this.modelView === 'diff') this.fit()
   }
 
   private showDiff(diff: DiagramDiff): void {
@@ -210,6 +217,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.notices,
     )
     this.applyInteractive()
+    if (viewer) this.options.onRendered?.()
     if (this.modelView === 'plain') viewer?.fit()
   }
 

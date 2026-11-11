@@ -23,6 +23,8 @@ const position = (container: HTMLElement) =>
   container.querySelector('.diagit-diff-position')?.textContent
 const changeControls = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('.diagit-diff-changes')!
+const untilLoaded = (container: HTMLElement) =>
+  vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
 
 let panel: DiffPanel | null = null
 
@@ -111,6 +113,22 @@ describe('DiffPanel', () => {
       await vi.waitFor(() => expect(loadNew).toHaveBeenCalledTimes(1))
     })
 
+    it('builds the Diff tab of a panel that stays on Plain only once it is opened', async () => {
+      const differ = new FakeDiffer()
+      const container = mount(
+        differ,
+        async () => null,
+        async () => '<new/>',
+      )
+      await vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
+      expect(differ.viewers).toHaveLength(1)
+
+      buttonNamed(container, 'Diff').click()
+
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
+      expect(diffPanes(container)[0]!.textContent).toContain('not in source')
+    })
+
     it('stops watching the viewport once destroyed', () => {
       mountAwayFromViewport(new FakeDiffer(), async () => '<old/>')
 
@@ -140,7 +158,7 @@ describe('DiffPanel', () => {
     await vi.waitFor(() =>
       expect(container.textContent).toContain('No current model (file deleted).'),
     )
-    expect(container.textContent).not.toContain(LOADING_LABEL)
+    expect(plainPane(container).textContent).not.toContain(LOADING_LABEL)
   })
 
   it('marks the diff on both sides and counts every category in the legend', async () => {
@@ -227,10 +245,11 @@ describe('DiffPanel', () => {
       async () => null,
       async () => '<new/>',
     )
-    await vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
+    await untilLoaded(container)
 
     buttonNamed(container, 'Diff').click()
 
+    await vi.waitFor(() => expect(diffPanes(container)[0]!.textContent).toContain('not in source'))
     expect(changeControls(container).textContent).toBe('')
   })
 
@@ -272,8 +291,11 @@ describe('DiffPanel', () => {
     ).not.toBeNull()
     expect(plainPane(container).textContent).toContain('No diagram for this version')
     expect(plainPane(container).textContent).not.toContain('file deleted')
+    buttonNamed(container, 'Diff').click()
     const [, newPane] = diffPanes(container)
-    expect(newPane!.textContent).toContain('New version could not be loaded')
+    await vi.waitFor(() =>
+      expect(newPane!.textContent).toContain('New version could not be loaded'),
+    )
     expect(newPane!.textContent).not.toContain('deleted')
   })
 
@@ -294,6 +316,9 @@ describe('DiffPanel', () => {
   it('names the old version when its download fails', async () => {
     const differ = new FakeDiffer({ added: [], removed: ['R'], changed: [], moved: [] }, ['R'])
     const container = mount(differ, downloadFailed, async () => '<new/>')
+    await untilLoaded(container)
+
+    buttonNamed(container, 'Diff').click()
 
     await vi.waitFor(() =>
       expect(diffPanes(container)[0]!.textContent).toContain('Old version could not be loaded'),
@@ -304,6 +329,9 @@ describe('DiffPanel', () => {
 
   it('says the changes could not be computed when a version is missing', async () => {
     const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
+    await untilLoaded(container)
+
+    buttonNamed(container, 'Diff').click()
 
     await vi.waitFor(() => expect(container.textContent).toContain('Changes could not be computed'))
     expect(container.querySelectorAll('.diagit-diff-legend')).toHaveLength(1)
@@ -365,8 +393,6 @@ describe('DiffPanel', () => {
   describe('the tab it opens on', () => {
     const activeTab = (container: HTMLElement) =>
       container.querySelector('.diagit-tab.is-active')?.textContent
-    const untilLoaded = (container: HTMLElement) =>
-      vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
 
     it('opens on Diff when the file has an old and a new version', async () => {
       const differ = new FakeDiffer()
@@ -404,11 +430,24 @@ describe('DiffPanel', () => {
     it('stays on Plain when a version could not be loaded', async () => {
       const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
 
-      await vi.waitFor(() =>
-        expect(container.textContent).toContain('Changes could not be computed'),
-      )
+      await untilLoaded(container)
 
       expect(activeTab(container)).toBe('Plain')
+    })
+
+    it('builds the Diff tab the user opened while the models were loading', async () => {
+      const differ = new FakeDiffer()
+      const container = mount(
+        differ,
+        async () => null,
+        async () => '<new/>',
+      )
+      buttonNamed(container, 'Diff').click()
+
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(1))
+
+      expect(activeTab(container)).toBe('Diff')
+      expect(diffPanes(container)[1]!.querySelector('.fake-diagram')).not.toBeNull()
     })
 
     it('keeps the tab the user picked while the models were loading', async () => {
