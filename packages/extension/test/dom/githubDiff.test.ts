@@ -94,6 +94,75 @@ describe('GitHub pull-request diff', () => {
   })
 })
 
+describe('GitHub pull-request diff limited to commits', () => {
+  const at = (pathname: string) => ({ ...location, pathname }) as Location
+
+  it('compares a single commit with its parent instead of the whole pull request', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [`${api}/commits/ccccccc`]: {
+        sha: 'ccccccc',
+        parents: [{ sha: 'ppppppp' }],
+        files: [{ filename: 'flows/order.bpmn', status: 'modified' }],
+      },
+      'https://github.com/o/r/raw/ppppppp/flows/order.bpmn': '<parent/>',
+      'https://github.com/o/r/raw/ccccccc/flows/order.bpmn': '<commit/>',
+    })
+
+    const [block] = await pullRequestDiff(http).collect(
+      at('/o/r/pull/1/commits/ccccccc'),
+      withFileBoxes(legacyBpmnBox),
+    )
+
+    expect(await block!.loadOld()).toBe('<parent/>')
+    expect(await block!.loadNew()).toBe('<commit/>')
+    expect(metadataRequests(http)).toBe(0)
+  })
+
+  it('compares a commit range from its base to its head', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [`${api}/compare/aaaaaaa...ccccccc`]: {
+        merge_base_commit: { sha: 'elsewhere' },
+        files: [{ filename: 'flows/order.bpmn', status: 'modified' }],
+      },
+      'https://github.com/o/r/raw/aaaaaaa/flows/order.bpmn': '<range-base/>',
+      'https://github.com/o/r/raw/ccccccc/flows/order.bpmn': '<range-head/>',
+    })
+
+    const [block] = await pullRequestDiff(http).collect(
+      at('/o/r/pull/1/files/aaaaaaa..ccccccc'),
+      withFileBoxes(legacyBpmnBox),
+    )
+
+    expect(await block!.loadOld()).toBe('<range-base/>')
+    expect(await block!.loadNew()).toBe('<range-head/>')
+  })
+
+  it('loads again when the view moves from the whole pull request to one commit', async () => {
+    const http = new FakeHttpClient().respondWith({
+      ...pullRequestMetadata,
+      [`${api}/commits/ccccccc`]: { sha: 'ccccccc', parents: [{ sha: 'ppppppp' }], files: [] },
+    })
+    const diff = pullRequestDiff(http)
+    const doc = withFileBoxes(legacyBpmnBox)
+
+    await diff.collect(location, doc)
+    await diff.collect(at('/o/r/pull/1/commits/ccccccc'), doc)
+
+    expect(http.requests).toContain(`${api}/commits/ccccccc`)
+  })
+
+  it('shows no panel for a revision it cannot read', async () => {
+    const http = new FakeHttpClient()
+    const unreadable = at('/o/r/pull/1/files/not-a-sha')
+
+    expect(pullRequestDiff(http).pageKey(unreadable)).toBeNull()
+    expect(await pullRequestDiff(http).collect(unreadable, withFileBoxes(legacyBpmnBox))).toEqual(
+      [],
+    )
+    expect(http.requests).toEqual([])
+  })
+})
+
 describe('GitHub pull-request diff — failed metadata', () => {
   it('does not re-fetch while a failure is cooling down', async () => {
     const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 404 for x', 404))

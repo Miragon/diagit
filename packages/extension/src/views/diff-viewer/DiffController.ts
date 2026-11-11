@@ -10,7 +10,7 @@ import { diffableNotations } from '../../notations/diffableNotations'
 import { UnrecognizedFileNotices } from './UnrecognizedFileNotices'
 import { DiffPanel } from './DiffPanel'
 import { ErrorNotice } from '../../platform/ui/ErrorNotice'
-import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
+import type { HostPage, PanelHandle, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import type { ReportContext } from '../../platform/DiagitRepository'
 import diffCss from './diff.css?inline'
@@ -22,6 +22,8 @@ const FILE_ROOT_CHANGES: MutationObserverInit = { attributes: true, childList: t
 export class DiffController {
   private readonly mounting = new WeakSet<Element>()
   private readonly erroring = new WeakSet<Element>()
+  private readonly shownOnPage = new Set<ShadowPanel<PanelHandle>>()
+  private shownPageKey: string | null = null
   private readonly unrecognizedNotices: UnrecognizedFileNotices
 
   constructor(
@@ -41,7 +43,9 @@ export class DiffController {
 
   private async run(): Promise<void> {
     const { location, document } = this.page
-    if (!this.source.pageKey(location)) {
+    const pageKey = this.source.pageKey(location)
+    if (!this.isShowing(pageKey)) this.showPage(pageKey)
+    if (!pageKey) {
       this.unrecognizedNotices.removeAll()
       return
     }
@@ -49,17 +53,19 @@ export class DiffController {
     try {
       blocks = await this.source.collect(location, document)
     } catch (err) {
-      if (err instanceof DiffDataError) this.showErrors(err)
+      if (!this.isShowing(pageKey)) return
+      if (err instanceof DiffDataError) this.showErrors(err, pageKey)
       else console.error('[diagit] failed to load diff data', err)
       return
     }
+    if (!this.isShowing(pageKey)) return
     for (const block of blocks) {
       const differ = this.differFor(block)
       if (!differ || this.wasReplacedByHost(block)) continue
       if (this.mounting.has(block.fileRoot) || this.hasPanel(block)) continue
       block.fileRoot.querySelector(DIFF_ERROR_TAG)?.remove()
       this.mounting.add(block.fileRoot)
-      void this.mount(block, differ).finally(() => this.mounting.delete(block.fileRoot))
+      void this.mount(block, differ, pageKey).finally(() => this.mounting.delete(block.fileRoot))
     }
     await this.flagUnrecognizedFiles(location, document)
   }
@@ -69,27 +75,28 @@ export class DiffController {
     if (files) this.unrecognizedNotices.showOnly(files)
   }
 
-  private showErrors(err: DiffDataError): void {
+  private showErrors(err: DiffDataError, pageKey: string): void {
     for (const file of err.files) {
       const differ = this.differFor(file)
       if (!differ || this.wasReplacedByHost(file)) continue
       if (this.erroring.has(file.fileRoot) || this.hasPanel(file)) continue
       if (file.fileRoot.querySelector(DIFF_ERROR_TAG)) continue
       this.erroring.add(file.fileRoot)
-      void this.mountError(file, err).finally(() => this.erroring.delete(file.fileRoot))
+      void this.mountError(file, err, pageKey).finally(() => this.erroring.delete(file.fileRoot))
     }
   }
 
-  private async mountError(file: ChangedFile, err: DiffDataError) {
+  private async mountError(file: ChangedFile, err: DiffDataError, pageKey: string) {
     const label = this.labelFor(file)
-    await ErrorNotice.mountOn(
+    const notice = await ErrorNotice.mountOn(
       this.page,
       { name: DIFF_ERROR_TAG, anchor: file.anchor, append: file.append },
       { title: `${label} diff could not be loaded`, message: err.message, ...err.help },
     )
+    this.keepOnPage(notice, pageKey)
   }
 
-  private async mount(block: DiffFileBlock, differ: DiagramDiffer): Promise<void> {
+  private async mount(block: DiffFileBlock, differ: DiagramDiffer, pageKey: string): Promise<void> {
     const panel = await this.page.mountPanel({
       name: DIFF_PANEL_TAG,
       anchor: block.anchor,
@@ -105,8 +112,28 @@ export class DiffController {
           onRendered: () => void this.diagramViews.save(this.page.location.pathname),
         }).mount(container),
     })
+    if (!this.keepOnPage(panel, pageKey)) return
     this.page.onInvalidated(() => panel.remove())
     this.mirrorCollapse(panel, block)
+  }
+
+  private isShowing(pageKey: string | null): boolean {
+    return pageKey === this.shownPageKey
+  }
+
+  private showPage(pageKey: string | null): void {
+    for (const shown of this.shownOnPage) shown.remove()
+    this.shownOnPage.clear()
+    this.shownPageKey = pageKey
+  }
+
+  private keepOnPage(shown: ShadowPanel<PanelHandle>, pageKey: string): boolean {
+    if (!this.isShowing(pageKey)) {
+      shown.remove()
+      return false
+    }
+    this.shownOnPage.add(shown)
+    return true
   }
 
   private mirrorCollapse(panel: ShadowPanel<DiffPanel>, block: DiffFileBlock): void {

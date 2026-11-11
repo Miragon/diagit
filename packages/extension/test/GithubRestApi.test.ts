@@ -16,7 +16,7 @@ function apiWith(responses: Record<string, unknown>): GithubRestApi {
 }
 
 describe('GithubRestApi.loadPullRequest', () => {
-  const pr = { owner: 'o', repo: 'r', number: '1', key: 'o/r!1' }
+  const pr = { owner: 'o', repo: 'r', number: '1', revisions: null, key: 'o/r!1' }
 
   it('diffs against the merge base, not the tip of the base branch', async () => {
     const data = await apiWith({

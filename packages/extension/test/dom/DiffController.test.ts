@@ -26,9 +26,10 @@ function sourceShowing(
   fileRoot: HTMLElement,
   metadata: Promise<void>,
   path = 'flows/order.bpmn',
+  pageKey = () => 'octo/flows!1',
 ): DiffSource {
   return {
-    pageKey: () => 'octo/flows!1',
+    pageKey,
     unrecognizedFiles: async () => [],
     async collect() {
       const code = fileRoot.querySelector<HTMLElement>('.code')!
@@ -91,6 +92,57 @@ describe('DiffController', () => {
     await vi.waitFor(() =>
       expect(reRenderedCode.previousElementSibling?.localName).toBe(DIFF_PANEL_TAG),
     )
+  })
+
+  it('replaces the panels when the page moves to other revisions of the same files', async () => {
+    const fileRoot = renderFileBox()
+    let pageKey = 'octo/flows!1'
+    start(sourceShowing(fileRoot, Promise.resolve(), 'flows/order.bpmn', () => pageKey))
+    await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).not.toBeNull())
+    const wholePullRequestPanel = fileRoot.querySelector(DIFF_PANEL_TAG)
+
+    pageKey = 'octo/flows!1@c0ffee0'
+    fileRoot.append(document.createElement('span'))
+
+    await vi.waitFor(() => {
+      const panel = fileRoot.querySelector(DIFF_PANEL_TAG)
+      expect(panel).not.toBeNull()
+      expect(panel).not.toBe(wholePullRequestPanel)
+    })
+  })
+
+  it('removes the panels when the page moves to revisions it cannot show', async () => {
+    const fileRoot = renderFileBox()
+    let pageKey: string | null = 'octo/flows!1'
+    start(sourceShowing(fileRoot, Promise.resolve(), 'flows/order.bpmn', () => pageKey!))
+    await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).not.toBeNull())
+
+    pageKey = null
+    fileRoot.append(document.createElement('span'))
+
+    await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).toBeNull())
+  })
+
+  it('mounts no panel for a page the user already left while its data was loading', async () => {
+    const fileRoot = renderFileBox()
+    const wholePullRequest = deferred()
+    let pageKey = 'octo/flows!1'
+    const source = sourceShowing(
+      fileRoot,
+      wholePullRequest.promise,
+      'flows/order.bpmn',
+      () => pageKey,
+    )
+    start(source)
+
+    pageKey = 'octo/flows!1@c0ffee0'
+    source.collect = async () => []
+    fileRoot.append(document.createElement('span'))
+    await untilRerunStarted()
+    wholePullRequest.resolve()
+    await untilRerunStarted()
+
+    expect(fileRoot.querySelector(DIFF_PANEL_TAG)).toBeNull()
   })
 
   it('leaves files of a notation without diff support alone', async () => {

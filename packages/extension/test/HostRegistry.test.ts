@@ -14,6 +14,13 @@ describe('HostRegistry.viewScriptsFor', () => {
     expect(scriptsAt('https://github.com/o/r/pull/12')).toEqual(['github-pr'])
     expect(scriptsAt('https://github.com/o/r/pull/12/files')).toEqual(['github-pr'])
     expect(scriptsAt('https://github.com/o/r/commit/c0ffee0')).toEqual(['github-commit'])
+    expect(scriptsAt('https://github.com/o/r/pull/12/commits/c0ffee0')).toEqual(['github-pr'])
+  })
+
+  it('loads no diff script on merge request versions it cannot compare', () => {
+    const mergeRequest = 'https://gitlab.com/g/p/-/merge_requests/1/diffs'
+    expect(scriptsAt(`${mergeRequest}?commit_id=c0ffee0`)).toEqual(['gitlab-mr'])
+    expect(scriptsAt(`${mergeRequest}?diff_id=3&start_sha=c0ffee0`)).toEqual([])
   })
 
   it('loads nothing on GitHub pages without a diagram view', () => {
