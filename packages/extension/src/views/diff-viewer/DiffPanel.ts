@@ -2,20 +2,25 @@ import type { DiagramDiff } from '../../notations/Notation'
 import type { DiffLoaders } from '../../git-hosts/DiffSource'
 import type { DiagramDiffer, DiffableViewer } from '../../notations/Notation'
 import type { PanelHandle } from '../../platform/page/HostPage'
+import type { ReportContext } from '../../platform/DiagitRepository'
 import { h } from '../../platform/utils/dom'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 import { ChangeNavigator } from './ChangeNavigator'
+import { DiffNotices } from './DiffNotices'
 import { DiffPane } from './DiffPane'
 import { ViewerCanvas } from './ViewerCanvas'
 
 export interface DiffPanelOptions extends DiffLoaders {
   differ: DiagramDiffer
+  label: string
+  reportContext: ReportContext
   onRendered?: () => void
 }
 
 type ModelView = 'plain' | 'diff'
+type LoadedModel = PromiseSettledResult<string | null>
 
 const NO_CHANGES: DiagramDiff = { added: [], removed: [], changed: [], moved: [] }
 
@@ -44,15 +49,18 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.diagramArea,
   ])
   private modelView: ModelView = 'plain'
-  private headXml: string | null = null
-  private headLoaded = false
+  private head: LoadedModel | null = null
   private plainRendered = false
   private interactive = false
   private destroyed = false
   private resizeObserver: ResizeObserver | null = null
   private detachFocusZoom: (() => void) | null = null
 
-  constructor(private readonly options: DiffPanelOptions) {}
+  private readonly notices: DiffNotices
+
+  constructor(private readonly options: DiffPanelOptions) {
+    this.notices = new DiffNotices(options.label, options.reportContext)
+  }
 
   mount(container: HTMLElement): this {
     container.append(this.root)
@@ -115,17 +123,16 @@ export class DiffPanel implements PanelHandle, Zoomable {
   }
 
   private async load(): Promise<void> {
-    const [oldXml, newXml] = await Promise.all([
-      this.loadOrNull(this.options.loadOld),
-      this.loadOrNull(this.options.loadNew),
+    const { loadOld, loadNew } = this.options
+    const [oldModel, newModel] = await Promise.allSettled([
+      Promise.resolve().then(loadOld),
+      Promise.resolve().then(loadNew),
     ])
     if (this.destroyed) return
-    this.headXml = newXml
-    this.headLoaded = true
+    this.head = newModel
 
-    const { differ } = this.options
-    await this.oldPane.render(differ, oldXml, 'not in source')
-    await this.newPane.render(differ, newXml, 'deleted')
+    await this.renderPane(this.oldPane, oldModel, 'not in source')
+    await this.renderPane(this.newPane, newModel, 'deleted')
     if (this.destroyed) {
       this.destroyViewers()
       return
@@ -133,11 +140,16 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.applyInteractive()
     if (this.oldPane.viewer || this.newPane.viewer) this.options.onRendered?.()
 
-    const diff = oldXml && newXml ? await this.diffOrNoChanges(oldXml, newXml) : NO_CHANGES
+    const diff = await this.computeDiff(oldModel, newModel)
     if (this.destroyed) return
-    this.oldPane.showDiff(diff)
-    this.newPane.showDiff(diff)
-    const navigator = ChangeNavigator.forDiff(diff, [this.oldPane.viewer, this.newPane.viewer])
+    for (const pane of [this.oldPane, this.newPane]) {
+      if (diff) pane.showDiff(diff)
+      else pane.showDiffUnavailable()
+    }
+    const navigator = ChangeNavigator.forDiff(diff ?? NO_CHANGES, [
+      this.oldPane.viewer,
+      this.newPane.viewer,
+    ])
     this.oldPane.bind(navigator)
     this.newPane.bind(navigator)
 
@@ -145,30 +157,38 @@ export class DiffPanel implements PanelHandle, Zoomable {
     else this.fit()
   }
 
+  private async renderPane(pane: DiffPane, model: LoadedModel, emptyLabel: string): Promise<void> {
+    if (model.status === 'rejected')
+      pane.showFailure(this.notices.notLoaded(pane.side, model.reason))
+    else await pane.render(this.options.differ, model.value, emptyLabel, this.notices)
+  }
+
   private async ensurePlainRendered(): Promise<void> {
-    if (this.plainRendered || this.destroyed || !this.headLoaded) return
+    if (this.plainRendered || this.destroyed || !this.head) return
     this.plainRendered = true
+    if (this.head.status === 'rejected') {
+      this.plainCanvas.showFailure(this.notices.notLoaded('new', this.head.reason))
+      return
+    }
     const { differ } = this.options
     const viewer = await this.plainCanvas.render(
       (canvas, xml) => differ.createViewer(canvas, xml),
-      this.headXml,
+      this.head.value,
       'No current model (file deleted).',
+      this.notices,
     )
     this.applyInteractive()
     if (this.modelView === 'plain') viewer?.fit()
   }
 
-  private async diffOrNoChanges(oldXml: string, newXml: string): Promise<DiagramDiff> {
+  private async computeDiff(
+    oldModel: LoadedModel,
+    newModel: LoadedModel,
+  ): Promise<DiagramDiff | null> {
+    if (oldModel.status === 'rejected' || newModel.status === 'rejected') return null
+    if (!oldModel.value || !newModel.value) return NO_CHANGES
     try {
-      return await this.options.differ.diff(oldXml, newXml)
-    } catch {
-      return NO_CHANGES
-    }
-  }
-
-  private async loadOrNull(load: () => Promise<string | null>): Promise<string | null> {
-    try {
-      return await load()
+      return await this.options.differ.diff(oldModel.value, newModel.value)
     } catch {
       return null
     }

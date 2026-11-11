@@ -2,10 +2,9 @@ import type { DiagramDiff } from '../../notations/Notation'
 import type { DiagramDiffer, DiffableViewer } from '../../notations/Notation'
 import { h } from '../../platform/utils/dom'
 import type { ChangeNavigator } from './ChangeNavigator'
+import type { DiffNotices, DiffSide, PaneFailure } from './DiffNotices'
 import { MARKER } from './markers'
 import { ViewerCanvas } from './ViewerCanvas'
-
-export type DiffSide = 'old' | 'new'
 
 type ChangeCategory = keyof DiagramDiff
 
@@ -25,24 +24,25 @@ export class DiffPane {
   readonly element: HTMLElement
   private readonly canvas = new ViewerCanvas<DiffableViewer>()
   private readonly legendKeys: Record<ChangeCategory, HTMLElement>
+  private readonly legend: HTMLElement
   private readonly previousButton = this.navButton('Prev')
   private readonly nextButton = this.navButton('Next')
   private readonly allButton = this.navButton('All')
+  private readonly navigation = h('div', { class: 'diagit-diff-nav' }, [
+    this.previousButton,
+    this.nextButton,
+    this.allButton,
+  ])
 
-  constructor(private readonly side: DiffSide) {
+  constructor(readonly side: DiffSide) {
     this.legendKeys = {
       added: this.legendKey('added'),
       removed: this.legendKey('removed'),
       changed: this.legendKey('changed'),
       moved: this.legendKey('moved'),
     }
-    const legend = h('div', { class: 'diagit-diff-legend' }, Object.values(this.legendKeys))
-    const navigation = h('div', { class: 'diagit-diff-nav' }, [
-      this.previousButton,
-      this.nextButton,
-      this.allButton,
-    ])
-    const overlay = h('div', { class: 'diagit-diff-overlay' }, [legend, navigation])
+    this.legend = h('div', { class: 'diagit-diff-legend' }, Object.values(this.legendKeys))
+    const overlay = h('div', { class: 'diagit-diff-overlay' }, [this.legend, this.navigation])
     this.element = h('div', { class: 'diagit-diff-pane' }, [overlay, this.canvas.element])
   }
 
@@ -50,12 +50,17 @@ export class DiffPane {
     return this.canvas.viewer
   }
 
-  render(differ: DiagramDiffer, xml: string | null, emptyLabel: string) {
+  render(differ: DiagramDiffer, xml: string | null, emptyLabel: string, notices: DiffNotices) {
     return this.canvas.render(
       (canvas, source) => differ.createViewer(canvas, source),
       xml,
       emptyLabel,
+      notices,
     )
+  }
+
+  showFailure(failure: PaneFailure): void {
+    this.canvas.showFailure(failure)
   }
 
   showDiff(diff: DiagramDiff): void {
@@ -67,6 +72,11 @@ export class DiffPane {
     for (const category of Object.keys(LEGEND) as ChangeCategory[]) {
       this.legendKeys[category].textContent = `${LEGEND[category].label}: ${diff[category].length}`
     }
+  }
+
+  showDiffUnavailable(): void {
+    this.legend.replaceChildren(h('span', { text: 'Changes could not be computed' }))
+    this.navigation.remove()
   }
 
   bind(navigator: ChangeNavigator): void {
