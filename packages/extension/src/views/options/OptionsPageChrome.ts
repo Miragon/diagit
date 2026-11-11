@@ -1,6 +1,7 @@
 import { Star, ThumbsUp, type IconNode } from 'lucide'
 import { GITHUB_REPOSITORY_URL, STORE_LISTINGS } from '../../platform/star-prompt/storeListings'
 import { h } from '../../platform/utils/dom'
+import { externalLink } from '../../platform/utils/externalLink'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
 
 const DOCS_URL = 'https://miragon.github.io/diagit/'
@@ -51,6 +52,6 @@ export class OptionsPageChrome {
 
   private externalLink(label: string, url: string, className?: string, icon?: IconNode) {
     const content = icon ? [lucideIcon(icon), label] : [label]
-    return h('a', { class: className, href: url, target: '_blank', rel: 'noreferrer' }, content)
+    return externalLink(url, { class: className }, content)
   }
 }

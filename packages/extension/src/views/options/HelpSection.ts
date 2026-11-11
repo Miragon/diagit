@@ -1,5 +1,6 @@
 import { Bug, ChevronRight, ClipboardCopy, FileType, Lock, Server, type IconNode } from 'lucide'
 import { h } from '../../platform/utils/dom'
+import { externalLink } from '../../platform/utils/externalLink'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
 import type { DebugInfo, ExtensionSetup } from './DebugInfo'
 
@@ -47,7 +48,7 @@ export class HelpSection {
   }
 
   private fixLink(icon: IconNode, text: string, url: string): HTMLElement {
-    return h('a', { class: 'fix-link', href: url, target: '_blank', rel: 'noreferrer' }, [
+    return externalLink(url, { class: 'fix-link' }, [
       h('span', { class: 'fix-icon' }, [lucideIcon(icon)]),
       h('span', { class: 'fix-text', text }),
       lucideIcon(ChevronRight),
@@ -56,10 +57,7 @@ export class HelpSection {
 
   private reportButton(): HTMLElement {
     const url = this.debugInfo.bugReportUrl()
-    return h('a', { class: 'btn primary', href: url, target: '_blank', rel: 'noreferrer' }, [
-      lucideIcon(Bug),
-      'Report a bug',
-    ])
+    return externalLink(url, { class: 'btn primary' }, [lucideIcon(Bug), 'Report a bug'])
   }
 
   private copyButton(): HTMLButtonElement {
