@@ -8,6 +8,7 @@ export const GITLAB_PUBLIC_ORIGIN = 'https://gitlab.com'
 export const GITLAB_ROUTE_MARKER = '/-/'
 
 const MERGE_REQUEST_PATH = /^\/(.+?)\/-\/merge_requests\/(\d+)/
+const MERGE_REQUEST_DIFFS_PATH = /^\/.+?\/-\/merge_requests\/\d+\/diffs/
 
 export class GitlabRoutes {
   mergeRequest(location: Pick<Location, 'pathname'>): MergeRequestRef | null {
@@ -15,6 +16,10 @@ export class GitlabRoutes {
     if (!match) return null
     const [, projectPath, iid] = match
     return { projectPath: projectPath!, iid: iid!, key: `${projectPath}!${iid}` }
+  }
+
+  mergeRequestDiffs(location: Pick<Location, 'pathname'>): boolean {
+    return MERGE_REQUEST_DIFFS_PATH.test(location.pathname)
   }
 
   mergeRequestApi(origin: string, ref: MergeRequestRef): string {

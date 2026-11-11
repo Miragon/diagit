@@ -17,6 +17,15 @@ export class NotationDetector {
     return this.detect(path)?.diffable ?? false
   }
 
+  mentionsDiffable(text: string): boolean {
+    const lowerText = text.toLowerCase()
+    return this.catalog
+      .filter((notation) => notation.diffable)
+      .some((notation) =>
+        notation.extensions.some((extension) => lowerText.includes(`.${extension}`)),
+      )
+  }
+
   fileExtensions(): string[] {
     return this.catalog.flatMap((notation) =>
       notation.extensions.map((extension) => `.${extension}`),

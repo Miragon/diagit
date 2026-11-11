@@ -1,4 +1,6 @@
+import { notationDetector, type NotationDetector } from '../notations/NotationDetector'
 import { errorMessage } from '../platform/utils/errorMessage'
+import type { FileHeaderLocator, VisibleFileHeader } from './FileHeaderLocator'
 import { DiffDataError, type DiffFileBlock, type DiffPage, type DiffSource } from './DiffSource'
 
 const RETRY_FAILED_LOAD_AFTER_MS = 60_000
@@ -14,7 +16,9 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
 
   constructor(
     private readonly page: DiffPage<Page, Data>,
+    private readonly fileHeaders: FileHeaderLocator,
     private readonly now: () => number = () => Date.now(),
+    private readonly notations: NotationDetector = notationDetector,
   ) {}
 
   pageKey(location: Location): string | null {
@@ -35,8 +39,26 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
     return files.map((file) => ({ ...file, ...this.page.loaders(location, file, data) }))
   }
 
+  async unrecognizedFiles(location: Location, doc: Document): Promise<VisibleFileHeader[]> {
+    const page = this.page.identify(location)
+    if (!page || !this.page.showsDiffs(location)) return []
+    const cached = this.cachedFor(page)
+    if (cached?.failedAt != null) return []
+    const recognizedPaths = new Set(this.page.recognizedPaths(doc))
+    if (!cached && !recognizedPaths.size && !this.fileHeaders.mentionsDiagram(doc)) return []
+    const missedPaths = this.page
+      .changedPaths(await this.load(location, page))
+      .filter((path) => this.notations.isDiffable(path) && !recognizedPaths.has(path))
+    return this.fileHeaders.findVisible(doc, missedPaths)
+  }
+
+  private cachedFor(page: Page): CachedLoad<Data> | null {
+    return this.cached?.key === page.key ? this.cached : null
+  }
+
   private load(location: Location, page: Page): Promise<Data> {
-    if (this.cached?.key === page.key && !this.mayRetry(this.cached)) return this.cached.promise
+    const cached = this.cachedFor(page)
+    if (cached && !this.mayRetry(cached)) return cached.promise
     const entry: CachedLoad<Data> = {
       key: page.key,
       failedAt: null,

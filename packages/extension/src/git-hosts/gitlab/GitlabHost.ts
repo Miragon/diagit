@@ -1,4 +1,5 @@
 import { CachedDiffSource } from '../CachedDiffSource'
+import { FileHeaderLocator } from '../FileHeaderLocator'
 import type { DiffSource } from '../DiffSource'
 import type { HttpClient } from '../../platform/messaging/HttpClient'
 import { BlobPage } from '../BlobPage'
@@ -32,6 +33,7 @@ export class GitlabHost implements GitHost {
     )
     this.mergeRequestDiff = new CachedDiffSource(
       new GitlabMergeRequestPage(this.routes, api, new GitlabDiffScanner()),
+      new FileHeaderLocator(gitlabSelectors.diff.regionsThatOnlyMentionFiles),
     )
     this.views = [
       { script: 'gitlab-blob', rendersOn: (url) => this.blobPage.showsDiagram(url) },

@@ -148,4 +148,77 @@ describe('GitLab merge-request diff', () => {
 
     expect(block!.isCollapsed()).toBe(false)
   })
+
+  describe('changed diagram files the scanner did not recognise', () => {
+    const metadataWithOrderAndReadme = {
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [
+        { old_path: 'flows/order.bpmn', new_path: 'flows/order.bpmn' },
+        { old_path: 'README.md', new_path: 'README.md' },
+      ],
+    }
+
+    function withUnknownFileMarkup(path: string): Document {
+      document.body.innerHTML = `<section class="unknown"><h3>${path}</h3><pre></pre></section>`
+      return document
+    }
+
+    it('lists them when the page shows a diagram path the scanner missed', async () => {
+      const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
+
+      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+        location,
+        withUnknownFileMarkup('flows/order.bpmn'),
+      )
+
+      expect(paths.map((file) => file.path)).toEqual(['flows/order.bpmn'])
+    })
+
+    it('leaves out the files the scanner recognised', async () => {
+      const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
+
+      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+        location,
+        withFileBox('flows/order.bpmn'),
+      )
+
+      expect(paths).toEqual([])
+    })
+
+    it('does not call the API when the page mentions no diagram at all', async () => {
+      const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
+
+      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+        location,
+        withUnknownFileMarkup('README.md'),
+      )
+
+      expect(paths).toEqual([])
+      expect(http.requests).toEqual([])
+    })
+
+    it('does not retry a failed load just to look for unrecognised files', async () => {
+      const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 403', 403))
+      const diff = new GitlabHost(http).mergeRequestDiff
+      const doc = withUnknownFileMarkup('flows/order.bpmn')
+      await diff.unrecognizedFiles(location, doc).catch(() => undefined)
+      vi.spyOn(Date, 'now').mockReturnValue(1_000_000 + 3_600_000)
+
+      expect(await diff.unrecognizedFiles(location, doc)).toEqual([])
+      expect(http.requests).toHaveLength(1)
+    })
+
+    it('does not look outside the changes tab', async () => {
+      const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
+      const overview = { ...location, pathname: '/group/project/-/merge_requests/7' }
+
+      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+        overview,
+        withUnknownFileMarkup('flows/order.bpmn'),
+      )
+
+      expect(paths).toEqual([])
+      expect(http.requests).toEqual([])
+    })
+  })
 })

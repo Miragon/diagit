@@ -17,12 +17,27 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
     return this.routes.mergeRequest(location)
   }
 
+  showsDiffs(location: Location): boolean {
+    return this.routes.mergeRequestDiffs(location)
+  }
+
   scan(doc: Document): ChangedFile[] {
     return this.scanner.scan(doc)
   }
 
+  recognizedPaths(doc: Document): string[] {
+    return this.scanner.scan(doc).map((file) => file.path)
+  }
+
   load(location: Location, page: MergeRequestRef): Promise<MergeRequestData> {
     return this.api.loadMergeRequest(location, page)
+  }
+
+  changedPaths(data: MergeRequestData): string[] {
+    const changes = new Set(data.changeByPath.values())
+    return [...changes]
+      .map((change) => change.new_path || change.old_path)
+      .filter((path): path is string => !!path)
   }
 
   loaders(_location: Location, file: ChangedFile, data: MergeRequestData): DiffLoaders {

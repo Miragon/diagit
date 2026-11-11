@@ -7,6 +7,10 @@ export class GithubPullRequestPage extends GithubDiffPage<PullRequestRef> {
     return this.routes.pullRequest(location)
   }
 
+  showsDiffs(location: Location): boolean {
+    return this.routes.pullRequestDiffs(location)
+  }
+
   load(location: Location, page: PullRequestRef): Promise<GithubDiffData> {
     return this.api.loadPullRequest(location, page)
   }

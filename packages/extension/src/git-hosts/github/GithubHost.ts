@@ -1,4 +1,5 @@
 import { CachedDiffSource } from '../CachedDiffSource'
+import { FileHeaderLocator } from '../FileHeaderLocator'
 import type { DiffSource } from '../DiffSource'
 import type { HttpClient } from '../../platform/messaging/HttpClient'
 import { BlobPage } from '../BlobPage'
@@ -28,6 +29,7 @@ export class GithubHost implements GitHost {
   constructor(http: HttpClient, tokens: GithubTokenStore) {
     const api = new GithubRestApi(http, this.routes)
     const scanner = new GithubDiffScanner()
+    const fileHeaders = new FileHeaderLocator(githubSelectors.diff.regionsThatOnlyMentionFiles)
     this.authPolicy = new GithubApiAuth(
       new GithubTokenRefresher(tokens, new GithubDeviceFlow()),
       this.routes,
@@ -43,9 +45,11 @@ export class GithubHost implements GitHost {
     )
     this.pullRequestDiff = new CachedDiffSource(
       new GithubPullRequestPage(this.routes, api, scanner, this.authPolicy),
+      fileHeaders,
     )
     this.commitDiff = new CachedDiffSource(
       new GithubCommitPage(this.routes, api, scanner, this.authPolicy),
+      fileHeaders,
     )
     this.views = [
       { script: 'github-blob', rendersOn: (url) => this.blobPage.showsDiagram(url) },

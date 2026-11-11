@@ -9,6 +9,10 @@ class DiagitRepository {
     return this.newIssueUrl('feat.yml')
   }
 
+  problemReportUrl(title: string, description: string): string {
+    return this.newIssueUrl('fix.yml', { title: `[Fix]: ${title}`, description })
+  }
+
   private newIssueUrl(template: string, fields: Record<string, string> = {}): string {
     const query = new URLSearchParams({ template, ...fields })
     return `${this.url}/issues/new?${query}`

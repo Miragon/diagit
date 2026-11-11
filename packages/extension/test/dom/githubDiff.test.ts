@@ -73,7 +73,7 @@ describe('GitHub pull-request diff', () => {
     const http = new FakeHttpClient().respondWith(pullRequestMetadata)
     const doc = withFileBoxes(`
       <div id="diff-1" aria-labelledby="heading-1">
-        <div data-diff-header-wrapper><h3 id="heading-1">‎flows/old.bpmn → flows/⁦order⁩.bpmn</h3></div>
+        <div data-diff-header-wrapper><h3 id="heading-1">\u200eflows/old.bpmn → flows/\u2066order\u2069.bpmn</h3></div>
         <div><table data-diff-anchor></table></div>
       </div>`)
 
@@ -136,5 +136,47 @@ describe('GitHub pull-request diff — failed metadata', () => {
     expect(err).toBeInstanceOf(DiffDataError)
     expect(err.files.map((file) => file.path)).toEqual(['flows/order.bpmn'])
     expect(err.hint).toMatch(/private repository/i)
+  })
+
+  it('lists a changed diagram file the scanner did not recognise', async () => {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+    const doc = withFileBoxes('<div class="unknown"><h3>flows/order.bpmn</h3></div>')
+
+    const files = await pullRequestDiff(http).unrecognizedFiles(location, doc)
+
+    expect(files.map((file) => file.path)).toEqual(['flows/order.bpmn'])
+  })
+
+  it('does not treat a file whose large diff is not loaded yet as unrecognised', async () => {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+    const largeDiffBehindLoadButton = `
+      <div class="file" data-tagsearch-path="flows/order.bpmn">
+        <div class="file-header"><a>flows/order.bpmn</a></div>
+        <button>Load diff</button>
+      </div>`
+
+    const paths = await pullRequestDiff(http).unrecognizedFiles(
+      location,
+      withFileBoxes(largeDiffBehindLoadButton),
+    )
+
+    expect(paths).toEqual([])
+  })
+
+  it('does not call the API when the page mentions no diagram at all', async () => {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+    const doc = withFileBoxes('<div class="unknown"><h3>src/Order.kt</h3></div>')
+
+    expect(await pullRequestDiff(http).unrecognizedFiles(location, doc)).toEqual([])
+    expect(http.requests).toEqual([])
+  })
+
+  it('does not look for unrecognised files on the conversation tab', async () => {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+    const conversation = { ...location, pathname: '/o/r/pull/1' }
+    const doc = withFileBoxes('<div class="unknown"><h3>flows/order.bpmn</h3></div>')
+
+    expect(await pullRequestDiff(http).unrecognizedFiles(conversation, doc)).toEqual([])
+    expect(http.requests).toEqual([])
   })
 })
