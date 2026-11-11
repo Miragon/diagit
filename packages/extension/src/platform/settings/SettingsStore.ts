@@ -6,8 +6,29 @@ export interface StorageArea {
   remove(key: string): Promise<void>
 }
 
+type StorageChanges = Record<string, { newValue?: unknown }>
+type StorageChangeListener = (changes: StorageChanges, areaName: string) => void
+
+export interface StorageChangeEvents {
+  addListener(listener: StorageChangeListener): void
+  removeListener(listener: StorageChangeListener): void
+}
+
+const LOCAL_AREA = 'local'
+
 export class SettingsStore {
-  constructor(private readonly area: () => StorageArea = () => browser.storage.local) {}
+  constructor(
+    private readonly area: () => StorageArea = () => browser.storage.local,
+    private readonly changeEvents: () => StorageChangeEvents = () => browser.storage.onChanged,
+  ) {}
+
+  onChange(key: string, listener: (newValue: unknown) => void): () => void {
+    const onStorageChange: StorageChangeListener = (changes, areaName) => {
+      if (areaName === LOCAL_AREA && key in changes) listener(changes[key]!.newValue)
+    }
+    this.changeEvents().addListener(onStorageChange)
+    return () => this.changeEvents().removeListener(onStorageChange)
+  }
 
   async readString(key: string): Promise<string> {
     const value = (await this.area().get(key))[key]

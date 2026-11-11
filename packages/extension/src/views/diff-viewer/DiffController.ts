@@ -10,7 +10,7 @@ import { diffableNotations } from '../../notations/diffableNotations'
 import { DiffErrorNotice } from './DiffErrorNotice'
 import { DiffPanel } from './DiffPanel'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
-import { StarPrompt } from '../../platform/star-prompt/StarPrompt'
+import { DiagramViewLog } from '../../platform/settings/DiagramViewLog'
 import diffCss from './diff.css?inline'
 
 const RERUN_DEBOUNCE_MS = 300
@@ -25,7 +25,7 @@ export class DiffController {
     private readonly page: HostPage,
     private readonly source: DiffSource,
     private readonly notations: NotationLookup = diffableNotations,
-    private readonly starPrompt: StarPrompt = new StarPrompt(page),
+    private readonly diagramViews: DiagramViewLog = new DiagramViewLog(),
   ) {}
 
   start(): void {
@@ -93,7 +93,7 @@ export class DiffController {
           differ,
           loadOld: block.loadOld,
           loadNew: block.loadNew,
-          onRendered: () => void this.starPrompt.recordRender(),
+          onRendered: () => void this.diagramViews.record(this.page.location.pathname),
         }).mount(container),
     })
     this.page.onInvalidated(() => panel.remove())

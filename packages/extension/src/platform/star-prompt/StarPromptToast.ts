@@ -5,7 +5,7 @@ import { detectHostTheme } from '../utils/hostTheme'
 import { GITHUB_REPOSITORY_URL } from './storeListings'
 
 const ICON_STROKE_WIDTH = 2.5
-const MESSAGE = 'A star on GitHub helps other people find Diagit.'
+const MESSAGE = 'Thanks for using Diagit.'
 
 export interface StarPromptToastOptions {
   storeListingUrl: string | undefined
