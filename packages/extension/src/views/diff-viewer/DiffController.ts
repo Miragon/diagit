@@ -7,9 +7,9 @@ import {
 import { DIFF_ERROR_TAG, DIFF_PANEL_TAG } from '../../platform/injectedElements'
 import type { DiagramDiffer, NotationLookup } from '../../notations/Notation'
 import { diffableNotations } from '../../notations/diffableNotations'
-import { DiffErrorNotice } from './DiffErrorNotice'
 import { UnrecognizedFileNotices } from './UnrecognizedFileNotices'
 import { DiffPanel } from './DiffPanel'
+import { ErrorNotice } from '../../platform/ui/ErrorNotice'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import diffCss from './diff.css?inline'
@@ -74,16 +74,15 @@ export class DiffController {
       if (this.erroring.has(file.fileRoot) || this.hasPanel(file)) continue
       if (file.fileRoot.querySelector(DIFF_ERROR_TAG)) continue
       this.erroring.add(file.fileRoot)
-      void this.mountError(file, differ, err).finally(() => this.erroring.delete(file.fileRoot))
+      void this.mountError(file, err).finally(() => this.erroring.delete(file.fileRoot))
     }
   }
 
-  private async mountError(file: ChangedFile, differ: DiagramDiffer, err: DiffDataError) {
+  private async mountError(file: ChangedFile, err: DiffDataError) {
     const label = this.notations.detect(file.path)?.descriptor.label ?? 'Diagram'
-    await DiffErrorNotice.mountOn(this.page, {
+    await ErrorNotice.mountOn(this.page, DIFF_ERROR_TAG, {
       anchor: file.anchor,
       append: file.append,
-      css: differ.css,
       details: { title: `${label} diff unavailable`, message: err.message, hint: err.hint },
     })
   }

@@ -4,12 +4,20 @@ import { h } from '../../platform/utils/dom'
 import { errorMessage } from '../../platform/utils/errorMessage'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
+import { diagitRepository } from '../../platform/DiagitRepository'
+import { ErrorNotice } from '../../platform/ui/ErrorNotice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 
 export interface ModelPanelOptions {
   notation: Notation
   loadXml: () => Promise<string>
   onRendered?: () => void
+}
+
+interface PanelError {
+  title: string
+  hint: string
+  report: string
 }
 
 export class ModelPanel implements PanelHandle, Zoomable {
@@ -60,7 +68,11 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       xml = await this.options.loadXml()
     } catch (err) {
-      this.placeholder.textContent = `Could not load file: ${errorMessage(err)}`
+      this.showError(err, {
+        title: `${this.label} view could not be loaded`,
+        hint: 'Diagit could not fetch this file from the page. Reload the page to try again.',
+        report: `${this.label} file not loaded on a file page`,
+      })
       return
     }
     if (this.destroyed) return
@@ -69,8 +81,11 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       viewer = await this.options.notation.createViewer(this.canvas, xml)
     } catch (err) {
-      const label = this.options.notation.descriptor.label
-      this.placeholder.textContent = `Could not render ${label}: ${errorMessage(err)}`
+      this.showError(err, {
+        title: `${this.label} view could not be rendered`,
+        hint: `Diagit could not read this file as a ${this.label} model. If it opens in other tools, report this problem.`,
+        report: `${this.label} file not rendered on a file page`,
+      })
       return
     }
     if (this.destroyed) {
@@ -87,5 +102,18 @@ export class ModelPanel implements PanelHandle, Zoomable {
     )
     this.resizeObserver = new ResizeObserver(() => this.viewer?.fit())
     this.resizeObserver.observe(this.canvas)
+  }
+
+  private get label(): string {
+    return this.options.notation.descriptor.label
+  }
+
+  private showError(err: unknown, { title, hint, report }: PanelError): void {
+    const reportUrl = diagitRepository.problemReportUrl(
+      report,
+      `Diagit showed "${title}" on a file page.`,
+    )
+    const notice = new ErrorNotice({ title, hint, message: errorMessage(err), reportUrl })
+    this.wrap.replaceChildren(notice.element)
   }
 }
