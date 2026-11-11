@@ -34,19 +34,30 @@ export class GitlabDiffScanner {
   }
 
   private filePathOf(root: HTMLElement): string | null {
-    const rapidDiffFileData = root.getAttribute(gitlabSelectors.diff.rapidDiffFileData)
-    if (rapidDiffFileData) return this.rapidDiffPathOf(rapidDiffFileData)
+    return this.rapidDiffPathOf(root) ?? this.legacyDiffPathOf(root)
+  }
+
+  private rapidDiffPathOf(root: HTMLElement): string | null {
+    const fileData = root.getAttribute(gitlabSelectors.diff.rapidDiffFileData)
+    if (!fileData) return null
+    try {
+      const { new_path, old_path } = JSON.parse(fileData) as {
+        new_path?: string
+        old_path?: string
+      }
+      return new_path || old_path || null
+    } catch {
+      return null
+    }
+  }
+
+  private legacyDiffPathOf(root: HTMLElement): string | null {
     const attribute = gitlabSelectors.diff.pathAttr
     const withData = root.matches(attribute) ? root : root.querySelector(attribute)
     if (withData) return withData.getAttribute('data-path')
     const titleEl = root.querySelector(gitlabSelectors.diff.titleEl)
     if (titleEl) return titleEl.getAttribute('title') || titleEl.textContent?.trim() || null
     return null
-  }
-
-  private rapidDiffPathOf(fileData: string): string | null {
-    const { new_path, old_path } = JSON.parse(fileData) as { new_path?: string; old_path?: string }
-    return new_path || old_path || null
   }
 
   private contentOf(root: HTMLElement): HTMLElement {
