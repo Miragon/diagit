@@ -1,10 +1,10 @@
-import { createElement, Star, X, type IconNode } from 'lucide'
+import { Star, X } from 'lucide'
 import type { PanelHandle } from '../page/HostPage'
 import { h } from '../utils/dom'
 import { detectHostTheme } from '../utils/hostTheme'
+import { lucideIcon } from '../utils/lucideIcon'
 import { GITHUB_REPOSITORY_URL } from './storeListings'
 
-const ICON_STROKE_WIDTH = 2.5
 const MESSAGE = 'Thanks for using Diagit.'
 
 export interface StarPromptToastOptions {
@@ -22,7 +22,7 @@ export class StarPromptToast implements PanelHandle {
 
   constructor(private readonly options: StarPromptToastOptions) {
     this.root = h('div', { class: 'diagit-toast' }, [
-      this.icon(Star, 'diagit-toast-icon'),
+      lucideIcon(Star, 'diagit-toast-icon'),
       this.announcement,
       h('div', { class: 'diagit-toast-actions' }, this.actions()),
     ])
@@ -56,7 +56,7 @@ export class StarPromptToast implements PanelHandle {
         'aria-label': 'Close',
         onClick: () => this.options.onDone(),
       },
-      [this.icon(X)],
+      [lucideIcon(X)],
     )
     return [star, ...rate, close]
   }
@@ -70,14 +70,6 @@ export class StarPromptToast implements PanelHandle {
         window.open(url, '_blank', 'noopener')
         this.options.onDone()
       },
-    })
-  }
-
-  private icon(node: IconNode, className?: string): SVGElement {
-    return createElement(node, {
-      'stroke-width': ICON_STROKE_WIDTH,
-      'aria-hidden': 'true',
-      ...(className ? { class: className } : {}),
     })
   }
 }
