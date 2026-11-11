@@ -1,4 +1,4 @@
-import '../../src/platform/theme/base.css'
+import '../../src/platform/ui/base.css'
 import './viewer.css'
 import '../../src/platform/theme/cd-canvas.css'
 

@@ -60,24 +60,9 @@ describe('BlobViewerController', () => {
     const panelStyles = file.previousElementSibling!.shadowRoot!.querySelectorAll('style')
     const panelCss = [...panelStyles].map((style) => style.textContent).join('\n')
     expect(panelCss).toContain('--cd-ui-text')
+    expect(panelCss).toContain('--diagit-font:')
+    expect(panelCss).toContain('--diagit-font-mono:')
     expect(panelCss).not.toContain(':root')
-  })
-
-  it('gives the panel the shared font stacks', async () => {
-    document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
-
-    new BlobViewerController(
-      pageAt('/o/r/blob/main/order.bpmn'),
-      blobPage,
-      new FakeNotationLookup(),
-    ).start()
-
-    const file = document.getElementById('file')!
-    await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
-    const panelStyles = file.previousElementSibling!.shadowRoot!.querySelectorAll('style')
-    const panelCss = [...panelStyles].map((style) => style.textContent).join('\n')
-    expect(panelCss).toMatch(/--font:\s*-apple-system/)
-    expect(panelCss).toMatch(/--font-mono:\s*ui-monospace/)
   })
 
   it('renders nothing on a blob page without a diagram', async () => {

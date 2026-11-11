@@ -1,4 +1,4 @@
-import baseCss from './base.css?inline'
+import baseCss from '../ui/base.css?inline'
 import canvasCss from './cd-canvas.css?inline'
 
 const DOCUMENT_ROOT = /:root\b/g

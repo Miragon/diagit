@@ -1,4 +1,4 @@
-import '../../src/platform/theme/base.css'
+import '../../src/platform/ui/base.css'
 import './options.css'
 
 import { browser } from 'wxt/browser'
