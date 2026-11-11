@@ -261,18 +261,24 @@ input:focus-visible {
   background: var(--cd-ui-success);
 }
 
+.instances-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.add-instance {
+  padding: 16px;
+}
+
 .instances {
   width: 100%;
-  margin-top: 16px;
-  border: 1px solid var(--cd-ui-linie);
-  border-radius: var(--cd-radius-md);
   border-spacing: 0;
-  overflow: hidden;
   font-size: 14px;
 }
 
 .instances th {
-  padding: 8px 12px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--cd-ui-linie);
   border-bottom: 1px solid var(--cd-ui-linie);
   background: var(--cd-ui-abschnitt);
   color: var(--cd-ui-text-leise);
@@ -282,7 +288,7 @@ input:focus-visible {
 }
 
 .instances td {
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-top: 1px solid var(--cd-ui-linie);
   vertical-align: middle;
 }
@@ -312,7 +318,7 @@ input:focus-visible {
 }
 
 .instances .empty {
-  padding: 16px 12px;
+  padding: 16px;
   color: var(--cd-ui-text-leise);
   text-align: center;
 }

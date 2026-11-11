@@ -44,9 +44,11 @@ export class SelfHostedHostsSection {
       h('section', { class: 'section' }, [
         h('h2', { text: 'Self-hosted instances' }),
         h('p', { class: 'intro', text: INTRO }),
-        h('div', { class: 'card' }, [
-          h('div', { class: 'row' }, [this.originInput, this.typeSelect, this.addButton]),
-          this.status,
+        h('div', { class: 'card instances-card' }, [
+          h('div', { class: 'add-instance' }, [
+            h('div', { class: 'row' }, [this.originInput, this.typeSelect, this.addButton]),
+            this.status,
+          ]),
           this.instanceTable(),
         ]),
       ]),
