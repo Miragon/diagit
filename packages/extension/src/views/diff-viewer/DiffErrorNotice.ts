@@ -6,6 +6,7 @@ import type {
   ShadowPanelOptions,
 } from '../../platform/page/HostPage'
 import { h } from '../../platform/utils/dom'
+import { externalLink } from '../../platform/utils/externalLink'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import diffCss from './diff.css?inline'
 
@@ -46,18 +47,15 @@ export class DiffErrorNotice implements PanelHandle {
       h('div', { class: 'git-diagram-error-title', text: details.title }),
       h('div', { class: 'git-diagram-error-hint', text: details.hint }),
       h('div', { class: 'git-diagram-error-detail', text: details.message }),
-      ...(details.reportUrl ? [this.reportLink(details.reportUrl)] : []),
+      ...(details.reportUrl
+        ? [
+            externalLink(details.reportUrl, {
+              class: 'git-diagram-error-report',
+              text: 'Report this problem',
+            }),
+          ]
+        : []),
     ])
-  }
-
-  private reportLink(url: string): HTMLElement {
-    return h('a', {
-      class: 'git-diagram-error-report',
-      href: url,
-      target: '_blank',
-      rel: 'noopener noreferrer',
-      text: 'Report this problem',
-    })
   }
 
   mount(container: HTMLElement): this {
