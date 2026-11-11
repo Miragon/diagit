@@ -202,7 +202,75 @@
   filter: drop-shadow(0 0 6px var(--cd-ui-interaktion));
 }
 
-.diagit-diff-empty .diagit-error {
-  max-width: 420px;
-  margin: 0 var(--cd-shell-rand);
+.diagit-diff-canvas {
+  container-type: inline-size;
+}
+
+.diagit-diff-pane:has(.diagit-diff-failure) .diagit-diff-overlay {
+  display: none;
+}
+
+.diagit-diff-failure {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 16px;
+  border-bottom: 1px solid var(--cd-ui-linie);
+  border-left: 4px solid var(--cd-ui-danger);
+  background: var(--cd-ui-danger-flaeche);
+  color: var(--cd-ui-text);
+  font-size: 13px;
+}
+
+.diagit-diff-failure svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.diagit-diff-failure-icon {
+  color: var(--cd-ui-danger);
+}
+
+.diagit-diff-failure-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagit-diff-failure-detail {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.diagit-diff-failure-action:hover {
+  background: var(--cd-ui-hover);
+}
+
+@container (max-width: 420px) {
+  .diagit-diff-failure-label {
+    display: none;
+  }
+}
+
+.diagit-diff-no-diagram {
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diagit-diff-no-diagram svg {
+  width: 32px;
+  height: 32px;
 }

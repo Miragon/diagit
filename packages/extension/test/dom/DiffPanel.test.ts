@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DiffPanel } from '../../src/views/diff-viewer/DiffPanel'
 import { MARKER } from '../../src/views/diff-viewer/markers'
+import { FetchError } from '../../src/platform/messaging/HttpClient'
 import { FakeDiffer } from '../fakes/FakeDiffer'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 const LOADING_LABEL = 'Loading diagram…'
-const downloadFailed = () => Promise.reject(new Error('HTTP 403 for raw file'))
+const downloadFailed = () => Promise.reject(new FetchError('HTTP 403 for raw file', 403))
 
 const plainPane = (container: HTMLElement) => container.querySelector('.diagit-diff-single')!
 const diffPanes = (container: HTMLElement) => [
@@ -13,6 +14,7 @@ const diffPanes = (container: HTMLElement) => [
     .querySelector('.diagit-diff-grid')!
     .querySelectorAll<HTMLElement>('.diagit-diff-pane'),
 ]
+const failureIn = (pane: Element) => pane.querySelector<HTMLElement>('[role="alert"]')!
 const tabNamed = (container: HTMLElement, name: string) =>
   [...container.querySelectorAll('button')].find((button) => button.textContent === name)!
 
@@ -99,14 +101,36 @@ describe('DiffPanel', () => {
     const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
 
     await vi.waitFor(() =>
-      expect(plainPane(container).textContent).toContain('New version could not be loaded'),
+      expect(plainPane(container).textContent).toContain(
+        'New version could not be loaded (HTTP 403)',
+      ),
     )
-    expect(plainPane(container).textContent).toContain('HTTP 403 for raw file')
-    expect(plainPane(container).textContent).toContain('Report this problem')
+    expect(failureIn(plainPane(container)).title).toContain('HTTP 403 for raw file')
+    expect(
+      failureIn(plainPane(container)).querySelector('[aria-label="Report this problem"]'),
+    ).not.toBeNull()
+    expect(
+      failureIn(plainPane(container)).querySelector('[aria-label="Reload page"]'),
+    ).not.toBeNull()
+    expect(plainPane(container).textContent).toContain('No diagram for this version')
     expect(plainPane(container).textContent).not.toContain('file deleted')
     const [, newPane] = diffPanes(container)
     expect(newPane!.textContent).toContain('New version could not be loaded')
     expect(newPane!.textContent).not.toContain('deleted')
+  })
+
+  it('leaves the HTTP status out of the title when the download failed without one', async () => {
+    const container = mount(
+      new FakeDiffer(),
+      async () => '<old/>',
+      () => Promise.reject(new Error('offline')),
+    )
+
+    await vi.waitFor(() => expect(failureIn(plainPane(container))).not.toBeNull())
+    expect(
+      failureIn(plainPane(container)).querySelector('.diagit-diff-failure-title')!.textContent,
+    ).toBe('New version could not be loaded')
+    expect(failureIn(plainPane(container)).textContent).toContain('offline')
   })
 
   it('names the old version when its download fails', async () => {
@@ -163,7 +187,8 @@ describe('DiffPanel', () => {
     await vi.waitFor(() =>
       expect(plainPane(container).textContent).toContain('BPMN view could not be rendered'),
     )
-    expect(container.textContent).toContain('no diagram found')
+    expect(failureIn(plainPane(container)).title).toContain('no diagram found')
+    expect(failureIn(plainPane(container)).querySelector('[aria-label="Reload page"]')).toBeNull()
     expect(container.textContent).not.toContain('render error')
   })
 

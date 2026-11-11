@@ -1,9 +1,8 @@
 import type { DiagramDiff } from '../../notations/Notation'
 import type { DiagramDiffer, DiffableViewer } from '../../notations/Notation'
-import type { ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 import { h } from '../../platform/utils/dom'
 import type { ChangeNavigator } from './ChangeNavigator'
-import type { DiffNotices, DiffSide } from './DiffNotices'
+import type { DiffNotices, DiffSide, PaneFailure } from './DiffNotices'
 import { MARKER } from './markers'
 import { ViewerCanvas } from './ViewerCanvas'
 
@@ -60,8 +59,8 @@ export class DiffPane {
     )
   }
 
-  showError(details: ErrorNoticeDetails): void {
-    this.canvas.showError(details)
+  showFailure(failure: PaneFailure): void {
+    this.canvas.showFailure(failure)
   }
 
   showDiff(diff: DiagramDiff): void {

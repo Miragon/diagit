@@ -1,7 +1,9 @@
 import type { DiagramViewer } from '../../notations/Notation'
-import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
+import { FileX } from 'lucide'
 import { h } from '../../platform/utils/dom'
-import type { DiffNotices } from './DiffNotices'
+import { lucideIcon } from '../../platform/utils/lucideIcon'
+import type { DiffNotices, PaneFailure } from './DiffNotices'
+import { PaneFailureBanner } from './PaneFailureBanner'
 
 const LOADING_LABEL = 'Loading diagram…'
 
@@ -28,14 +30,18 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
     try {
       this.viewer = await createViewer(this.element, xml)
     } catch (err) {
-      this.showError(notices.notRendered(err))
+      this.showFailure(notices.notRendered(err))
     }
     return this.viewer
   }
 
-  showError(details: ErrorNoticeDetails): void {
+  showFailure(failure: PaneFailure): void {
     this.element.replaceChildren(
-      h('div', { class: 'diagit-diff-empty' }, [new ErrorNotice(details).element]),
+      new PaneFailureBanner(failure).element,
+      h('div', { class: 'diagit-diff-empty diagit-diff-no-diagram' }, [
+        lucideIcon(FileX),
+        h('span', { text: 'No diagram for this version' }),
+      ]),
     )
   }
 

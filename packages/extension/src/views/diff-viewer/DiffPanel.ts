@@ -158,7 +158,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
   }
 
   private async renderPane(pane: DiffPane, model: LoadedModel, emptyLabel: string): Promise<void> {
-    if (model.status === 'rejected') pane.showError(this.notices.notLoaded(pane.side, model.reason))
+    if (model.status === 'rejected')
+      pane.showFailure(this.notices.notLoaded(pane.side, model.reason))
     else await pane.render(this.options.differ, model.value, emptyLabel, this.notices)
   }
 
@@ -166,7 +167,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     if (this.plainRendered || this.destroyed || !this.head) return
     this.plainRendered = true
     if (this.head.status === 'rejected') {
-      this.plainCanvas.showError(this.notices.notLoaded('new', this.head.reason))
+      this.plainCanvas.showFailure(this.notices.notLoaded('new', this.head.reason))
       return
     }
     const { differ } = this.options
