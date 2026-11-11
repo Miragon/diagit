@@ -1,6 +1,6 @@
 import { browser } from 'wxt/browser'
 import type { HostPage, ShadowPanel } from '../page/HostPage'
-import { DIAGRAM_VIEWS_KEY, type DiagramViews } from '../settings/DiagramViewLog'
+import { DIAGRAM_VIEWS_KEY, type DiagramViews } from '../settings/DiagramViewsLocalStorage'
 import { SettingsStore } from '../settings/SettingsStore'
 import { StarPromptToast } from './StarPromptToast'
 import { STORE_LISTINGS } from './storeListings'

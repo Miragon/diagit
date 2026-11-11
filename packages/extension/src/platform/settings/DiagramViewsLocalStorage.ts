@@ -7,14 +7,14 @@ export interface DiagramViews {
   lastPage: string
 }
 
-export class DiagramViewLog {
+export class DiagramViewsLocalStorage {
   constructor(private readonly store: SettingsStore = new SettingsStore()) {}
 
-  async record(page: string): Promise<void> {
+  async save(page: string): Promise<void> {
     try {
       await this.countPage(page)
     } catch (err) {
-      console.error('[diagit] could not record the diagram view', err)
+      console.error('[diagit] could not save the diagram view to local storage', err)
     }
   }
 

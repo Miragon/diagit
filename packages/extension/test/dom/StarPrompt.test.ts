@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HostPage } from '../../src/platform/page/HostPage'
-import { DiagramViewLog } from '../../src/platform/settings/DiagramViewLog'
+import { DiagramViewsLocalStorage } from '../../src/platform/settings/DiagramViewsLocalStorage'
 import { SettingsStore } from '../../src/platform/settings/SettingsStore'
 import {
   PAGES_BEFORE_PROMPT,
@@ -37,11 +37,11 @@ function startPrompt(storage: MemoryStorageArea, extensionId = CHROME_ID): void 
 }
 
 async function visitPagesWithDiagram(storage: MemoryStorageArea, pages: number): Promise<void> {
-  const log = new DiagramViewLog(storeOn(storage))
+  const diagramViews = new DiagramViewsLocalStorage(storeOn(storage))
   for (let page = 0; page < pages; page++) {
     visitedPages += 1
     location.pathname = `/o/r/blob/main/diagram-${visitedPages}.bpmn`
-    await log.record(location.pathname)
+    await diagramViews.save(location.pathname)
   }
 }
 
@@ -94,7 +94,7 @@ describe('StarPrompt', () => {
     await visitPagesWithDiagram(storage, PAGES_BEFORE_PROMPT - 1)
     location.pathname = '/o/r/blob/main/open-in-this-tab.bpmn'
 
-    await new DiagramViewLog(storeOn(storage)).record('/o/r/blob/main/other-tab.bpmn')
+    await new DiagramViewsLocalStorage(storeOn(storage)).save('/o/r/blob/main/other-tab.bpmn')
     await settle()
 
     expect(toast()).toBeNull()
