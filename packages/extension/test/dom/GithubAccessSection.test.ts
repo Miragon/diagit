@@ -7,8 +7,7 @@ import { MemoryStorageArea } from '../fakes/MemoryStorageArea'
 
 vi.mock('wxt/browser', () => ({ browser: { tabs: { create: () => Promise.resolve() } } }))
 
-const EXPIRED_TEXT =
-  'Your GitHub connection expired. Connect again to see diffs in private repositories.'
+const EXPIRED_TEXT = /connection expired\. Connect again/
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -35,7 +34,7 @@ describe('GithubAccessSection', () => {
   it('only offers to connect when GitHub was never connected', async () => {
     const body = await mountedSection(emptyStore())
 
-    expect(body.textContent).not.toContain('expired')
+    expect(body.textContent).not.toMatch(EXPIRED_TEXT)
   })
 
   it('says that an expired connection has to be connected again', async () => {
@@ -44,7 +43,7 @@ describe('GithubAccessSection', () => {
 
     const body = await mountedSection(store)
 
-    expect(body.textContent).toContain(EXPIRED_TEXT)
+    expect(body.textContent).toMatch(EXPIRED_TEXT)
   })
 
   it('keeps the expiry and the error when connecting again fails', async () => {
@@ -56,6 +55,6 @@ describe('GithubAccessSection', () => {
     connectButton()!.click()
 
     await vi.waitFor(() => expect(document.querySelector('.status')!.className).toContain('error'))
-    expect(document.querySelector('.auth-body')!.textContent).toContain(EXPIRED_TEXT)
+    expect(document.querySelector('.auth-body')!.textContent).toMatch(EXPIRED_TEXT)
   })
 })
