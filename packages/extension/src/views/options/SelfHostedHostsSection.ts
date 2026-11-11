@@ -41,13 +41,15 @@ export class SelfHostedHostsSection {
       ...this.hosts.all().map((host) => h('option', { value: host.id, text: host.label })),
     )
     app.append(
-      h('h1', { text: 'Self-hosted instances' }),
-      h('p', { class: 'intro', text: INTRO }),
-      h('div', { class: 'card' }, [
-        h('div', { class: 'row' }, [this.originInput, this.typeSelect, this.addButton]),
-        this.status,
+      h('section', { class: 'section' }, [
+        h('h2', { text: 'Self-hosted instances' }),
+        h('p', { class: 'intro', text: INTRO }),
+        h('div', { class: 'card' }, [
+          h('div', { class: 'row' }, [this.originInput, this.typeSelect, this.addButton]),
+          this.status,
+          this.list,
+        ]),
       ]),
-      h('div', { class: 'card' }, [this.list]),
     )
     this.addButton.addEventListener('click', () => void this.add())
     this.originInput.addEventListener('keydown', (event) => {

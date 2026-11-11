@@ -25,27 +25,29 @@ export class GithubAccessSection {
 
   mount(app: HTMLElement): void {
     app.append(
-      h('h1', { text: 'GitHub access (private repos)' }),
-      h('p', { class: 'intro' }, [
-        'Only needed for private repositories on github.com: their diff metadata comes from ',
-        h('code', { text: 'api.github.com' }),
-        ', a separate origin your github.com login cookie does not cover (public repos, GitLab and GitHub Enterprise work without it).',
+      h('section', { class: 'section' }, [
+        h('h2', { text: 'GitHub access (private repos)' }),
+        h('p', { class: 'intro' }, [
+          'Only needed for private repositories on github.com: their diff metadata comes from ',
+          h('code', { text: 'api.github.com' }),
+          ', a separate origin your github.com login cookie does not cover (public repos, GitLab and GitHub Enterprise work without it).',
+        ]),
+        h('p', { class: 'intro' }, [
+          'First ',
+          h('a', {
+            href: GITHUB_APP_INSTALL_URL,
+            target: '_blank',
+            rel: 'noreferrer',
+            text: 'install the GitHub App',
+          }),
+          ' on the accounts and repositories it may read, then connect below. The extension only ever gets access to the repos you install it on, and the access token is stored in this browser and sent only to ',
+          h('code', { text: 'api.github.com' }),
+          '; the refresh token that renews it is sent only to ',
+          h('code', { text: 'github.com' }),
+          '.',
+        ]),
+        h('div', { class: 'card' }, [this.body, this.status, this.appRemovalHint()]),
       ]),
-      h('p', { class: 'intro' }, [
-        'First ',
-        h('a', {
-          href: GITHUB_APP_INSTALL_URL,
-          target: '_blank',
-          rel: 'noreferrer',
-          text: 'install the GitHub App',
-        }),
-        ' on the accounts and repositories it may read, then connect below. The extension only ever gets access to the repos you install it on, and the access token is stored in this browser and sent only to ',
-        h('code', { text: 'api.github.com' }),
-        '; the refresh token that renews it is sent only to ',
-        h('code', { text: 'github.com' }),
-        '.',
-      ]),
-      h('div', { class: 'card' }, [this.body, this.status, this.appRemovalHint()]),
     )
     void this.render()
   }
@@ -58,6 +60,7 @@ export class GithubAccessSection {
       const connectedAs = login ? `Connected as @${login}` : 'Connected'
       this.body.replaceChildren(
         h('div', { class: 'row auth-row' }, [
+          h('span', { class: 'status-dot', 'aria-hidden': 'true' }),
           h('span', { class: 'auth-connected', text: connectedAs }),
           disconnect,
         ]),
