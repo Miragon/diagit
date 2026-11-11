@@ -15,6 +15,7 @@ describe('GitHub commit diff (content script)', () => {
 
     const host = $('diagit-diff')
     await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
 
     // A modified file opens on "Diff", which renders both models on diagram-js canvases.
     const shape = host.shadow$('.djs-element')

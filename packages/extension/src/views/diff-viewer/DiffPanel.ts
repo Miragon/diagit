@@ -24,6 +24,7 @@ type ModelView = 'plain' | 'diff'
 type LoadedModel = PromiseSettledResult<string | null>
 
 const NO_CHANGES: DiagramDiff = { added: [], removed: [], changed: [], moved: [] }
+const ONE_SCREEN_AROUND_THE_VIEWPORT = '100% 0px'
 
 export class DiffPanel implements PanelHandle, Zoomable {
   private readonly oldPane = new DiffPane('old')
@@ -58,6 +59,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private interactive = false
   private destroyed = false
   private resizeObserver: ResizeObserver | null = null
+  private viewportObserver: IntersectionObserver | null = null
   private detachFocusZoom: (() => void) | null = null
 
   private readonly notices: DiffNotices
@@ -78,7 +80,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.interactive = active
       this.applyInteractive()
     })
-    void this.load()
+    this.loadWhenNearViewport()
     return this
   }
 
@@ -99,6 +101,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.detachFocusZoom?.()
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
+    this.viewportObserver?.disconnect()
+    this.viewportObserver = null
     this.destroyViewers()
     this.root.remove()
   }
@@ -130,6 +134,19 @@ export class DiffPanel implements PanelHandle, Zoomable {
     for (const viewer of [this.oldPane.viewer, this.newPane.viewer, this.plainCanvas.viewer]) {
       viewer?.setInteractive(this.interactive)
     }
+  }
+
+  private loadWhenNearViewport(): void {
+    this.viewportObserver = new IntersectionObserver(
+      (entries) => {
+        if (!this.viewportObserver || !entries.some((entry) => entry.isIntersecting)) return
+        this.viewportObserver.disconnect()
+        this.viewportObserver = null
+        void this.load()
+      },
+      { rootMargin: ONE_SCREEN_AROUND_THE_VIEWPORT },
+    )
+    this.viewportObserver.observe(this.root)
   }
 
   private async load(): Promise<void> {

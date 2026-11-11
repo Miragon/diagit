@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DiffPanel } from '../../src/views/diff-viewer/DiffPanel'
 import { MARKER } from '../../src/views/diff-viewer/markers'
 import { FetchError } from '../../src/platform/messaging/HttpClient'
 import { FakeDiffer } from '../fakes/FakeDiffer'
+import { FakeIntersectionObserver } from '../fakes/FakeIntersectionObserver'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 const LOADING_LABEL = 'Loading diagram…'
@@ -25,7 +26,11 @@ const changeControls = (container: HTMLElement) =>
 
 let panel: DiffPanel | null = null
 
-function mount(differ: FakeDiffer, loadOld: () => Promise<string | null>, loadNew = loadOld) {
+function mountAwayFromViewport(
+  differ: FakeDiffer,
+  loadOld: () => Promise<string | null>,
+  loadNew = loadOld,
+) {
   const container = document.createElement('div')
   document.body.append(container)
   panel = new DiffPanel({
@@ -38,13 +43,83 @@ function mount(differ: FakeDiffer, loadOld: () => Promise<string | null>, loadNe
   return container
 }
 
+function mount(differ: FakeDiffer, loadOld: () => Promise<string | null>, loadNew = loadOld) {
+  const container = mountAwayFromViewport(differ, loadOld, loadNew)
+  FakeIntersectionObserver.bringNear()
+  return container
+}
+
+beforeEach(() => {
+  vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver)
+})
+
 afterEach(() => {
   panel?.destroy()
   panel = null
   document.body.innerHTML = ''
+  FakeIntersectionObserver.reset()
+  vi.unstubAllGlobals()
 })
 
 describe('DiffPanel', () => {
+  describe('loading on demand', () => {
+    it('downloads nothing until the panel comes near the viewport', async () => {
+      const loadOld = vi.fn(async () => '<old/>')
+      const loadNew = vi.fn(async () => '<new/>')
+
+      const container = mountAwayFromViewport(new FakeDiffer(), loadOld, loadNew)
+      await Promise.resolve()
+
+      expect(loadOld).not.toHaveBeenCalled()
+      expect(loadNew).not.toHaveBeenCalled()
+      expect(diffPanes(container)[0]!.textContent).toContain(LOADING_LABEL)
+    })
+
+    it('loads and renders once the panel comes within a screen of the viewport', async () => {
+      const differ = new FakeDiffer()
+      const container = mountAwayFromViewport(
+        differ,
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+
+      FakeIntersectionObserver.bringNear()
+
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
+      expect(diffPanes(container)[0]!.textContent).not.toContain(LOADING_LABEL)
+      expect(FakeIntersectionObserver.instances[0]!.options.rootMargin).toBe('100% 0px')
+    })
+
+    it('keeps waiting when the panel is still far from the viewport', async () => {
+      const loadNew = vi.fn(async () => '<new/>')
+      const container = mountAwayFromViewport(new FakeDiffer(), async () => '<old/>', loadNew)
+
+      FakeIntersectionObserver.instances[0]!.report(container, false)
+      await Promise.resolve()
+
+      expect(loadNew).not.toHaveBeenCalled()
+    })
+
+    it('ignores a late report once loading has started', async () => {
+      const loadNew = vi.fn(async () => '<new/>')
+      const container = mountAwayFromViewport(new FakeDiffer(), async () => '<old/>', loadNew)
+      const observer = FakeIntersectionObserver.instances[0]!
+
+      FakeIntersectionObserver.bringNear()
+      observer.report(container, true)
+
+      await vi.waitFor(() => expect(loadNew).toHaveBeenCalledTimes(1))
+    })
+
+    it('stops watching the viewport once destroyed', () => {
+      mountAwayFromViewport(new FakeDiffer(), async () => '<old/>')
+
+      panel!.destroy()
+
+      expect(FakeIntersectionObserver.instances[0]!.observed.size).toBe(0)
+    })
+  })
+
   it('shows a loading label while the models are still on their way', () => {
     const neverArrives = () => new Promise<string | null>(() => {})
 
