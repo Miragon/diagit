@@ -346,10 +346,6 @@ input:focus-visible {
   margin-top: 12px;
 }
 
-.btn.copied {
-  border-color: var(--cd-ui-success);
-}
-
 .page-footer {
   display: flex;
   flex-wrap: wrap;

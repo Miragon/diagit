@@ -5,7 +5,7 @@ import { errorMessage } from '../../platform/utils/errorMessage'
 export class StandaloneViewerPage {
   private readonly fileInput: HTMLInputElement
   private readonly openButton = h('button', {
-    class: 'btn btn-primary',
+    class: 'btn btn-primary btn-large',
     type: 'button',
     text: 'Open file…',
   })

@@ -133,10 +133,8 @@ export class GithubAccessSection {
     }
     const original = button.textContent
     button.textContent = 'Copied ✓'
-    button.classList.add('copied')
     window.setTimeout(() => {
       button.textContent = original
-      button.classList.remove('copied')
     }, COPIED_FEEDBACK_MS)
   }
 

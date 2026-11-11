@@ -24,10 +24,6 @@ body {
   z-index: var(--cd-shell-ebene-inseln);
 }
 
-.toolbar .btn {
-  height: var(--cd-shell-zeile);
-}
-
 .stage {
   position: absolute;
   inset: 0;
