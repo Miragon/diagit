@@ -3,7 +3,7 @@ import type { PanelHandle } from '../page/HostPage'
 import { h } from '../utils/dom'
 import { detectHostTheme } from '../utils/hostTheme'
 import { lucideIcon } from '../utils/lucideIcon'
-import { GITHUB_REPOSITORY_URL } from './storeListings'
+import { diagitRepository } from '../DiagitRepository'
 
 const MESSAGE = 'Thanks for using Diagit.'
 
@@ -43,7 +43,7 @@ export class StarPromptToast implements PanelHandle {
 
   private actions(): HTMLButtonElement[] {
     const { storeListingUrl } = this.options
-    const star = this.openButton('Star on GitHub', 'diagit-toast-primary', GITHUB_REPOSITORY_URL)
+    const star = this.openButton('Star on GitHub', 'diagit-toast-primary', diagitRepository.url)
     const rate = storeListingUrl
       ? [this.openButton('Rate Diagit', 'diagit-toast-secondary', storeListingUrl)]
       : []

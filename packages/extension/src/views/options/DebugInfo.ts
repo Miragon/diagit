@@ -1,4 +1,4 @@
-import { GITHUB_REPOSITORY_URL } from '../../platform/star-prompt/storeListings'
+import { diagitRepository } from '../../platform/DiagitRepository'
 
 export interface ExtensionSetup {
   selfHostedInstances: number
@@ -22,8 +22,7 @@ export class DebugInfo {
   }
 
   bugReportUrl(): string {
-    const query = new URLSearchParams({ template: 'fix.yml', env: this.environment() })
-    return `${GITHUB_REPOSITORY_URL}/issues/new?${query}`
+    return diagitRepository.bugReportUrl(this.environment())
   }
 
   text(setup: ExtensionSetup): string {

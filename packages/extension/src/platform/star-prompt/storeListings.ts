@@ -1,5 +1,3 @@
-export const GITHUB_REPOSITORY_URL = 'https://github.com/Miragon/diagit'
-
 export interface StoreListing {
   browser: 'chrome' | 'edge' | 'firefox'
   extensionId: string
