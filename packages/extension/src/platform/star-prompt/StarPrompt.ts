@@ -1,18 +1,20 @@
+import { Star } from 'lucide'
 import { browser } from 'wxt/browser'
 import type { HostPage, ShadowPanel } from '../page/HostPage'
 import { DIAGRAM_VIEWS_KEY, type DiagramViews } from '../settings/DiagramViewsLocalStorage'
 import { SettingsStore } from '../settings/SettingsStore'
-import { StarPromptToast } from './StarPromptToast'
+import { Toast, type ToastAction } from '../ui/Toast'
+import { diagitRepository } from '../DiagitRepository'
 import { STORE_LISTINGS } from './storeListings'
-import starPromptCss from './starPrompt.css?inline'
 
 export const STAR_PROMPT_TAG = 'diagit-star-prompt'
 export const PAGES_BEFORE_PROMPT = 5
 
 const DISMISSED_AT_KEY = 'reviewPromptDismissedAt'
+const MESSAGE = 'Thanks for using Diagit.'
 
 export class StarPrompt {
-  private toast: ShadowPanel<StarPromptToast> | null = null
+  private toast: ShadowPanel<Toast> | null = null
   private showing = false
 
   constructor(
@@ -46,17 +48,26 @@ export class StarPrompt {
   }
 
   private async show(): Promise<void> {
-    const toast = new StarPromptToast({
-      storeListingUrl: this.storeListingUrl(),
-      onDone: () => void this.dismiss(),
+    this.toast = await Toast.mountOn(this.page, STAR_PROMPT_TAG, {
+      tone: 'info',
+      icon: Star,
+      message: MESSAGE,
+      actions: this.actions(),
+      onClose: () => void this.dismiss(),
     })
-    this.toast = await this.page.mountPanel({
-      name: STAR_PROMPT_TAG,
-      anchor: this.page.document.body,
-      append: 'last',
-      css: starPromptCss,
-      render: (container) => toast.mount(container),
-    })
+  }
+
+  private actions(): ToastAction[] {
+    const star: ToastAction = {
+      label: 'Star on GitHub',
+      variant: 'primary',
+      url: diagitRepository.url,
+    }
+    const storeListingUrl = this.storeListingUrl()
+    const rate: ToastAction[] = storeListingUrl
+      ? [{ label: 'Rate Diagit', variant: 'secondary', url: storeListingUrl }]
+      : []
+    return [star, ...rate]
   }
 
   private storeListingUrl(): string | undefined {

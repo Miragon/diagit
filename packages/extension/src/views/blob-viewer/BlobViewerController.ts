@@ -1,8 +1,9 @@
 import type { BlobPage } from '../../git-hosts/BlobPage'
 import { HOST_TAG } from '../../platform/injectedElements'
-import type { NotationLookup } from '../../notations/Notation'
+import type { Notation, NotationLookup } from '../../notations/Notation'
 import { allNotations } from '../../notations/allNotations'
 import { ModelPanel } from './ModelPanel'
+import { PlacementNoticeSlot } from './PlacementNoticeSlot'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 
@@ -14,6 +15,7 @@ type MountOutcome = 'settled' | 'code-not-rendered-yet'
 
 export class BlobViewerController {
   private panel: ShadowPanel<ModelPanel> | null = null
+  private readonly placementNotice: PlacementNoticeSlot
   private mountedPath: string | null = null
   private mounting = false
   private restoreAnchor: (() => void) | null = null
@@ -24,7 +26,9 @@ export class BlobViewerController {
     private readonly blobPage: BlobPage,
     private readonly notations: NotationLookup = allNotations,
     private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
-  ) {}
+  ) {
+    this.placementNotice = new PlacementNoticeSlot(page)
+  }
 
   start(): void {
     this.page.onChange(RECHECK_DEBOUNCE_MS, () => {
@@ -47,6 +51,7 @@ export class BlobViewerController {
         const lastAttempt = attempts >= MOUNT_RETRIES
         void this.render().then((retried) => {
           if (retried === 'settled' || lastAttempt) this.stopRetry()
+          if (retried !== 'settled' && lastAttempt) this.showPlacementNotice()
         })
       }, RETRY_INTERVAL_MS)
     })
@@ -55,9 +60,7 @@ export class BlobViewerController {
   private async render(): Promise<MountOutcome> {
     if (this.mounting) return 'settled'
     const { location, document } = this.page
-    const notation = this.blobPage.isBlob(location)
-      ? this.notations.detect(location.pathname)
-      : null
+    const notation = this.currentNotation()
     if (!notation) {
       this.teardown()
       return 'settled'
@@ -97,6 +100,17 @@ export class BlobViewerController {
     return 'settled'
   }
 
+  private showPlacementNotice(): void {
+    const notation = this.currentNotation()
+    if (notation)
+      void this.placementNotice.show(this.page.location.pathname, notation.descriptor.label)
+  }
+
+  private currentNotation(): Notation | null {
+    const { location } = this.page
+    return this.blobPage.isBlob(location) ? this.notations.detect(location.pathname) : null
+  }
+
   private dropStickyHeaderGap(anchor: HTMLElement): void {
     const previousMarginTop = anchor.style.marginTop
     anchor.style.marginTop = '0'
@@ -124,6 +138,7 @@ export class BlobViewerController {
     this.panel?.remove()
     this.panel = null
     this.mountedPath = null
+    this.placementNotice.remove()
   }
 
   private stopRetry(): void {

@@ -42,6 +42,10 @@
   }
 }
 
+.diagit-toast[data-tone='danger'] {
+  border-left-color: var(--cd-ui-danger);
+}
+
 .diagit-toast-icon {
   flex: none;
   width: 16px;
@@ -49,8 +53,21 @@
   color: var(--cd-ui-info);
 }
 
+.diagit-toast[data-tone='danger'] .diagit-toast-icon {
+  color: var(--cd-ui-danger);
+}
+
 .diagit-toast-text {
+  min-width: 0;
+}
+
+.diagit-toast-title,
+.diagit-toast-message {
   margin: 0;
+}
+
+.diagit-toast-title {
+  font-weight: 600;
 }
 
 .diagit-toast-actions {

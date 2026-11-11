@@ -33,4 +33,16 @@ describe('HostPage.onChange', () => {
 
     expect(onChange).not.toHaveBeenCalled()
   })
+
+  it('drops a change that is still waiting when the content script is invalidated', async () => {
+    const onChange = vi.fn()
+    page.onChange(10, onChange)
+
+    document.body.append(document.createElement('div'))
+    await Promise.resolve()
+    context.invalidate()
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    expect(onChange).not.toHaveBeenCalled()
+  })
 })

@@ -54,18 +54,20 @@ export class HostPage {
     delayMs: number,
     onChange: () => void,
   ): () => void {
-    let scheduled = false
+    let pending: ReturnType<typeof setTimeout> | null = null
     const schedule = () => {
-      if (scheduled) return
-      scheduled = true
-      setTimeout(() => {
-        scheduled = false
+      if (pending) return
+      pending = setTimeout(() => {
+        pending = null
         onChange()
       }, delayMs)
     }
     const observer = new MutationObserver(schedule)
     observer.observe(target, init)
-    this.ctx.onInvalidated(() => observer.disconnect())
+    this.ctx.onInvalidated(() => {
+      observer.disconnect()
+      if (pending) clearTimeout(pending)
+    })
     return schedule
   }
 
