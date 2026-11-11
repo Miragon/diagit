@@ -1,7 +1,7 @@
 import type { VisibleFileHeader } from '../../git-hosts/FileHeaderLocator'
 import type { NotationLookup } from '../../notations/Notation'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
-import { reportIssueUrl } from '../../platform/utils/reportIssueUrl'
+import { diagitRepository } from '../../platform/DiagitRepository'
 import { DiffErrorNotice } from './DiffErrorNotice'
 
 const UNRECOGNIZED_HINT =
@@ -51,7 +51,7 @@ export class UnrecognizedFileNotices {
         title: `${label} diff could not be shown`,
         message: path,
         hint: UNRECOGNIZED_HINT,
-        reportUrl: reportIssueUrl(
+        reportUrl: diagitRepository.problemReportUrl(
           `${label} diff not shown, diff view not recognised`,
           `Diagit showed "${label} diff could not be shown" for a changed file whose diff it did not recognise.`,
         ),

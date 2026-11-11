@@ -13,4 +13,12 @@ describe('DiagitRepository', () => {
       'https://github.com/Miragon/diagit/issues/new?template=fix.yml&env=Chrome+142%2C+extension+0.3.1',
     )
   })
+
+  it('links the bug report form with a prefilled title and description', () => {
+    expect(
+      diagitRepository.problemReportUrl('BPMN diff not shown', 'Diagit showed a notice.'),
+    ).toBe(
+      'https://github.com/Miragon/diagit/issues/new?template=fix.yml&title=%5BFix%5D%3A+BPMN+diff+not+shown&description=Diagit+showed+a+notice.',
+    )
+  })
 })
