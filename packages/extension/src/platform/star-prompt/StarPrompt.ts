@@ -6,19 +6,18 @@ import { STORE_LISTING_BY_EXTENSION_ID } from './storeListings'
 import starPromptCss from './starPrompt.css?inline'
 
 export const STAR_PROMPT_TAG = 'diagit-star-prompt'
-export const RENDERS_BEFORE_PROMPT = 5
+export const PAGES_BEFORE_PROMPT = 5
 
-const STATE_KEY = 'reviewPrompt'
+const PAGES_WITH_DIAGRAM_KEY = 'reviewPromptPagesWithDiagram'
+const DISMISSED_AT_KEY = 'reviewPromptDismissedAt'
 
-interface StarPromptState {
-  renderCount: number
-  dismissed: boolean
+interface PagesWithDiagram {
+  count: number
 }
-
-const NEVER_PROMPTED: StarPromptState = { renderCount: 0, dismissed: false }
 
 export class StarPrompt {
   private pending: Promise<void> = Promise.resolve()
+  private lastCountedPage: string | null = null
   private toast: ShadowPanel<StarPromptToast> | null = null
 
   constructor(
@@ -29,18 +28,29 @@ export class StarPrompt {
 
   recordRender(): Promise<void> {
     this.pending = this.pending
-      .then(() => this.countRender())
+      .then(() => this.countPage())
       .catch((err) => console.error('[diagit] could not update the star prompt', err))
     return this.pending
   }
 
-  private async countRender(): Promise<void> {
-    if (this.toast) return
-    const state = await this.readState()
-    if (state.dismissed) return
-    const renderCount = state.renderCount + 1
-    await this.store.writeRecord(STATE_KEY, { ...state, renderCount })
-    if (renderCount >= RENDERS_BEFORE_PROMPT) await this.show()
+  private async countPage(): Promise<void> {
+    const currentPage = this.page.location.pathname
+    if (this.lastCountedPage === currentPage) return
+    this.lastCountedPage = currentPage
+    if (await this.wasDismissed()) return
+    const count = await this.incrementPagesWithDiagram()
+    if (count >= PAGES_BEFORE_PROMPT && !this.isShowing()) await this.show()
+  }
+
+  private async incrementPagesWithDiagram(): Promise<number> {
+    const stored = await this.store.readRecord<PagesWithDiagram>(PAGES_WITH_DIAGRAM_KEY)
+    const count = (stored?.count ?? 0) + 1
+    await this.store.writeRecord<PagesWithDiagram>(PAGES_WITH_DIAGRAM_KEY, { count })
+    return count
+  }
+
+  private isShowing(): boolean {
+    return !!this.page.document.querySelector(STAR_PROMPT_TAG)
   }
 
   private async show(): Promise<void> {
@@ -51,20 +61,19 @@ export class StarPrompt {
     this.toast = await this.page.mountPanel({
       name: STAR_PROMPT_TAG,
       anchor: this.page.document.body,
-      append: 'first',
+      append: 'last',
       css: starPromptCss,
       render: (container) => toast.mount(container),
     })
-    this.page.onInvalidated(() => this.toast?.remove())
   }
 
   private async dismiss(): Promise<void> {
     this.toast?.remove()
-    const state = await this.readState()
-    await this.store.writeRecord(STATE_KEY, { ...state, dismissed: true })
+    this.toast = null
+    await this.store.writeString(DISMISSED_AT_KEY, new Date().toISOString())
   }
 
-  private async readState(): Promise<StarPromptState> {
-    return (await this.store.readRecord<StarPromptState>(STATE_KEY)) ?? NEVER_PROMPTED
+  private async wasDismissed(): Promise<boolean> {
+    return !!(await this.store.readString(DISMISSED_AT_KEY))
   }
 }

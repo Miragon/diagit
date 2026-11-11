@@ -19,7 +19,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-size: 13px;
   line-height: 1.5;
-  animation: diagit-toast-in var(--cd-motion-base) var(--cd-ease);
+  animation: diagit-toast-in var(--cd-motion-base) var(--cd-ease-out);
 }
 
 @keyframes diagit-toast-in {
@@ -32,6 +32,13 @@
 @media (prefers-reduced-motion: reduce) {
   .diagit-toast {
     animation: none;
+  }
+
+  .diagit-toast-primary,
+  .diagit-toast-primary:hover,
+  .diagit-toast-primary:active {
+    transition: none;
+    transform: none;
   }
 }
 
@@ -92,17 +99,22 @@
   color: var(--cd-ui-text);
 }
 
-.diagit-toast-ghost:hover,
-.diagit-toast-close:hover {
+.diagit-toast-ghost:hover {
   background: var(--cd-ui-hover);
 }
 
-.diagit-toast-close {
+.diagit-toast-close:hover {
+  background: var(--cd-ui-hover);
+  color: var(--cd-ui-interaktion);
+}
+
+.diagit-toast .diagit-toast-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: var(--cd-shell-ziel);
   padding: 0;
+  border-radius: var(--cd-radius-sm);
   background: transparent;
   color: var(--cd-ui-text);
 }

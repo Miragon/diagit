@@ -5,6 +5,7 @@ import { detectHostTheme } from '../utils/hostTheme'
 import { GITHUB_REPOSITORY_URL } from './storeListings'
 
 const ICON_STROKE_WIDTH = 2.5
+const MESSAGE = 'A star on GitHub helps other people find Diagit.'
 
 export interface StarPromptToastOptions {
   storeListingUrl: string | undefined
@@ -12,15 +13,17 @@ export interface StarPromptToastOptions {
 }
 
 export class StarPromptToast implements PanelHandle {
+  private readonly announcement = h('p', {
+    class: 'diagit-toast-text',
+    role: 'status',
+    'aria-live': 'polite',
+  })
   private readonly root: HTMLElement
 
   constructor(private readonly options: StarPromptToastOptions) {
-    this.root = h('div', { class: 'diagit-toast', role: 'status', 'aria-live': 'polite' }, [
+    this.root = h('div', { class: 'diagit-toast' }, [
       this.icon(Star, 'diagit-toast-icon'),
-      h('p', {
-        class: 'diagit-toast-text',
-        text: 'Enjoying Diagit? A star on GitHub helps other people find it.',
-      }),
+      this.announcement,
       h('div', { class: 'diagit-toast-actions' }, this.actions()),
     ])
   }
@@ -28,6 +31,9 @@ export class StarPromptToast implements PanelHandle {
   mount(container: HTMLElement): this {
     container.append(this.root)
     this.root.dataset.cdTheme = detectHostTheme(this.root)
+    setTimeout(() => {
+      this.announcement.textContent = MESSAGE
+    })
     return this
   }
 
