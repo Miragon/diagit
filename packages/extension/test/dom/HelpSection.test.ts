@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ExtensionEnvironment } from '../../src/platform/ExtensionEnvironment'
 import { DebugInfo } from '../../src/views/options/DebugInfo'
 import { HelpSection } from '../../src/views/options/HelpSection'
 
@@ -13,7 +14,9 @@ afterEach(() => {
 
 function mountedSection(): HTMLElement {
   const setup = () => Promise.resolve({ selfHostedInstances: 1, githubConnected: false })
-  new HelpSection(new DebugInfo('0.3.1', CHROME_UA), setup).mount(document.body)
+  new HelpSection(new DebugInfo(new ExtensionEnvironment('0.3.1', CHROME_UA)), setup).mount(
+    document.body,
+  )
   return document.body
 }
 

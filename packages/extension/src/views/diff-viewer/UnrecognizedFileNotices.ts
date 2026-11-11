@@ -1,7 +1,7 @@
 import type { VisibleFileHeader } from '../../git-hosts/FileHeaderLocator'
 import type { NotationLookup } from '../../notations/Notation'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
-import { diagitRepository } from '../../platform/DiagitRepository'
+import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { DIFF_ERROR_TAG } from '../../platform/injectedElements'
 import { ErrorNotice } from '../../platform/ui/ErrorNotice'
 
@@ -15,6 +15,7 @@ export class UnrecognizedFileNotices {
   constructor(
     private readonly page: HostPage,
     private readonly notations: NotationLookup,
+    private readonly reportContext: ReportContext,
   ) {}
 
   showOnly(files: VisibleFileHeader[]): void {
@@ -53,6 +54,7 @@ export class UnrecognizedFileNotices {
         reportUrl: diagitRepository.problemReportUrl(
           `${label} diff not shown, diff view not recognised`,
           `Diagit showed "${label} diff could not be shown" for a changed file whose diff it did not recognise.`,
+          this.reportContext,
         ),
       },
     )

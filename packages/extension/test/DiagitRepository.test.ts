@@ -14,11 +14,18 @@ describe('DiagitRepository', () => {
     )
   })
 
-  it('links the bug report form with a prefilled title and description', () => {
-    expect(
-      diagitRepository.problemReportUrl('BPMN diff not shown', 'Diagit showed a notice.'),
-    ).toBe(
-      'https://github.com/Miragon/diagit/issues/new?template=fix.yml&title=%5BFix%5D%3A+BPMN+diff+not+shown&description=Diagit+showed+a+notice.',
+  it('links the bug report form with title, description, place and environment filled in', () => {
+    const url = diagitRepository.problemReportUrl(
+      'BPMN diff not shown',
+      'Diagit showed a notice.',
+      {
+        where: 'github.com, pull request',
+        environment: 'Chrome 142, extension 0.3.1',
+      },
+    )
+
+    expect(url).toBe(
+      'https://github.com/Miragon/diagit/issues/new?template=fix.yml&title=%5BFix%5D%3A+BPMN+diff+not+shown&description=Diagit+showed+a+notice.&where=github.com%2C+pull+request&env=Chrome+142%2C+extension+0.3.1',
     )
   })
 })

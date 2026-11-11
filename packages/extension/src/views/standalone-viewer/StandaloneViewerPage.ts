@@ -1,4 +1,5 @@
 import type { Notation, DiagramViewer, NotationLookup } from '../../notations/Notation'
+import type { ReportContext } from '../../platform/DiagitRepository'
 import { h } from '../../platform/utils/dom'
 import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 
@@ -18,6 +19,7 @@ export class StandaloneViewerPage {
   constructor(
     private readonly notations: NotationLookup,
     private readonly fileExtensions: string[],
+    private readonly reportContext: ReportContext,
   ) {
     const extensionList = fileExtensions.join(' or ')
     const lastExtensions = fileExtensions.map((extension) =>
@@ -83,7 +85,12 @@ export class StandaloneViewerPage {
       this.dropzone.classList.add('hidden')
     } catch (err) {
       this.showError(
-        ErrorNotice.unreadableModel(notation.descriptor.label, 'in the standalone viewer', err),
+        ErrorNotice.unreadableModel(
+          notation.descriptor.label,
+          'in the standalone viewer',
+          err,
+          this.reportContext,
+        ),
       )
     }
   }

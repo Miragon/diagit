@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ModelPanel } from '../../src/views/blob-viewer/ModelPanel'
 import { FakeNotation } from '../fakes/FakeNotation'
+import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 class UnreadableNotation extends FakeNotation {
   override async createViewer(): Promise<never> {
@@ -31,6 +32,7 @@ describe('ModelPanel', () => {
         loadXml: async () => {
           throw new Error('HTTP 500 for https://github.com/o/r/raw/main/order.bpmn')
         },
+        reportContext: FAKE_REPORT_CONTEXT,
       }),
     )
 
@@ -42,11 +44,18 @@ describe('ModelPanel', () => {
     )
     expect(container.querySelector('.diagit-placeholder')).toBeNull()
     expect(container.querySelector('.diagit-error')!.hasAttribute('role')).toBe(false)
+    const report = container.querySelector<HTMLAnchorElement>('.diagit-error-report')!
+    expect(new URL(report.href).searchParams.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
+    expect(decodeURIComponent(report.href)).not.toContain('order.bpmn')
   })
 
   it('shows the error notice with a report link when the model cannot be rendered', async () => {
     const container = mountPanel(
-      new ModelPanel({ notation: new UnreadableNotation(), loadXml: async () => 'not a model' }),
+      new ModelPanel({
+        notation: new UnreadableNotation(),
+        loadXml: async () => 'not a model',
+        reportContext: FAKE_REPORT_CONTEXT,
+      }),
     )
 
     await vi.waitFor(() => expect(container.querySelector('.diagit-error')).not.toBeNull())
@@ -56,5 +65,7 @@ describe('ModelPanel', () => {
     const report = container.querySelector<HTMLAnchorElement>('.diagit-error-report')!
     expect(report.textContent).toBe('Report this problem')
     expect(report.href).toContain('https://github.com/Miragon/diagit/issues/new')
+    expect(new URL(report.href).searchParams.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)
+    expect(decodeURIComponent(report.href)).not.toContain('unparsable content')
   })
 })

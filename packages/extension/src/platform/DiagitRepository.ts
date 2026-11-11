@@ -1,3 +1,8 @@
+export interface ReportContext {
+  where: string
+  environment: string
+}
+
 class DiagitRepository {
   readonly url = 'https://github.com/Miragon/diagit'
 
@@ -9,8 +14,13 @@ class DiagitRepository {
     return this.newIssueUrl('feat.yml')
   }
 
-  problemReportUrl(title: string, description: string): string {
-    return this.newIssueUrl('fix.yml', { title: `[Fix]: ${title}`, description })
+  problemReportUrl(title: string, description: string, context: ReportContext): string {
+    return this.newIssueUrl('fix.yml', {
+      title: `[Fix]: ${title}`,
+      description,
+      where: context.where,
+      env: context.environment,
+    })
   }
 
   private newIssueUrl(template: string, fields: Record<string, string> = {}): string {

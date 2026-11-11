@@ -6,6 +6,7 @@ import { HostPage } from '../../src/platform/page/HostPage'
 import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { FakeHttpClient } from '../fakes/FakeHttpClient'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
+import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 const context = new FakeContentScriptContext()
 
@@ -30,6 +31,7 @@ const blobPage = new BlobPage(
 afterEach(() => {
   context.invalidate()
   document.body.innerHTML = ''
+  vi.restoreAllMocks()
 })
 
 describe('BlobViewerController', () => {
@@ -39,6 +41,7 @@ describe('BlobViewerController', () => {
     new BlobViewerController(
       pageAt('/o/r/blob/main/order.bpmn'),
       blobPage,
+      FAKE_REPORT_CONTEXT,
       new FakeNotationLookup(),
     ).start()
 
@@ -52,6 +55,7 @@ describe('BlobViewerController', () => {
     new BlobViewerController(
       pageAt('/o/r/blob/main/order.bpmn'),
       blobPage,
+      FAKE_REPORT_CONTEXT,
       new FakeNotationLookup(),
     ).start()
 
@@ -71,6 +75,7 @@ describe('BlobViewerController', () => {
     new BlobViewerController(
       pageAt('/o/r/blob/main/README.md'),
       blobPage,
+      FAKE_REPORT_CONTEXT,
       new FakeNotationLookup(),
     ).start()
     await new Promise((resolve) => setTimeout(resolve, 50))
@@ -82,7 +87,12 @@ describe('BlobViewerController', () => {
     const ALL_MOUNT_RETRIES_MS = 7_000
 
     function startOn(pathname: string): void {
-      new BlobViewerController(pageAt(pathname), blobPage, new FakeNotationLookup()).start()
+      new BlobViewerController(
+        pageAt(pathname),
+        blobPage,
+        FAKE_REPORT_CONTEXT,
+        new FakeNotationLookup(),
+      ).start()
     }
 
     function noticeText(): string {
@@ -105,6 +115,14 @@ describe('BlobViewerController', () => {
 
       expect(noticeText()).toContain('view could not be added')
       expect(noticeText()).toContain('Report this problem')
+      const openTab = vi.spyOn(window, 'open').mockReturnValue(null)
+      const reportButton = [
+        ...document.querySelector(PLACEMENT_NOTICE_TAG)!.shadowRoot!.querySelectorAll('button'),
+      ].find((button) => button.textContent === 'Report this problem')!
+      reportButton.click()
+      const fields = new URL(String(openTab.mock.calls[0]![0])).searchParams
+      expect(fields.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
+      expect(fields.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)
     })
 
     it('stays quiet on a file that is not a diagram', async () => {

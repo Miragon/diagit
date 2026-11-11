@@ -12,6 +12,7 @@ import { DiffPanel } from './DiffPanel'
 import { ErrorNotice } from '../../platform/ui/ErrorNotice'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
+import type { ReportContext } from '../../platform/DiagitRepository'
 import diffCss from './diff.css?inline'
 
 const RERUN_DEBOUNCE_MS = 300
@@ -26,10 +27,11 @@ export class DiffController {
   constructor(
     private readonly page: HostPage,
     private readonly source: DiffSource,
+    reportContext: ReportContext,
     private readonly notations: NotationLookup = diffableNotations,
     private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
   ) {
-    this.unrecognizedNotices = new UnrecognizedFileNotices(page, notations)
+    this.unrecognizedNotices = new UnrecognizedFileNotices(page, notations, reportContext)
   }
 
   start(): void {

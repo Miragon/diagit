@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { StandaloneViewerPage } from '../../src/views/standalone-viewer/StandaloneViewerPage'
 import { FakeNotation } from '../fakes/FakeNotation'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
+import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 class UnreadableNotation extends FakeNotation {
   override async createViewer(): Promise<never> {
@@ -12,7 +13,11 @@ class UnreadableNotation extends FakeNotation {
 function mountPage(notation: FakeNotation): HTMLElement {
   const app = document.createElement('div')
   document.body.append(app)
-  new StandaloneViewerPage(new FakeNotationLookup([notation]), ['.bpmn']).mount(app)
+  new StandaloneViewerPage(
+    new FakeNotationLookup([notation]),
+    ['.bpmn'],
+    FAKE_REPORT_CONTEXT,
+  ).mount(app)
   return app
 }
 
@@ -41,6 +46,8 @@ describe('StandaloneViewerPage', () => {
     expect(textOf(app, '.diagit-error-hint')).toContain('as a BPMN model')
     expect(textOf(app, '.diagit-error-detail')).toBe('unparsable content')
     expect(textOf(app, '.diagit-error-report')).toBe('Report this problem')
+    const report = app.querySelector<HTMLAnchorElement>('.diagit-error-report')!
+    expect(new URL(report.href).searchParams.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
     expect(app.querySelector('.diagit-error')!.getAttribute('role')).toBe('alert')
   })
 

@@ -6,6 +6,7 @@ import { ModelPanel } from './ModelPanel'
 import { PlacementNoticeSlot } from './PlacementNoticeSlot'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
+import type { ReportContext } from '../../platform/DiagitRepository'
 
 const MOUNT_RETRIES = 12
 const RETRY_INTERVAL_MS = 500
@@ -24,10 +25,11 @@ export class BlobViewerController {
   constructor(
     private readonly page: HostPage,
     private readonly blobPage: BlobPage,
+    private readonly reportContext: ReportContext,
     private readonly notations: NotationLookup = allNotations,
     private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
   ) {
-    this.placementNotice = new PlacementNoticeSlot(page)
+    this.placementNotice = new PlacementNoticeSlot(page, reportContext)
   }
 
   start(): void {
@@ -86,6 +88,7 @@ export class BlobViewerController {
           new ModelPanel({
             notation,
             loadXml,
+            reportContext: this.reportContext,
             onRendered: () => void this.diagramViews.save(path),
           }).mount(container),
       })
