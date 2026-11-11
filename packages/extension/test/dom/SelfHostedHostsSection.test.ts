@@ -33,7 +33,7 @@ describe('SelfHostedHostsSection', () => {
       { origin: 'https://git.example.org' },
     ])
 
-    expect(cellTexts(table, 'thead tr')).toEqual([['Instance', 'Type', 'Actions']])
+    expect(cellTexts(table, 'thead tr')).toEqual([['Instance', 'Type', '2 instances']])
     expect(cellTexts(table, 'tbody tr')).toEqual([
       ['https://gitlab.example.com', 'GitLab', 'Remove'],
       ['https://git.example.org', 'Self-hosted', 'Remove'],
@@ -43,6 +43,19 @@ describe('SelfHostedHostsSection', () => {
   it('shows the empty state inside the table', async () => {
     const table = await mountedWith([])
 
+    expect(cellTexts(table, 'thead tr')).toEqual([['Instance', 'Type', '0 instances']])
     expect(cellTexts(table, 'tbody tr')).toEqual([['No self-hosted instances added yet.']])
+  })
+
+  it('places the add form in the footer row on the same columns', async () => {
+    const table = await mountedWith([{ origin: 'https://gitlab.example.com', type: 'gitlab' }])
+    const footerCells = [...table.querySelectorAll('tfoot td')]
+
+    expect(table.querySelector('thead th:last-child')?.textContent).toBe('1 instance')
+    expect(footerCells.map((cell) => cell.firstElementChild?.tagName)).toEqual([
+      'INPUT',
+      'SELECT',
+      'BUTTON',
+    ])
   })
 })

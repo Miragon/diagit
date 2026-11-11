@@ -1,9 +1,11 @@
+import { Server } from 'lucide'
 import { browser } from 'wxt/browser'
 import type { GitHost } from '../../git-hosts/GitHost'
 import type { HostAccess } from '../../git-hosts/self-hosted/HostAccess'
 import type { SelfHostedHost } from '../../git-hosts/self-hosted/SelfHostedHostStore'
 import { h } from '../../platform/utils/dom'
 import { errorMessage } from '../../platform/utils/errorMessage'
+import { lucideIcon } from '../../platform/utils/lucideIcon'
 import { normalizeOrigin, originToPattern } from '../../platform/utils/origin'
 
 const INTRO =
@@ -19,16 +21,21 @@ type StatusKind = 'error' | 'ok'
 export class SelfHostedHostsSection {
   private readonly originInput = h('input', {
     type: 'text',
-    class: 'input origin',
+    class: 'input',
     placeholder: 'https://gitlab.example.com',
+    'aria-label': 'Instance URL',
   }) as HTMLInputElement
-  private readonly typeSelect = h('select', { class: 'input' }) as HTMLSelectElement
+  private readonly typeSelect = h('select', {
+    class: 'input',
+    'aria-label': 'Type',
+  }) as HTMLSelectElement
   private readonly addButton = h('button', {
-    class: 'btn primary',
+    class: 'btn primary add-instance',
     type: 'button',
     text: 'Add instance',
   })
   private readonly status = h('p', { class: 'status' })
+  private readonly count = h('th', { scope: 'col', class: 'count' })
   private readonly rows = h('tbody')
 
   constructor(
@@ -44,13 +51,7 @@ export class SelfHostedHostsSection {
       h('section', { class: 'section' }, [
         h('h2', { text: 'Self-hosted instances' }),
         h('p', { class: 'intro', text: INTRO }),
-        h('div', { class: 'card instances-card' }, [
-          h('div', { class: 'add-instance' }, [
-            h('div', { class: 'row' }, [this.originInput, this.typeSelect, this.addButton]),
-            this.status,
-          ]),
-          this.instanceTable(),
-        ]),
+        h('div', { class: 'card instances-card' }, [this.instanceTable()]),
       ]),
     )
     this.addButton.addEventListener('click', () => void this.add())
@@ -88,10 +89,14 @@ export class SelfHostedHostsSection {
 
   private async refresh(): Promise<void> {
     const hosts = await this.access.list()
+    this.count.textContent = hosts.length === 1 ? '1 instance' : `${hosts.length} instances`
     if (!hosts.length) {
       this.rows.replaceChildren(
         h('tr', {}, [
-          h('td', { class: 'empty', colspan: '3', text: 'No self-hosted instances added yet.' }),
+          h('td', { class: 'empty', colspan: '3' }, [
+            lucideIcon(Server),
+            'No self-hosted instances added yet.',
+          ]),
         ]),
       )
       return
@@ -105,10 +110,17 @@ export class SelfHostedHostsSection {
         h('tr', {}, [
           h('th', { scope: 'col', text: 'Instance' }),
           h('th', { scope: 'col', text: 'Type' }),
-          h('th', { scope: 'col' }, [h('span', { class: 'visually-hidden', text: 'Actions' })]),
+          this.count,
         ]),
       ]),
       this.rows,
+      h('tfoot', {}, [
+        h('tr', {}, [
+          h('td', {}, [this.originInput, this.status]),
+          h('td', {}, [this.typeSelect]),
+          h('td', {}, [this.addButton]),
+        ]),
+      ]),
     ])
   }
 
@@ -121,16 +133,15 @@ export class SelfHostedHostsSection {
     })
     remove.addEventListener('click', () => void this.remove(host))
     return h('tr', {}, [
-      h('td', { class: 'origin-cell', text: host.origin }),
-      h('td', {}, [
-        h('span', { class: 'tag', text: this.hosts.hostById(host.type)?.label ?? 'Self-hosted' }),
-      ]),
-      h('td', { class: 'action-cell' }, [remove]),
+      h('td', { text: host.origin }),
+      h('td', { text: this.hosts.hostById(host.type)?.label ?? 'Self-hosted' }),
+      h('td', {}, [remove]),
     ])
   }
 
   private setStatus(text: string, kind: StatusKind): void {
     this.status.textContent = text
     this.status.className = `status ${kind}`
+    this.originInput.setAttribute('aria-invalid', String(kind === 'error'))
   }
 }
