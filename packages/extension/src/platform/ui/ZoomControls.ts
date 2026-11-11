@@ -1,5 +1,6 @@
-import { createElement, Maximize, Minus, Plus, type IconNode } from 'lucide'
+import { Maximize, Minus, Plus, type IconNode } from 'lucide'
 import { h } from '../utils/dom'
+import { lucideIcon } from '../utils/lucideIcon'
 
 export interface Zoomable {
   zoomBy(factor: number): void
@@ -7,7 +8,6 @@ export interface Zoomable {
 }
 
 const ZOOM_STEP = 1.2
-const ICON_STROKE_WIDTH = 2.5
 
 export class ZoomControls {
   readonly element: HTMLElement
@@ -26,11 +26,10 @@ export class ZoomControls {
   }
 
   private button(label: string, icon: IconNode, onClick: () => void): HTMLButtonElement {
-    const svg = createElement(icon, { 'stroke-width': ICON_STROKE_WIDTH, 'aria-hidden': 'true' })
     return h(
       'button',
       { class: 'git-diagram-btn', type: 'button', title: label, 'aria-label': label, onClick },
-      [svg],
+      [lucideIcon(icon)],
     )
   }
 }
