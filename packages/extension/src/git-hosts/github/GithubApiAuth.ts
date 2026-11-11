@@ -1,19 +1,38 @@
 import { FetchError } from '../../platform/messaging/HttpClient'
+import type { ErrorNoticeAction } from '../../platform/ui/ErrorNotice'
+import type { ErrorHelp } from '../DiffSource'
 import type { AuthPolicy } from '../GitHost'
+import { GITHUB_APP_INSTALL_URL } from './GithubDeviceFlow'
 import type { GithubRoutes } from './GithubRoutes'
 import type { GithubTokenRefresher } from './GithubTokenRefresher'
+import type { GithubTokenStore } from './GithubTokenStore'
 
 const GITHUB_API_HOST = 'api.github.com'
 const BEARER_PREFIX = 'Bearer '
 
-const CONNECT_APP_HINT =
-  ' Connect the GitHub App in the extension options and install it on this repository (authorise it for the organisation if it uses SSO).'
-const MAYBE_EXPIRED_HINT = ' If you connected GitHub before, the connection may have expired.'
-const RECONNECT_APP_HINT = ' Reconnect the GitHub App in the extension options.'
+const EXPIRED_CONNECTION_HINT = 'Your GitHub connection looks expired or revoked.'
+const FORBIDDEN_HINT =
+  'GitHub returned 403: the anonymous rate limit is exhausted, or the app is not authorised for this organisation (SSO).'
+const UNREACHABLE_REPOSITORY_HINT =
+  'This looks like a private repository the page login cannot reach through the API.'
+const PRIVATE_REPOSITORY_HINT =
+  'This looks like a private repository. Diagit can read it once you connect GitHub. If you connected GitHub before, the connection may have expired.'
+const APP_NOT_INSTALLED_HINT = 'The Diagit GitHub App is not installed on this repository.'
+const APP_FORBIDDEN_HINT =
+  'GitHub returned 403: the Diagit GitHub App is not installed on this repository or not authorised for its organisation (SSO).'
+const METADATA_HINT = 'Could not load the diff metadata.'
+const API_METADATA_HINT = 'Could not load the diff metadata from api.github.com.'
+
+const CONNECT_GITHUB: ErrorNoticeAction = { label: 'Connect GitHub', opensOptions: true }
+const INSTALL_APP: ErrorNoticeAction = {
+  label: 'Install on this repository',
+  url: GITHUB_APP_INSTALL_URL,
+}
 
 export class GithubApiAuth implements AuthPolicy {
   constructor(
     private readonly tokens: GithubTokenRefresher,
+    private readonly store: GithubTokenStore,
     private readonly routes: GithubRoutes,
   ) {}
 
@@ -43,19 +62,36 @@ export class GithubApiAuth implements AuthPolicy {
     return token ? { Authorization: `${BEARER_PREFIX}${token}` } : undefined
   }
 
-  errorHint(location: Location, err: unknown): string {
+  async errorHelp(location: Location, err: unknown): Promise<ErrorHelp> {
     const status = err instanceof FetchError ? err.status : undefined
-    const tokenCanHelp = this.targets(this.routes.apiBase(location))
-    const connectApp = tokenCanHelp ? CONNECT_APP_HINT : ''
+    if (!this.targets(this.routes.apiBase(location))) return { hint: this.enterpriseHint(status) }
+    const connected = await this.store.token().then(Boolean, () => false)
     switch (status) {
       case 401:
-        return `Your GitHub connection looks expired or revoked.${tokenCanHelp ? RECONNECT_APP_HINT : ''}`
+        return { hint: EXPIRED_CONNECTION_HINT, action: CONNECT_GITHUB }
       case 403:
-        return `GitHub returned 403: the anonymous rate limit is exhausted, or the app is not authorised for this organisation (SSO).${connectApp}`
+        return connected
+          ? { hint: APP_FORBIDDEN_HINT, action: INSTALL_APP }
+          : { hint: FORBIDDEN_HINT, action: CONNECT_GITHUB }
       case 404:
-        return `This looks like a private repository the page login cannot reach from api.github.com.${connectApp}${tokenCanHelp ? MAYBE_EXPIRED_HINT : ''}`
+        return connected
+          ? { hint: APP_NOT_INSTALLED_HINT, action: INSTALL_APP }
+          : { hint: PRIVATE_REPOSITORY_HINT, action: CONNECT_GITHUB }
       default:
-        return `Could not load the diff metadata${tokenCanHelp ? ' from api.github.com' : ''}.${connectApp}`
+        return { hint: API_METADATA_HINT, action: connected ? undefined : CONNECT_GITHUB }
+    }
+  }
+
+  private enterpriseHint(status: number | undefined): string {
+    switch (status) {
+      case 401:
+        return EXPIRED_CONNECTION_HINT
+      case 403:
+        return FORBIDDEN_HINT
+      case 404:
+        return UNREACHABLE_REPOSITORY_HINT
+      default:
+        return METADATA_HINT
     }
   }
 }

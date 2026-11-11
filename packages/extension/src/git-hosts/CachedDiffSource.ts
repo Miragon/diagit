@@ -34,7 +34,8 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
     try {
       data = await this.load(location, page)
     } catch (err) {
-      throw new DiffDataError(errorMessage(err), this.page.errorHint(location, err), files)
+      const help = await this.page.errorHelp(location, err)
+      throw new DiffDataError(errorMessage(err), help, files)
     }
     return files.map((file) => ({ ...file, ...this.page.loaders(location, file, data) }))
   }

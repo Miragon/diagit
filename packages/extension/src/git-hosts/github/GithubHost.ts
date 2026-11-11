@@ -32,6 +32,7 @@ export class GithubHost implements GitHost {
     const fileHeaders = new FileHeaderLocator(githubSelectors.diff.regionsThatOnlyMentionFiles)
     this.authPolicy = new GithubApiAuth(
       new GithubTokenRefresher(tokens, new GithubDeviceFlow()),
+      tokens,
       this.routes,
     )
     this.blobPage = new BlobPage(

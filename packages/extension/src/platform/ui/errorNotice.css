@@ -20,6 +20,10 @@
   margin-top: 2px;
 }
 
+.diagit-error-actions {
+  margin-top: 6px;
+}
+
 .diagit-error-report {
   display: inline-block;
   margin-top: 6px;

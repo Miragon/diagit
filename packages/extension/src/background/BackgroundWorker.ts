@@ -13,6 +13,7 @@ import { ViewScriptInjector } from './ViewScriptInjector'
 
 const ENABLE_ON_DOMAIN_TITLE = 'Enable Diagit on this domain'
 const KEEP_CHANNEL_OPEN_FOR_ASYNC_RESPONSE = true
+const HANDLED_REQUESTS = new Set<unknown>(['fetchText', 'injectViewScript', 'openOptions'])
 
 interface Tab {
   id?: number
@@ -59,7 +60,7 @@ export class BackgroundWorker {
     sender: MessageSender,
     sendResponse: (response: unknown) => void,
   ): boolean {
-    if (message?.type !== 'fetchText' && message?.type !== 'injectViewScript') return false
+    if (!HANDLED_REQUESTS.has(message?.type)) return false
     const page = this.senders.pageOf(sender)
     const response = page ? this.serve(message, page) : this.refuse(message)
     response.then(sendResponse)
@@ -70,8 +71,14 @@ export class BackgroundWorker {
     message: BackgroundRequest,
     page: SenderPage,
   ): Promise<FetchTextResponse | boolean> {
-    if (message.type === 'fetchText') return this.fetchProxy.fetchText(message.url, page.origin)
-    return this.injector.inject(page.tabId, message.script)
+    switch (message.type) {
+      case 'fetchText':
+        return this.fetchProxy.fetchText(message.url, page.origin)
+      case 'injectViewScript':
+        return this.injector.inject(page.tabId, message.script)
+      case 'openOptions':
+        return this.openOptionsPage().then(() => true)
+    }
   }
 
   private async refuse(message: BackgroundRequest): Promise<FetchTextResponse | boolean> {

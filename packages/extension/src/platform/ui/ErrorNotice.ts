@@ -1,14 +1,21 @@
 import type { HostPage, PanelHandle, ShadowPanel, ShadowPanelOptions } from '../page/HostPage'
 import { diagitRepository } from '../DiagitRepository'
+import { BackgroundClient } from '../messaging/BackgroundClient'
 import { h } from '../utils/dom'
 import { errorMessage } from '../utils/errorMessage'
 import { externalLink } from '../utils/externalLink'
 import { detectHostTheme } from '../utils/hostTheme'
 
+const ACTION_BUTTON_CLASS = 'btn btn-small btn-secondary'
+
+export type ErrorNoticeAction =
+  { label: string; url: string } | { label: string; opensOptions: true }
+
 export interface ErrorNoticeDetails {
   title: string
   message: string
   hint: string
+  action?: ErrorNoticeAction
   reportUrl?: string
 }
 
@@ -52,6 +59,9 @@ export class ErrorNotice implements PanelHandle {
     this.element = h('div', { class: 'diagit-error' }, [
       h('div', { class: 'diagit-error-title', text: details.title }),
       h('div', { class: 'diagit-error-hint', text: details.hint }),
+      ...(details.action
+        ? [h('div', { class: 'diagit-error-actions' }, [this.actionControl(details.action)])]
+        : []),
       h('div', { class: 'diagit-error-detail', text: details.message }),
       ...(details.reportUrl
         ? [
@@ -72,5 +82,17 @@ export class ErrorNotice implements PanelHandle {
     container.append(this.element)
     this.element.dataset.cdTheme = detectHostTheme(this.element)
     return this
+  }
+
+  private actionControl(action: ErrorNoticeAction): HTMLElement {
+    if ('url' in action) {
+      return externalLink(action.url, { class: ACTION_BUTTON_CLASS, text: action.label })
+    }
+    return h('button', {
+      class: ACTION_BUTTON_CLASS,
+      type: 'button',
+      text: action.label,
+      onClick: () => void new BackgroundClient().openOptions(),
+    })
   }
 }

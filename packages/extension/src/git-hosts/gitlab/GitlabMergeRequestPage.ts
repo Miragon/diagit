@@ -1,4 +1,4 @@
-import type { ChangedFile, DiffLoaders, DiffPage } from '../DiffSource'
+import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSource'
 import type { GitlabDiffScanner } from './GitlabDiffScanner'
 import type { GitlabRestApi, MergeRequestData } from './GitlabRestApi'
 import type { GitlabRoutes, MergeRequestRef } from './GitlabRoutes'
@@ -53,7 +53,7 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
     }
   }
 
-  errorHint(): string {
-    return METADATA_ERROR_HINT
+  async errorHelp(): Promise<ErrorHelp> {
+    return { hint: METADATA_ERROR_HINT }
   }
 }

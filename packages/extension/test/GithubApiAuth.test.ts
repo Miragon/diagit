@@ -13,7 +13,7 @@ function authOn(area: MemoryStorageArea): GithubApiAuth {
   const renewingFetch = async () =>
     Response.json({ access_token: 'renewed', refresh_token: 'ghr_renewed' })
   const refresher = new GithubTokenRefresher(store, new GithubDeviceFlow(renewingFetch))
-  return new GithubApiAuth(refresher, new GithubRoutes())
+  return new GithubApiAuth(refresher, store, new GithubRoutes())
 }
 
 async function authWithToken(token: string, refreshToken = ''): Promise<GithubApiAuth> {
@@ -96,24 +96,62 @@ describe('GithubApiAuth.headersAfterUnauthorized', () => {
   })
 })
 
-describe('GithubApiAuth.errorHint', () => {
-  it('points private github.com repos at the GitHub App', async () => {
-    const auth = await authWithToken('')
-    const hint = auth.errorHint(githubCom, new FetchError('HTTP 404', 404))
-    expect(hint).toMatch(/private repository/i)
-    expect(hint).toMatch(/GitHub App/i)
-    expect(hint).toMatch(/may have expired/)
+describe('GithubApiAuth.errorHelp', () => {
+  const notFound = new FetchError('HTTP 404', 404)
+  const forbidden = new FetchError('HTTP 403', 403)
+  const connectGithub = { label: 'Connect GitHub', opensOptions: true }
+  const installApp = {
+    label: 'Install on this repository',
+    url: 'https://github.com/apps/miragon-diagit/installations/new',
+  }
+
+  it('offers to connect GitHub for a private github.com repo while not connected', async () => {
+    const help = await (await authWithToken('')).errorHelp(githubCom, notFound)
+    expect(help.hint).toMatch(/private repository/i)
+    expect(help.hint).toMatch(/may have expired/)
+    expect(help.action).toEqual(connectGithub)
   })
 
-  it('maps 403 to a rate-limit / SSO hint', async () => {
-    const auth = await authWithToken('')
-    expect(auth.errorHint(githubCom, new FetchError('HTTP 403', 403))).toMatch(/rate limit|SSO/i)
+  it('offers to connect GitHub for a 403 while not connected', async () => {
+    const help = await (await authWithToken('')).errorHelp(githubCom, forbidden)
+    expect(help.hint).toMatch(/rate limit|SSO/i)
+    expect(help.action).toEqual(connectGithub)
   })
 
-  it('never suggests the GitHub App on Enterprise, where the token cannot help', async () => {
-    const auth = await authWithToken('')
-    const hint = auth.errorHint(enterprise, new FetchError('HTTP 404', 404))
-    expect(hint).not.toMatch(/GitHub App/)
-    expect(hint).not.toMatch(/expired/)
+  it('links to the app installation for a 404 or 403 while connected', async () => {
+    const auth = await authWithToken('secret')
+    expect((await auth.errorHelp(githubCom, notFound)).action).toEqual(installApp)
+    const forbiddenHelp = await auth.errorHelp(githubCom, forbidden)
+    expect(forbiddenHelp.hint).not.toMatch(/anonymous/)
+    expect(forbiddenHelp.action).toEqual(installApp)
+  })
+
+  it('offers to connect GitHub again for an expired connection', async () => {
+    const help = await (
+      await authWithToken('secret')
+    ).errorHelp(githubCom, new FetchError('HTTP 401', 401))
+    expect(help.hint).toMatch(/expired or revoked/i)
+    expect(help.action).toEqual(connectGithub)
+  })
+
+  it('offers no action for another failure while connected', async () => {
+    const help = await (
+      await authWithToken('secret')
+    ).errorHelp(githubCom, new FetchError('HTTP 500', 500))
+    expect(help.action).toBeUndefined()
+  })
+
+  it('treats an unreadable connection as not connected', async () => {
+    const area = new MemoryStorageArea()
+    area.get = () => Promise.reject(new Error('Extension context invalidated.'))
+    const help = await authOn(area).errorHelp(githubCom, notFound)
+    expect(help.action).toEqual(connectGithub)
+  })
+
+  it('never offers a GitHub action on Enterprise, where the token cannot help', async () => {
+    const auth = await authWithToken('secret')
+    const help = await auth.errorHelp(enterprise, notFound)
+    expect(help.hint).not.toMatch(/GitHub App|api\.github\.com|expired/)
+    expect(help.action).toBeUndefined()
   })
 })

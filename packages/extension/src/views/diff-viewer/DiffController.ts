@@ -83,7 +83,7 @@ export class DiffController {
     await ErrorNotice.mountOn(
       this.page,
       { name: DIFF_ERROR_TAG, anchor: file.anchor, append: file.append },
-      { title: `${label} diff could not be loaded`, message: err.message, hint: err.hint },
+      { title: `${label} diff could not be loaded`, message: err.message, ...err.help },
     )
   }
 

@@ -8,7 +8,11 @@ export interface InjectViewScriptRequest {
   script: string
 }
 
-export type BackgroundRequest = FetchTextRequest | InjectViewScriptRequest
+export interface OpenOptionsRequest {
+  type: 'openOptions'
+}
+
+export type BackgroundRequest = FetchTextRequest | InjectViewScriptRequest | OpenOptionsRequest
 
 export type FetchTextResponse =
   { ok: true; text: string } | { ok: false; error: string; status?: number }
