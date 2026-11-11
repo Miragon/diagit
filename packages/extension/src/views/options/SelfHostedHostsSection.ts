@@ -1,6 +1,5 @@
 import { Server } from 'lucide'
 import { browser } from 'wxt/browser'
-import type { GitHost } from '../../git-hosts/GitHost'
 import type { HostAccess } from '../../git-hosts/self-hosted/HostAccess'
 import type { SelfHostedHost } from '../../git-hosts/self-hosted/SelfHostedHostStore'
 import { h } from '../../platform/utils/dom'
@@ -11,11 +10,6 @@ import { normalizeOrigin, originToPattern } from '../../platform/utils/origin'
 const INTRO =
   'gitlab.com and github.com work out of the box. For a self-hosted GitLab or GitHub Enterprise instance, the quickest way is to open a .bpmn file (or a merge request) there and click the extension icon, or right-click the page and choose "Enable Diagit on this domain". You can also add a domain manually below.'
 
-export interface HostChoices {
-  all(): readonly GitHost[]
-  hostById(id: string | undefined): GitHost | undefined
-}
-
 type StatusKind = 'error' | 'ok'
 
 export class SelfHostedHostsSection {
@@ -25,10 +19,6 @@ export class SelfHostedHostsSection {
     placeholder: 'https://gitlab.example.com',
     'aria-label': 'Instance URL',
   }) as HTMLInputElement
-  private readonly typeSelect = h('select', {
-    class: 'input',
-    'aria-label': 'Type',
-  }) as HTMLSelectElement
   private readonly addButton = h('button', {
     class: 'btn btn-primary add-instance',
     type: 'button',
@@ -38,15 +28,9 @@ export class SelfHostedHostsSection {
   private readonly count = h('th', { scope: 'col', class: 'count' })
   private readonly rows = h('tbody')
 
-  constructor(
-    private readonly access: HostAccess,
-    private readonly hosts: HostChoices,
-  ) {}
+  constructor(private readonly access: HostAccess) {}
 
   mount(app: HTMLElement): void {
-    this.typeSelect.append(
-      ...this.hosts.all().map((host) => h('option', { value: host.id, text: host.label })),
-    )
     app.append(
       h('section', { class: 'section' }, [
         h('h2', { text: 'Self-hosted instances' }),
@@ -73,7 +57,7 @@ export class SelfHostedHostsSection {
     }
     if (!granted) return this.setStatus('Permission was not granted.', 'error')
 
-    await this.access.label(origin, this.typeSelect.value)
+    await this.access.add(origin)
     this.originInput.value = ''
     this.setStatus(`Added ${origin}.`, 'ok')
     await this.refresh()
@@ -93,7 +77,7 @@ export class SelfHostedHostsSection {
     if (!hosts.length) {
       this.rows.replaceChildren(
         h('tr', {}, [
-          h('td', { class: 'empty', colspan: '3' }, [
+          h('td', { class: 'empty', colspan: '2' }, [
             lucideIcon(Server),
             'No self-hosted instances added yet.',
           ]),
@@ -106,20 +90,10 @@ export class SelfHostedHostsSection {
 
   private instanceTable(): HTMLTableElement {
     return h('table', { class: 'instances' }, [
-      h('thead', {}, [
-        h('tr', {}, [
-          h('th', { scope: 'col', text: 'Instance' }),
-          h('th', { scope: 'col', text: 'Type' }),
-          this.count,
-        ]),
-      ]),
+      h('thead', {}, [h('tr', {}, [h('th', { scope: 'col', text: 'Instance' }), this.count])]),
       this.rows,
       h('tfoot', {}, [
-        h('tr', {}, [
-          h('td', {}, [this.originInput, this.status]),
-          h('td', {}, [this.typeSelect]),
-          h('td', {}, [this.addButton]),
-        ]),
+        h('tr', {}, [h('td', {}, [this.originInput, this.status]), h('td', {}, [this.addButton])]),
       ]),
     ])
   }
@@ -132,11 +106,7 @@ export class SelfHostedHostsSection {
       'aria-label': `Remove ${host.origin}`,
     })
     remove.addEventListener('click', () => void this.remove(host))
-    return h('tr', {}, [
-      h('td', { text: host.origin }),
-      h('td', { text: this.hosts.hostById(host.type)?.label ?? 'Self-hosted' }),
-      h('td', {}, [remove]),
-    ])
+    return h('tr', {}, [h('td', { text: host.origin }), h('td', {}, [remove])])
   }
 
   private setStatus(text: string, kind: StatusKind): void {

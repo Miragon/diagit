@@ -7,14 +7,6 @@ export class HostRegistry {
     private readonly selfHostedFallback: GitHost,
   ) {}
 
-  all(): readonly GitHost[] {
-    return this.hosts
-  }
-
-  hostById(id: string | undefined): GitHost | undefined {
-    return this.hosts.find((host) => host.id === id)
-  }
-
   hostFor(url: PageUrl): GitHost {
     const publicHost = this.hosts.find(
       (host) => new URL(host.publicOrigin).hostname === url.hostname,
