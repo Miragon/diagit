@@ -42,7 +42,7 @@ export class GitlabRoutes {
   }
 
   rawFileUrl(origin: string, projectPath: string, path: string, ref: string): string {
-    return `${this.projectApi(origin, projectPath)}/repository/files/${encodeURIComponent(path)}/raw?ref=${encodeURIComponent(ref)}`
+    return `${this.projectApi(origin, projectPath)}/repository/files/${encodeURIComponent(path)}/raw?ref=${encodeURIComponent(ref)}&lfs=true`
   }
 
   private projectApi(origin: string, projectPath: string): string {
