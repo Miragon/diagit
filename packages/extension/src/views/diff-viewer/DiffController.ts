@@ -10,6 +10,7 @@ import { diffableNotations } from '../../notations/diffableNotations'
 import { DiffErrorNotice } from './DiffErrorNotice'
 import { DiffPanel } from './DiffPanel'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
+import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import diffCss from './diff.css?inline'
 
 const RERUN_DEBOUNCE_MS = 300
@@ -24,6 +25,7 @@ export class DiffController {
     private readonly page: HostPage,
     private readonly source: DiffSource,
     private readonly notations: NotationLookup = diffableNotations,
+    private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
   ) {}
 
   start(): void {
@@ -87,7 +89,12 @@ export class DiffController {
       append: block.append,
       css: [differ.css, diffCss].join('\n'),
       render: (container) =>
-        new DiffPanel({ differ, loadOld: block.loadOld, loadNew: block.loadNew }).mount(container),
+        new DiffPanel({
+          differ,
+          loadOld: block.loadOld,
+          loadNew: block.loadNew,
+          onRendered: () => void this.diagramViews.save(this.page.location.pathname),
+        }).mount(container),
     })
     this.page.onInvalidated(() => panel.remove())
     this.mirrorCollapse(panel, block)

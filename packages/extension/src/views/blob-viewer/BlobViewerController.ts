@@ -4,6 +4,7 @@ import type { NotationLookup } from '../../notations/Notation'
 import { allNotations } from '../../notations/allNotations'
 import { ModelPanel } from './ModelPanel'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
+import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 
 const MOUNT_RETRIES = 12
 const RETRY_INTERVAL_MS = 500
@@ -22,6 +23,7 @@ export class BlobViewerController {
     private readonly page: HostPage,
     private readonly blobPage: BlobPage,
     private readonly notations: NotationLookup = allNotations,
+    private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
   ) {}
 
   start(): void {
@@ -77,7 +79,12 @@ export class BlobViewerController {
         anchor,
         append: 'before',
         css: notation.css,
-        render: (container) => new ModelPanel({ notation, loadXml }).mount(container),
+        render: (container) =>
+          new ModelPanel({
+            notation,
+            loadXml,
+            onRendered: () => void this.diagramViews.save(path),
+          }).mount(container),
       })
       const navigatedAwayWhileMounting = path !== this.page.location.pathname
       if (navigatedAwayWhileMounting) this.teardown()
