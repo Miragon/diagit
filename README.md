@@ -48,7 +48,7 @@ Diffs in private github.com repos need the [GitHub App](https://miragon.github.i
 ## Get started
 
 1. Open a model file in a GitHub or GitLab repository, for example a `.bpmn` file.
-2. In a pull request (**Files changed**) or merge request (**Changes**), switch Diagit from **Plain** to **Diff**.
+2. In a pull request (**Files changed**) or merge request (**Changes**), Diagit shows the old and the new version of a changed model side by side.
 
 The full walk-through is in [Getting started](https://miragon.github.io/diagit/getting-started).
 

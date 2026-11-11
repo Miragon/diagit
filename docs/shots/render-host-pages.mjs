@@ -79,7 +79,9 @@ await save(
 
 await page.goto(`http://localhost:${port}/octo/flows/pull/1/files`)
 const panel = page.locator('diagit-diff')
-await panel.locator('.djs-element').first().waitFor({ state: 'attached', timeout: 20_000 })
+await panel.locator('.diagit-tab.is-active', { hasText: 'Diff' }).waitFor({ timeout: 20_000 })
+await panel.getByRole('button', { name: 'Plain' }).click()
+await panel.locator('.diagit-diff-single .djs-element').first().waitFor({ state: 'attached' })
 await page.waitForTimeout(1000)
 await save('notations/bpmn-plain.png', await cropToContent(page, await panel.screenshot()))
 await panel.getByRole('button', { name: 'Diff' }).click()

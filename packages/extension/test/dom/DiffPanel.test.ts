@@ -183,12 +183,11 @@ describe('DiffPanel', () => {
     vi.spyOn(differ, 'createViewer').mockRejectedValue(new Error('no diagram found'))
 
     const container = mount(differ, async () => '<broken/>')
+    const newPane = diffPanes(container)[1]!
 
-    await vi.waitFor(() =>
-      expect(plainPane(container).textContent).toContain('BPMN view could not be rendered'),
-    )
-    expect(failureIn(plainPane(container)).title).toContain('no diagram found')
-    expect(failureIn(plainPane(container)).querySelector('[aria-label="Reload page"]')).toBeNull()
+    await vi.waitFor(() => expect(newPane.textContent).toContain('BPMN view could not be rendered'))
+    expect(failureIn(newPane).title).toContain('no diagram found')
+    expect(failureIn(newPane).querySelector('[aria-label="Reload page"]')).toBeNull()
     expect(container.textContent).not.toContain('render error')
   })
 
@@ -202,5 +201,66 @@ describe('DiffPanel', () => {
     await vi.waitFor(() =>
       expect(plainPane(container).textContent).toContain('New version could not be loaded'),
     )
+  })
+
+  describe('the tab it opens on', () => {
+    const activeTab = (container: HTMLElement) =>
+      container.querySelector('.diagit-tab.is-active')?.textContent
+    const untilLoaded = (container: HTMLElement) =>
+      vi.waitFor(() => expect(container.textContent).toMatch(/Added: 0|could not be/))
+
+    it('opens on Diff when the file has an old and a new version', async () => {
+      const differ = new FakeDiffer()
+      const createViewer = vi.spyOn(differ, 'createViewer')
+
+      const container = mount(
+        differ,
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+
+      await vi.waitFor(() => expect(activeTab(container)).toBe('Diff'))
+      expect(createViewer).toHaveBeenCalledTimes(2)
+    })
+
+    it('stays on Plain for an added or a deleted file', async () => {
+      const added = mount(
+        new FakeDiffer(),
+        async () => null,
+        async () => '<new/>',
+      )
+      const deleted = mount(
+        new FakeDiffer(),
+        async () => '<old/>',
+        async () => null,
+      )
+
+      await untilLoaded(added)
+      await untilLoaded(deleted)
+
+      expect(activeTab(added)).toBe('Plain')
+      expect(activeTab(deleted)).toBe('Plain')
+    })
+
+    it('stays on Plain when a version could not be loaded', async () => {
+      const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
+
+      await untilLoaded(container)
+
+      expect(activeTab(container)).toBe('Plain')
+    })
+
+    it('keeps the tab the user picked while the models were loading', async () => {
+      const container = mount(
+        new FakeDiffer(),
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+      tabNamed(container, 'Plain').click()
+
+      await untilLoaded(container)
+
+      expect(activeTab(container)).toBe('Plain')
+    })
   })
 })

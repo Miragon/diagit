@@ -16,7 +16,7 @@ describe('GitHub commit diff (content script)', () => {
     const host = $('diagit-diff')
     await host.waitForExist({ timeout: 20_000 })
 
-    // The default "Plain" view renders the head model — a diagram-js canvas.
+    // A modified file opens on "Diff", which renders both models on diagram-js canvases.
     const shape = host.shadow$('.djs-element')
     await expect(shape).toBeExisting()
 

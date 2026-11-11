@@ -49,6 +49,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.diagramArea,
   ])
   private modelView: ModelView = 'plain'
+  private viewPickedByUser = false
   private head: LoadedModel | null = null
   private plainRendered = false
   private interactive = false
@@ -65,8 +66,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
   mount(container: HTMLElement): this {
     container.append(this.root)
     this.root.dataset.cdTheme = detectHostTheme(this.root)
-    this.plainTab.addEventListener('click', () => this.show('plain'))
-    this.diffTab.addEventListener('click', () => this.show('diff'))
+    this.plainTab.addEventListener('click', () => this.pick('plain'))
+    this.diffTab.addEventListener('click', () => this.pick('diff'))
     this.show('plain')
     this.resizeObserver = new ResizeObserver(() => this.fit())
     this.resizeObserver.observe(this.diagramArea)
@@ -97,6 +98,11 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.resizeObserver = null
     this.destroyViewers()
     this.root.remove()
+  }
+
+  private pick(view: ModelView): void {
+    this.viewPickedByUser = true
+    this.show(view)
   }
 
   private show(view: ModelView): void {
@@ -153,8 +159,13 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.oldPane.bind(navigator)
     this.newPane.bind(navigator)
 
-    if (this.modelView === 'plain') void this.ensurePlainRendered()
+    if (!this.viewPickedByUser && this.bothVersionsLoaded(oldModel, newModel)) this.show('diff')
+    else if (this.modelView === 'plain') void this.ensurePlainRendered()
     else this.fit()
+  }
+
+  private bothVersionsLoaded(oldModel: LoadedModel, newModel: LoadedModel): boolean {
+    return [oldModel, newModel].every((model) => model.status === 'fulfilled' && !!model.value)
   }
 
   private async renderPane(pane: DiffPane, model: LoadedModel, emptyLabel: string): Promise<void> {
