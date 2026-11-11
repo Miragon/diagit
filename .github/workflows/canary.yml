@@ -7,11 +7,12 @@ name: Canary (GitHub DOM drift)
 #
 # Deliberately SEPARATE from CI: it runs on a schedule (not on PRs), so real
 # GitHub's occasional flakiness / A-B-tested DOM can never block a merge. It only
-# fails its own workflow (visible in the Actions tab). See CONTRIBUTING.md.
+# fails its own workflow and, on a scheduled run, reports the failure in an issue
+# labelled `canary`. See CONTRIBUTING.md.
 
 on:
   schedule:
-    - cron: '0 6 * * 1' # Mondays 06:00 UTC — weekly is plenty for DOM drift
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -21,6 +22,8 @@ jobs:
   live:
     name: Live injection on github.com
     runs-on: ubuntu-latest
+    outputs:
+      screenshots-url: ${{ steps.screenshots.outputs.artifact-url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -44,6 +47,7 @@ jobs:
           WDIO_SCREENSHOTS: '1'
 
       - name: Upload canary screenshots
+        id: screenshots
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -51,3 +55,32 @@ jobs:
           path: packages/extension/.output/e2e-screenshots/
           if-no-files-found: ignore
           retention-days: 14
+
+  report-failure:
+    name: Report failure in an issue
+    needs: live
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open or comment on the canary issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SCREENSHOTS_URL: ${{ needs.live.outputs.screenshots-url }}
+        run: |
+          report="The scheduled canary failed.
+
+          - Run: $RUN_URL
+          - Screenshots: ${SCREENSHOTS_URL:-none uploaded}"
+          open_issue=$(gh issue list --label canary --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open_issue" ]; then
+            gh issue comment "$open_issue" --body "$report"
+          else
+            gh label create canary --color d93f0b --description 'Failed run of the GitHub drift canary' --force
+            gh issue create --title 'GitHub drift canary failed' --label canary --body "$report
+
+          The canary drives the real github.com with the extension loaded. A failure usually means GitHub changed its DOM: update \`packages/extension/src/git-hosts/github/githubSelectors.ts\` and the fixtures, then close this issue. Further failures are added as comments while it is open."
+          fi

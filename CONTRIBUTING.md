@@ -83,8 +83,8 @@ uploadable as a CI artifact.
 
 The fixture suite tests _our_ logic against a copy of GitHub's DOM, so it can't
 notice GitHub changing its real markup. A separate **canary** covers that: it
-loads the extension against the real `dev:example` pages and checks the diagram
-still injects. Every GitHub selector lives in one file per host
+loads the extension against public github.com pages of this repo (among them the
+demo PR #12 and its head commit) and checks the diagram still injects. Every GitHub selector lives in one file per host
 (`src/git-hosts/github/githubSelectors.ts`, `gitlab/gitlabSelectors.ts`), so a drift fix is a
 one-file change.
 
@@ -93,9 +93,11 @@ npm run build       -w @diagit/extension   # normal build (real github.com)
 npm run test:e2e:live -w @diagit/extension # WDIO_LIVE against real github.com
 ```
 
-It runs **weekly** (`.github/workflows/canary.yml`), **not** on PRs. Real GitHub
-is A/B-tested and occasionally flaky, so it must never block a merge. When it goes
-red, GitHub changed its DOM: update the selector file (and refresh the fixtures).
+It runs **daily** (`.github/workflows/canary.yml`), **not** on PRs. Real GitHub
+is A/B-tested and occasionally flaky, so it must never block a merge. A failed
+scheduled run opens an issue labelled `canary`, or comments on the open one. When
+it goes red, GitHub changed its DOM: update the selector file (and refresh the
+fixtures), then close the issue.
 A GitLab canary is a tracked follow-up.
 
 ## Loading the extension unpacked
