@@ -341,6 +341,55 @@ a.btn {
   color: var(--cd-ui-text-leise);
 }
 
+.fix-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--cd-ui-linie);
+  color: var(--cd-ui-text);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.fix-link:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.fix-link:hover {
+  color: var(--cd-ui-link);
+}
+
+.fix-link svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.fix-icon {
+  display: flex;
+  color: var(--cd-ui-icon-akzent);
+}
+
+.fix-text {
+  flex: 1;
+}
+
+.help-actions {
+  align-items: center;
+  margin-top: 12px;
+}
+
+.btn.copy-debug-info {
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn.copied {
+  border-color: var(--cd-ui-success);
+}
+
 .page-footer {
   display: flex;
   flex-wrap: wrap;
