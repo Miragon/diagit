@@ -22,7 +22,7 @@ const FILE_ROOT_CHANGES: MutationObserverInit = { attributes: true, childList: t
 export class DiffController {
   private readonly mounting = new WeakSet<Element>()
   private readonly erroring = new WeakSet<Element>()
-  private readonly shownOnPage = new Set<ShadowPanel<PanelHandle>>()
+  private readonly shownOnPage = new Map<ShadowPanel<PanelHandle>, () => void>()
   private shownPageKey: string | null = null
   private readonly unrecognizedNotices: UnrecognizedFileNotices
 
@@ -45,6 +45,7 @@ export class DiffController {
     const { location, document } = this.page
     const pageKey = this.source.pageKey(location)
     if (!this.isShowing(pageKey)) this.showPage(pageKey)
+    this.releaseDetached()
     if (!pageKey) {
       this.unrecognizedNotices.removeAll()
       return
@@ -112,9 +113,7 @@ export class DiffController {
           onRendered: () => void this.diagramViews.save(this.page.location.pathname),
         }).mount(container),
     })
-    if (!this.keepOnPage(panel, pageKey)) return
-    this.page.onInvalidated(() => panel.remove())
-    this.mirrorCollapse(panel, block)
+    this.keepOnPage(panel, pageKey, this.mirrorCollapse(panel, block))
   }
 
   private isShowing(pageKey: string | null): boolean {
@@ -122,21 +121,37 @@ export class DiffController {
   }
 
   private showPage(pageKey: string | null): void {
-    for (const shown of this.shownOnPage) shown.remove()
+    for (const [shown, stopTracking] of this.shownOnPage) this.release(shown, stopTracking)
     this.shownOnPage.clear()
     this.shownPageKey = pageKey
   }
 
-  private keepOnPage(shown: ShadowPanel<PanelHandle>, pageKey: string): boolean {
-    if (!this.isShowing(pageKey)) {
-      shown.remove()
-      return false
+  private releaseDetached(): void {
+    for (const [shown, stopTracking] of this.shownOnPage) {
+      if (shown.shadowHost.isConnected) continue
+      this.shownOnPage.delete(shown)
+      this.release(shown, stopTracking)
     }
-    this.shownOnPage.add(shown)
-    return true
   }
 
-  private mirrorCollapse(panel: ShadowPanel<DiffPanel>, block: DiffFileBlock): void {
+  private keepOnPage(
+    shown: ShadowPanel<PanelHandle>,
+    pageKey: string,
+    stopTracking: () => void = () => {},
+  ): void {
+    if (this.isShowing(pageKey) && shown.shadowHost.isConnected) {
+      this.shownOnPage.set(shown, stopTracking)
+    } else {
+      this.release(shown, stopTracking)
+    }
+  }
+
+  private release(shown: ShadowPanel<PanelHandle>, stopTracking: () => void): void {
+    stopTracking()
+    shown.remove()
+  }
+
+  private mirrorCollapse(panel: ShadowPanel<DiffPanel>, block: DiffFileBlock): () => void {
     let wasHidden = false
     const sync = () => {
       const collapsed = block.isCollapsed()
@@ -144,8 +159,14 @@ export class DiffController {
       if (!collapsed && wasHidden) panel.mounted?.refit()
       wasHidden = collapsed
     }
-    this.page.onElementChange(block.fileRoot, FILE_ROOT_CHANGES, COLLAPSE_DEBOUNCE_MS, sync)
+    const stopMirroring = this.page.onElementChange(
+      block.fileRoot,
+      FILE_ROOT_CHANGES,
+      COLLAPSE_DEBOUNCE_MS,
+      sync,
+    )
     sync()
+    return stopMirroring
   }
 
   private labelFor(file: ChangedFile): string {
