@@ -1,4 +1,4 @@
-import { Star, type IconNode } from 'lucide'
+import { Star, ThumbsUp, type IconNode } from 'lucide'
 import { GITHUB_REPOSITORY_URL, STORE_LISTINGS } from '../../platform/star-prompt/storeListings'
 import { h } from '../../platform/utils/dom'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
@@ -24,7 +24,7 @@ export class OptionsPageChrome {
 
   supportCard(): HTMLElement {
     const reviewUrl = this.reviewUrl()
-    const rate = reviewUrl ? [this.externalLink('Rate Diagit', reviewUrl, 'btn')] : []
+    const rate = reviewUrl ? [this.externalLink('Rate Diagit', reviewUrl, 'btn', ThumbsUp)] : []
     return h('aside', { class: 'card support' }, [
       h('div', { class: 'support-text' }, [
         h('strong', { text: 'Like Diagit?' }),

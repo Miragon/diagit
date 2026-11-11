@@ -55,7 +55,11 @@ export class GithubAccessSection {
   private async render(): Promise<void> {
     const [token, login] = await Promise.all([this.tokens.token(), this.tokens.login()])
     if (token) {
-      const disconnect = h('button', { class: 'btn danger', type: 'button', text: 'Disconnect' })
+      const disconnect = h('button', {
+        class: 'btn quiet-danger',
+        type: 'button',
+        text: 'Disconnect',
+      })
       disconnect.addEventListener('click', () => void this.disconnect())
       const connectedAs = login ? `Connected as @${login}` : 'Connected'
       this.body.replaceChildren(
