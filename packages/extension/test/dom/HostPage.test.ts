@@ -47,6 +47,42 @@ describe('HostPage.onChange', () => {
   })
 })
 
+describe('HostPage after the extension was updated or removed', () => {
+  it('stops reacting and removes its panels once its extension context is gone', async () => {
+    const onChange = vi.fn()
+    page.onChange(10, onChange)
+    const destroy = vi.fn()
+    await page.mountPanel({
+      name: 'diagit-test-panel',
+      anchor: document.body.appendChild(document.createElement('div')),
+      append: 'first',
+      css: '',
+      render: () => ({ destroy }),
+    })
+
+    context.loseExtensionContext()
+    document.body.append(document.createElement('div'))
+    context.navigate()
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    expect(onChange).not.toHaveBeenCalled()
+    expect(destroy).toHaveBeenCalled()
+  })
+})
+
+describe('HostPage navigation after the extension was updated or removed', () => {
+  it('ignores a navigation once its extension context is gone', async () => {
+    const onChange = vi.fn()
+    page.onChange(10, onChange)
+
+    context.loseExtensionContext()
+    context.navigate()
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    expect(onChange).not.toHaveBeenCalled()
+  })
+})
+
 describe('HostPage.onElementChange', () => {
   it('stops reacting and drops a waiting change once stopped', async () => {
     const onChange = vi.fn()

@@ -25,3 +25,22 @@ describe('ViewScriptInjector', () => {
     expect(executeScript).not.toHaveBeenCalled()
   })
 })
+
+describe('ViewScriptInjector.injectRouter', () => {
+  it('loads the view router into the tab', async () => {
+    const executeScript = vi.fn().mockResolvedValue([])
+
+    await injectorWith(executeScript).injectRouter(7)
+
+    expect(executeScript).toHaveBeenCalledWith({
+      target: { tabId: 7 },
+      files: ['/content-scripts/view-router.js'],
+    })
+  })
+
+  it('settles quietly when the tab refuses the script', async () => {
+    const executeScript = vi.fn().mockRejectedValue(new Error('Frame with ID 0 was removed.'))
+
+    await expect(injectorWith(executeScript).injectRouter(7)).resolves.toBeUndefined()
+  })
+})

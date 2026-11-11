@@ -28,6 +28,7 @@ export class BackgroundWorker {
       new FetchProxy(hostRegistry.authPolicies(), new FetchScope()),
       new ViewScriptInjector(hostRegistry.allViewScripts()),
       new TrustedSender(browser.runtime.id),
+      import.meta.env.FIREFOX,
     )
   }
 
@@ -37,6 +38,7 @@ export class BackgroundWorker {
     private readonly fetchProxy: FetchProxy,
     private readonly injector: ViewScriptInjector,
     private readonly senders: TrustedSender,
+    private readonly browserReinjectsOnUpdate: boolean,
   ) {}
 
   start(): void {
@@ -50,6 +52,12 @@ export class BackgroundWorker {
     browser.permissions.onRemoved.addListener(
       (perms) => void this.access.revoke(perms.origins ?? []),
     )
+    browser.runtime.onInstalled.addListener(({ reason }) => {
+      if (reason !== 'update' || this.browserReinjectsOnUpdate) return
+      this.restoreViewsInOpenTabs().catch((err) =>
+        console.error('[diagit] could not restore views in open tabs', err),
+      )
+    })
     browser.runtime.onMessage.addListener((message: BackgroundRequest, sender, sendResponse) =>
       this.handle(message, sender, sendResponse),
     )
@@ -86,6 +94,11 @@ export class BackgroundWorker {
       return { ok: false, error: `Refused to fetch ${message.url} for an untrusted sender` }
     }
     return false
+  }
+
+  private async restoreViewsInOpenTabs(): Promise<void> {
+    const tabIds = await this.access.openTabIds(this.hosts.publicMatchPatterns())
+    await Promise.all(tabIds.map((tabId) => this.injector.injectRouter(tabId)))
   }
 
   private async onToolbarClick(tab: Tab): Promise<void> {

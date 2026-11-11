@@ -2,6 +2,7 @@ import type { ContentScriptContext } from 'wxt/utils/content-script-context'
 
 export class FakeContentScriptContext {
   private readonly invalidationListeners: Array<() => void> = []
+  private extensionContextLost = false
   private readonly navigationListeners: Array<(event: { newUrl: URL }) => void> = []
 
   readonly ctx = {
@@ -19,6 +20,19 @@ export class FakeContentScriptContext {
     },
   } as unknown as ContentScriptContext
 
+  constructor() {
+    Object.defineProperty(this.ctx, 'isInvalid', { get: () => this.checkExtensionContext() })
+  }
+
+  loseExtensionContext(): void {
+    this.extensionContextLost = true
+  }
+
+  private checkExtensionContext(): boolean {
+    if (this.extensionContextLost) this.notifyInvalidated()
+    return this.extensionContextLost
+  }
+
   navigate(url = 'https://github.com/'): void {
     this.navigationListeners.forEach((listener) => listener({ newUrl: new URL(url) }))
   }
@@ -28,6 +42,11 @@ export class FakeContentScriptContext {
   }
 
   invalidate(): void {
+    this.notifyInvalidated()
+    this.extensionContextLost = false
+  }
+
+  private notifyInvalidated(): void {
     this.invalidationListeners.splice(0).forEach((listener) => listener())
     this.navigationListeners.length = 0
   }
