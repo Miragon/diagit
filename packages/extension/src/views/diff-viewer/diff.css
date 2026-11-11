@@ -14,7 +14,7 @@
 /* One self-contained box: the toolbar (Plain/Diff tabs) and the diagram share a
    single border, instead of naked tabs floating above a separate diagram card.
    `overflow: hidden` keeps the corners crisp over the canvas. */
-.git-diagram-wrap.git-diagram-di-root {
+.diagit-wrap.diagit-diff-root {
   margin: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -22,19 +22,19 @@
 }
 
 /* Divider between the toolbar and the diagram, inside the shared container. */
-.git-diagram-di-root .git-diagram-toolbar {
+.diagit-diff-root .diagit-toolbar {
   border-bottom: 1px solid var(--border);
 }
 
 /* The diagram fills the container; the frame is the root border above, so the
    grid itself carries no border of its own. */
-.git-diagram-di-grid {
+.diagit-diff-grid {
   display: flex;
   overflow: hidden;
   background: var(--bg);
 }
 
-.git-diagram-di-pane {
+.diagit-diff-pane {
   position: relative;
   flex: 1 1 0;
   min-width: 0;
@@ -42,24 +42,24 @@
   border-right: 1px dashed var(--border);
 }
 
-.git-diagram-di-pane:last-child,
-.git-diagram-di-single {
+.diagit-diff-pane:last-child,
+.diagit-diff-single {
   border-right: none;
 }
 
-.git-diagram-di-canvas {
+.diagit-diff-canvas {
   position: absolute;
   inset: 0;
   background: var(--canvas-bg);
 }
 
 /* Keep diagram labels in the text role (light or dark). */
-.git-diagram-di-canvas .djs-label,
-.git-diagram-di-canvas text {
+.diagit-diff-canvas .djs-label,
+.diagit-diff-canvas text {
   fill: var(--fg) !important;
 }
 
-.git-diagram-di-empty {
+.diagit-diff-empty {
   position: absolute;
   inset: 0;
   display: flex;
@@ -69,7 +69,7 @@
 }
 
 /* Legend and change navigator: a permanent island over the canvas, so glass. */
-.git-diagram-di-overlay {
+.diagit-diff-overlay {
   position: absolute;
   top: var(--cd-shell-rand);
   left: var(--cd-shell-rand);
@@ -87,14 +87,14 @@
   font-size: 13px;
 }
 
-.git-diagram-di-legend {
+.diagit-diff-legend {
   display: flex;
   gap: 12px;
   margin-bottom: 8px;
   color: var(--fg);
 }
 
-.git-diagram-di-legend .k::before {
+.diagit-diff-legend .k::before {
   content: '';
   display: inline-block;
   width: 11px;
@@ -106,71 +106,71 @@
   background: var(--marker-fill);
 }
 
-.git-diagram-di-nav {
+.diagit-diff-nav {
   display: flex;
   gap: 6px;
 }
 
 /* Marker colours per change category, light mode. */
-.git-diagram-di-added,
-.git-diagram-di-legend .k-add {
+.diagit-diff-added,
+.diagit-diff-legend .k-add {
   --marker-stroke: var(--cd-schwarz);
   --marker-fill: var(--cd-success-soft);
 }
 
-.git-diagram-di-removed,
-.git-diagram-di-legend .k-rem {
+.diagit-diff-removed,
+.diagit-diff-legend .k-rem {
   --marker-stroke: var(--cd-danger);
   --marker-fill: var(--cd-danger-soft);
 }
 
-.git-diagram-di-changed,
-.git-diagram-di-legend .k-chg {
+.diagit-diff-changed,
+.diagit-diff-legend .k-chg {
   --marker-stroke: var(--cd-info);
   --marker-fill: var(--cd-info-soft);
 }
 
-.git-diagram-di-moved,
-.git-diagram-di-legend .k-mov {
+.diagit-diff-moved,
+.diagit-diff-legend .k-mov {
   --marker-stroke: var(--cd-schwarz);
   --marker-fill: var(--cd-warning-soft);
 }
 
 /* Dark mode: the status roles on the stroke, no tinted surfaces. */
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-added,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-add {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-added,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-add {
   --marker-stroke: var(--cd-ui-success);
 }
 
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-removed,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-rem {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-removed,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-rem {
   --marker-stroke: var(--cd-ui-danger);
 }
 
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-changed,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-chg {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-changed,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-chg {
   --marker-stroke: var(--cd-ui-info);
 }
 
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-moved,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k-mov {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-moved,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-mov {
   --marker-stroke: var(--cd-ui-warning);
 }
 
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-added,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-removed,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-changed,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-moved,
-.git-diagram-wrap[data-cd-theme='dark'] .git-diagram-di-legend .k {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-added,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-removed,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-changed,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-moved,
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k {
   --marker-fill: var(--canvas-bg);
   --marker-stroke-width: 3px;
 }
 
 /* Element markers */
-.djs-element.git-diagram-di-added .djs-visual > :nth-child(1),
-.djs-element.git-diagram-di-removed .djs-visual > :nth-child(1),
-.djs-element.git-diagram-di-changed .djs-visual > :nth-child(1),
-.djs-element.git-diagram-di-moved .djs-visual > :nth-child(1) {
+.djs-element.diagit-diff-added .djs-visual > :nth-child(1),
+.djs-element.diagit-diff-removed .djs-visual > :nth-child(1),
+.djs-element.diagit-diff-changed .djs-visual > :nth-child(1),
+.djs-element.diagit-diff-moved .djs-visual > :nth-child(1) {
   stroke: var(--marker-stroke) !important;
   fill: var(--marker-fill) !important;
 }
@@ -178,26 +178,26 @@
 /* Connections (sequence flows) have no fill. An added or moved flow would be
    a green or amber line below 3:1 on white, so in light mode it stays black and
    is told apart by width (added) or dashes (moved). */
-.djs-connection.git-diagram-di-added .djs-visual > :nth-child(1),
-.djs-connection.git-diagram-di-removed .djs-visual > :nth-child(1),
-.djs-connection.git-diagram-di-changed .djs-visual > :nth-child(1),
-.djs-connection.git-diagram-di-moved .djs-visual > :nth-child(1) {
+.djs-connection.diagit-diff-added .djs-visual > :nth-child(1),
+.djs-connection.diagit-diff-removed .djs-visual > :nth-child(1),
+.djs-connection.diagit-diff-changed .djs-visual > :nth-child(1),
+.djs-connection.diagit-diff-moved .djs-visual > :nth-child(1) {
   stroke: var(--marker-stroke) !important;
   stroke-width: var(--marker-stroke-width, 3px) !important;
   fill: none !important;
 }
 
-.djs-connection.git-diagram-di-moved .djs-visual > :nth-child(1) {
+.djs-connection.diagit-diff-moved .djs-visual > :nth-child(1) {
   stroke-dasharray: 6 4 !important;
 }
 
-.djs-shape.git-diagram-di-added .djs-visual > :nth-child(1),
-.djs-shape.git-diagram-di-removed .djs-visual > :nth-child(1),
-.djs-shape.git-diagram-di-changed .djs-visual > :nth-child(1),
-.djs-shape.git-diagram-di-moved .djs-visual > :nth-child(1) {
+.djs-shape.diagit-diff-added .djs-visual > :nth-child(1),
+.djs-shape.diagit-diff-removed .djs-visual > :nth-child(1),
+.djs-shape.diagit-diff-changed .djs-visual > :nth-child(1),
+.djs-shape.diagit-diff-moved .djs-visual > :nth-child(1) {
   stroke-width: var(--marker-stroke-width, 2px) !important;
 }
 
-.djs-element.git-diagram-di-active {
+.djs-element.diagit-diff-active {
   filter: drop-shadow(0 0 6px var(--cd-ui-interaktion));
 }

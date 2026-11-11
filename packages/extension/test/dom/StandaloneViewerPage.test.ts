@@ -36,12 +36,12 @@ describe('StandaloneViewerPage', () => {
 
     openFile(app, new File(['not a model'], 'order.bpmn'))
 
-    await vi.waitFor(() => expect(app.querySelector('.git-diagram-error')).not.toBeNull())
-    expect(textOf(app, '.git-diagram-error-title')).toBe('BPMN view could not be rendered')
-    expect(textOf(app, '.git-diagram-error-hint')).toContain('as a BPMN model')
-    expect(textOf(app, '.git-diagram-error-detail')).toBe('unparsable content')
-    expect(textOf(app, '.git-diagram-error-report')).toBe('Report this problem')
-    expect(app.querySelector('.git-diagram-error')!.getAttribute('role')).toBe('alert')
+    await vi.waitFor(() => expect(app.querySelector('.diagit-error')).not.toBeNull())
+    expect(textOf(app, '.diagit-error-title')).toBe('BPMN view could not be rendered')
+    expect(textOf(app, '.diagit-error-hint')).toContain('as a BPMN model')
+    expect(textOf(app, '.diagit-error-detail')).toBe('unparsable content')
+    expect(textOf(app, '.diagit-error-report')).toBe('Report this problem')
+    expect(app.querySelector('.diagit-error')!.getAttribute('role')).toBe('alert')
   })
 
   it('shows the error notice without a report link for an unsupported file', async () => {
@@ -49,10 +49,10 @@ describe('StandaloneViewerPage', () => {
 
     openFile(app, new File(['hello'], 'notes.txt'))
 
-    await vi.waitFor(() => expect(app.querySelector('.git-diagram-error')).not.toBeNull())
-    expect(textOf(app, '.git-diagram-error-title')).toBe('File not supported')
-    expect(textOf(app, '.git-diagram-error-hint')).toBe('Diagit opens .bpmn files.')
-    expect(textOf(app, '.git-diagram-error-detail')).toBe('notes.txt')
-    expect(app.querySelector('.git-diagram-error-report')).toBeNull()
+    await vi.waitFor(() => expect(app.querySelector('.diagit-error')).not.toBeNull())
+    expect(textOf(app, '.diagit-error-title')).toBe('File not supported')
+    expect(textOf(app, '.diagit-error-hint')).toBe('Diagit opens .bpmn files.')
+    expect(textOf(app, '.diagit-error-detail')).toBe('notes.txt')
+    expect(app.querySelector('.diagit-error-report')).toBeNull()
   })
 })

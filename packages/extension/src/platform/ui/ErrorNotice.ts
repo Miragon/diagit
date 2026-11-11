@@ -49,14 +49,14 @@ export class ErrorNotice implements PanelHandle {
   }
 
   constructor(details: ErrorNoticeDetails) {
-    this.element = h('div', { class: 'git-diagram-error' }, [
-      h('div', { class: 'git-diagram-error-title', text: details.title }),
-      h('div', { class: 'git-diagram-error-hint', text: details.hint }),
-      h('div', { class: 'git-diagram-error-detail', text: details.message }),
+    this.element = h('div', { class: 'diagit-error' }, [
+      h('div', { class: 'diagit-error-title', text: details.title }),
+      h('div', { class: 'diagit-error-hint', text: details.hint }),
+      h('div', { class: 'diagit-error-detail', text: details.message }),
       ...(details.reportUrl
         ? [
             externalLink(details.reportUrl, {
-              class: 'git-diagram-error-report',
+              class: 'diagit-error-report',
               text: 'Report this problem',
             }),
           ]

@@ -120,12 +120,12 @@ describe('DiffController', () => {
     await vi.waitFor(() => expect(code.previousElementSibling?.localName).toBe(DIFF_ERROR_TAG))
     const notice = code.previousElementSibling!.shadowRoot!
     await vi.waitFor(() =>
-      expect(notice.querySelector('.git-diagram-error-title')?.textContent).toBe(
+      expect(notice.querySelector('.diagit-error-title')?.textContent).toBe(
         'BPMN diff could not be loaded',
       ),
     )
-    expect(notice.querySelector('.git-diagram-error-hint')?.textContent).toBe('Connect the app.')
-    expect(notice.querySelector('.git-diagram-error-detail')?.textContent).toBe('HTTP 404')
+    expect(notice.querySelector('.diagit-error-hint')?.textContent).toBe('Connect the app.')
+    expect(notice.querySelector('.diagit-error-detail')?.textContent).toBe('HTTP 404')
   })
 
   describe('a changed diagram file whose diff view Diagit does not recognise', () => {

@@ -32,9 +32,7 @@ describe('DiffPanel', () => {
   it('takes only the mode from the host page, as data-cd-theme', () => {
     const container = mount(new FakeDiffer(), async () => null)
 
-    expect(container.querySelector<HTMLElement>('.git-diagram-di-root')!.dataset.cdTheme).toBe(
-      'light',
-    )
+    expect(container.querySelector<HTMLElement>('.diagit-diff-root')!.dataset.cdTheme).toBe('light')
   })
 
   it('drops the loading label once the models have arrived', async () => {

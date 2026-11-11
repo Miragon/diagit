@@ -25,20 +25,20 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private readonly plainCanvas = new ViewerCanvas<DiffableViewer>()
   private readonly plainTab = this.tab('Plain')
   private readonly diffTab = this.tab('Diff')
-  private readonly diffGrid = h('div', { class: 'git-diagram-di-grid' }, [
+  private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, [
     this.oldPane.element,
     this.newPane.element,
   ])
-  private readonly plainGrid = h('div', { class: 'git-diagram-di-grid' }, [
-    h('div', { class: 'git-diagram-di-pane git-diagram-di-single' }, [this.plainCanvas.element]),
+  private readonly plainGrid = h('div', { class: 'diagit-diff-grid' }, [
+    h('div', { class: 'diagit-diff-pane diagit-diff-single' }, [this.plainCanvas.element]),
   ])
-  private readonly diagramArea = h('div', { class: 'git-diagram-di-area' }, [
+  private readonly diagramArea = h('div', { class: 'diagit-diff-area' }, [
     this.diffGrid,
     this.plainGrid,
   ])
-  private readonly root = h('div', { class: 'git-diagram-wrap git-diagram-di-root' }, [
-    h('div', { class: 'git-diagram-toolbar' }, [
-      h('div', { class: 'git-diagram-tabs' }, [this.plainTab, this.diffTab]),
+  private readonly root = h('div', { class: 'diagit-wrap diagit-diff-root' }, [
+    h('div', { class: 'diagit-toolbar' }, [
+      h('div', { class: 'diagit-tabs' }, [this.plainTab, this.diffTab]),
       new ZoomControls(this).element,
     ]),
     this.diagramArea,
@@ -181,6 +181,6 @@ export class DiffPanel implements PanelHandle, Zoomable {
   }
 
   private tab(text: string): HTMLButtonElement {
-    return h('button', { class: 'git-diagram-tab', type: 'button', text })
+    return h('button', { class: 'diagit-tab', type: 'button', text })
   }
 }

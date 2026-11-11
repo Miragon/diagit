@@ -1,4 +1,4 @@
-.git-diagram-error {
+.diagit-error {
   box-sizing: border-box;
   margin: 0;
   padding: 10px 12px;
@@ -12,21 +12,21 @@
   line-height: 1.5;
 }
 
-.git-diagram-error-title {
+.diagit-error-title {
   font-weight: 600;
 }
 
-.git-diagram-error-hint {
+.diagit-error-hint {
   margin-top: 2px;
 }
 
-.git-diagram-error-report {
+.diagit-error-report {
   display: inline-block;
   margin-top: 6px;
   color: var(--cd-ui-link);
 }
 
-.git-diagram-error-detail {
+.diagit-error-detail {
   margin-top: 6px;
   color: var(--cd-ui-text-leise);
   font-family: var(--diagit-font-mono);
