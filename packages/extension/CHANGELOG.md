@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0](https://github.com/Miragon/diagit/compare/v0.3.1...v0.4.0) (2026-11-11)
+
+
+### Features
+
+* add help, bug report and debug info to the options page ([#146](https://github.com/Miragon/diagit/issues/146)) ([4a94602](https://github.com/Miragon/diagit/commit/4a9460253c64575b94fc59604c7db41fb42150d7))
+* ask once for a GitHub star and a store rating ([#142](https://github.com/Miragon/diagit/issues/142)) ([2524e0b](https://github.com/Miragon/diagit/commit/2524e0b0d096151b9d47b645aa801c3529f83e39))
+* **blob:** tell the user when a diagram view finds no place on a file page ([#138](https://github.com/Miragon/diagit/issues/138)) ([6634c7c](https://github.com/Miragon/diagit/commit/6634c7cb6baca45bcf261cc4f915a6ce2f4331d3))
+* **diff:** flag changed diagrams whose diff view is not recognised ([#137](https://github.com/Miragon/diagit/issues/137)) ([334757a](https://github.com/Miragon/diagit/commit/334757a6973094ee72a550e71f7f78d43b5854c4))
+* follow the Miragon design system ([#135](https://github.com/Miragon/diagit/issues/135)) ([a236452](https://github.com/Miragon/diagit/commit/a23645217b53f4ce1ddac2bc91e4d3475ee071f8))
+* restructure the options page with header, support row and footer ([#145](https://github.com/Miragon/diagit/issues/145)) ([e214c70](https://github.com/Miragon/diagit/commit/e214c705662bb6787c62b396f4671c49a1db427d))
+* show diagram errors on file pages and in the standalone viewer with the shared notice ([#157](https://github.com/Miragon/diagit/issues/157)) ([a9c888c](https://github.com/Miragon/diagit/commit/a9c888c8fe6c480755547ea716f9277526dfe3f9))
+
+
+### Bug Fixes
+
+* open the options page from the toolbar icon on allowed domains ([#143](https://github.com/Miragon/diagit/issues/143)) ([41ba290](https://github.com/Miragon/diagit/commit/41ba290f92df711de9f75c9024daba9dd9d0fcbe))
+
 ## [0.3.1](https://github.com/Miragon/diagit/compare/v0.3.0...v0.3.1) (2026-11-09)
 
 
