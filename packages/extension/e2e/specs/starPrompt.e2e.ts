@@ -20,8 +20,10 @@ describe('Star prompt', () => {
     await prompt.shadow$('.diagit-toast-close').click()
     await expect($('diagit-star-prompt')).not.toBeExisting()
 
-    await openDiagramPage(PAGES_BEFORE_PROMPT + 1)
-    await browser.pause(1_000)
-    await expect($('diagit-star-prompt')).not.toBeExisting()
+    for (let page = PAGES_BEFORE_PROMPT + 1; page <= 2 * PAGES_BEFORE_PROMPT + 1; page++) {
+      await openDiagramPage(page)
+      await browser.pause(500)
+      await expect($('diagit-star-prompt')).not.toBeExisting()
+    }
   })
 })
