@@ -16,11 +16,11 @@ export interface ModelPanelOptions {
 
 export class ModelPanel implements PanelHandle, Zoomable {
   private readonly placeholder = h('div', {
-    class: 'git-diagram-placeholder',
+    class: 'diagit-placeholder',
     text: 'Loading diagram…',
   })
-  private readonly canvas = h('div', { class: 'git-diagram-canvas' }, [this.placeholder])
-  private readonly wrap = h('div', { class: 'git-diagram-wrap' }, [
+  private readonly canvas = h('div', { class: 'diagit-canvas' }, [this.placeholder])
+  private readonly wrap = h('div', { class: 'diagit-wrap' }, [
     this.canvas,
     new ZoomControls(this).element,
   ])

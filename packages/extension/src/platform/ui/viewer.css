@@ -16,7 +16,7 @@
   display: none !important;
 }
 
-.git-diagram-wrap {
+.diagit-wrap {
   --fg: var(--cd-ui-text);
   --fg-muted: var(--cd-ui-text-leise);
   --bg: var(--cd-ui-flaeche);
@@ -36,7 +36,7 @@
   font-family: var(--diagit-font);
 }
 
-.git-diagram-toolbar {
+.diagit-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -46,14 +46,14 @@
 
 /* Model / Code segmented switch. The selected tab is hover plus a 2px bar in
    the interaction role, never a blue fill. */
-.git-diagram-tabs {
+.diagit-tabs {
   display: inline-flex;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
 }
 
-.git-diagram-tab {
+.diagit-tab {
   cursor: pointer;
   border: none;
   background: var(--btn-bg);
@@ -65,20 +65,20 @@
   padding: 8px 12px;
 }
 
-.git-diagram-tab + .git-diagram-tab {
+.diagit-tab + .diagit-tab {
   border-left: 1px solid var(--border);
 }
 
-.git-diagram-tab:hover {
+.diagit-tab:hover {
   background: var(--btn-hover);
 }
 
-.git-diagram-tab.is-active {
+.diagit-tab.is-active {
   background: var(--btn-hover);
   box-shadow: inset 0 -2px 0 var(--selected);
 }
 
-.git-diagram-tab:focus-visible {
+.diagit-tab:focus-visible {
   outline: 2px solid var(--cd-ui-fokus);
   outline-offset: -2px;
 }
@@ -86,7 +86,7 @@
 /* Zoom island in the canvas' bottom-left corner: never covered by the host's
    sticky file header, and clear of the bpmn.io / dmn.io watermark that the
    viewer libraries render in the bottom-right. Glass with shadow-1. */
-.git-diagram-controls {
+.diagit-controls {
   position: absolute;
   left: var(--cd-shell-rand);
   bottom: var(--cd-shell-rand);
@@ -106,18 +106,18 @@
   box-shadow: var(--cd-shadow-1);
 }
 
-.git-diagram-toolbar .git-diagram-controls {
+.diagit-toolbar .diagit-controls {
   position: static;
 }
 
-.git-diagram-controls-divider {
+.diagit-controls-divider {
   width: 1px;
   align-self: stretch;
   margin: 4px 2px;
   background: var(--border);
 }
 
-.git-diagram-canvas {
+.diagit-canvas {
   position: relative;
   /* Static height; the diagram is fit into it. bpmn-js/dmn-js zoom-to-fit
      handles large models, drag-to-pan + the zoom controls handle the rest. */
@@ -130,13 +130,13 @@
 }
 
 /* Focused pane: wheel zoom is live. */
-.git-diagram-canvas.is-active,
-.git-diagram-di-area.is-active {
+.diagit-canvas.is-active,
+.diagit-diff-area.is-active {
   outline: 2px solid var(--selected);
   outline-offset: -2px;
 }
 
-.git-diagram-placeholder {
+.diagit-placeholder {
   position: absolute;
   inset: 0;
   display: flex;
@@ -148,7 +148,7 @@
 }
 
 /* Keep bpmn-js / dmn-js labels in the text role; the Miragon renderers colour their own. */
-.git-diagram-canvas:not(.renderer-colours) .djs-label,
-.git-diagram-canvas:not(.renderer-colours) text {
+.diagit-canvas:not(.renderer-colours) .djs-label,
+.diagit-canvas:not(.renderer-colours) text {
   fill: var(--fg) !important;
 }

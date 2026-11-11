@@ -3,11 +3,11 @@ const QUIET_GITHUB =
 const SPACE_ABOVE_PANEL = 150
 
 export default async function showDiff(page, { click, pause }) {
-  const panel = page.locator('git-diagram-diff').first()
+  const panel = page.locator('diagit-diff').first()
   await panel.waitFor({ state: 'attached', timeout: 30_000 })
   await page.addStyleTag({ content: QUIET_GITHUB })
   await page.evaluate((space) => {
-    scrollBy(0, document.querySelector('git-diagram-diff').getBoundingClientRect().top - space)
+    scrollBy(0, document.querySelector('diagit-diff').getBoundingClientRect().top - space)
   }, SPACE_ABOVE_PANEL)
   await pause(2500)
   await click(panel.getByRole('button', { name: 'Diff' }))

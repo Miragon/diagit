@@ -10,7 +10,7 @@ export type CreateViewer<Viewer extends DiagramViewer> = (
 ) => Promise<Viewer>
 
 export class ViewerCanvas<Viewer extends DiagramViewer> {
-  readonly element = h('div', { class: 'git-diagram-di-canvas' }, [this.label(LOADING_LABEL)])
+  readonly element = h('div', { class: 'diagit-diff-canvas' }, [this.label(LOADING_LABEL)])
   viewer: Viewer | null = null
 
   async render(
@@ -37,6 +37,6 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
   }
 
   private label(text: string): HTMLElement {
-    return h('div', { class: 'git-diagram-di-empty', text })
+    return h('div', { class: 'diagit-diff-empty', text })
   }
 }

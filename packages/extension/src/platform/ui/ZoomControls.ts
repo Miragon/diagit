@@ -13,16 +13,12 @@ export class ZoomControls {
   readonly element: HTMLElement
 
   constructor(target: Zoomable) {
-    this.element = h(
-      'div',
-      { class: 'git-diagram-controls', role: 'group', 'aria-label': 'Zoom' },
-      [
-        this.button('Zoom out', Minus, () => target.zoomBy(1 / ZOOM_STEP)),
-        this.button('Zoom in', Plus, () => target.zoomBy(ZOOM_STEP)),
-        h('span', { class: 'git-diagram-controls-divider', 'aria-hidden': 'true' }),
-        this.button('Fit to view', Maximize, () => target.fit()),
-      ],
-    )
+    this.element = h('div', { class: 'diagit-controls', role: 'group', 'aria-label': 'Zoom' }, [
+      this.button('Zoom out', Minus, () => target.zoomBy(1 / ZOOM_STEP)),
+      this.button('Zoom in', Plus, () => target.zoomBy(ZOOM_STEP)),
+      h('span', { class: 'diagit-controls-divider', 'aria-hidden': 'true' }),
+      this.button('Fit to view', Maximize, () => target.fit()),
+    ])
   }
 
   private button(label: string, icon: IconNode, onClick: () => void): HTMLButtonElement {

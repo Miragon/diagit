@@ -1,7 +1,7 @@
 export const MARKER = {
-  added: 'git-diagram-di-added',
-  removed: 'git-diagram-di-removed',
-  changed: 'git-diagram-di-changed',
-  moved: 'git-diagram-di-moved',
-  active: 'git-diagram-di-active',
+  added: 'diagit-diff-added',
+  removed: 'diagit-diff-removed',
+  changed: 'diagit-diff-changed',
+  moved: 'diagit-diff-moved',
+  active: 'diagit-diff-active',
 } as const

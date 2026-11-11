@@ -13,7 +13,7 @@ describe('GitHub commit diff (content script)', () => {
   it('mounts a diff panel with a rendered diagram for a changed .bpmn file', async () => {
     await browser.url(`/octo/flows/commit/${sha}`)
 
-    const host = $('git-diagram-diff')
+    const host = $('diagit-diff')
     await host.waitForExist({ timeout: 20_000 })
 
     // The default "Plain" view renders the head model — a diagram-js canvas.
@@ -27,7 +27,7 @@ describe('GitHub commit diff (content script)', () => {
   it('does not stack a second panel when the file is re-rendered (Viewed toggle)', async () => {
     await browser.url(`/octo/flows/commit/${sha}`)
 
-    const host = $('git-diagram-diff')
+    const host = $('diagit-diff')
     await host.waitForExist({ timeout: 20_000 })
 
     await browser.execute(() => {
@@ -36,7 +36,7 @@ describe('GitHub commit diff (content script)', () => {
     })
 
     await browser.pause(1_000)
-    const panels = await $$('git-diagram-diff')
+    const panels = await $$('diagit-diff')
     await expect(panels).toBeElementsArrayOfSize(1)
   })
 })

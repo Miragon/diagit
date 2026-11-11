@@ -34,14 +34,14 @@ describe('ModelPanel', () => {
       }),
     )
 
-    await vi.waitFor(() => expect(container.querySelector('.git-diagram-error')).not.toBeNull())
-    expect(textOf(container, '.git-diagram-error-title')).toBe('BPMN view could not be loaded')
-    expect(textOf(container, '.git-diagram-error-hint')).toContain('Reload the page')
-    expect(textOf(container, '.git-diagram-error-detail')).toBe(
+    await vi.waitFor(() => expect(container.querySelector('.diagit-error')).not.toBeNull())
+    expect(textOf(container, '.diagit-error-title')).toBe('BPMN view could not be loaded')
+    expect(textOf(container, '.diagit-error-hint')).toContain('Reload the page')
+    expect(textOf(container, '.diagit-error-detail')).toBe(
       'HTTP 500 for https://github.com/o/r/raw/main/order.bpmn',
     )
-    expect(container.querySelector('.git-diagram-placeholder')).toBeNull()
-    expect(container.querySelector('.git-diagram-error')!.hasAttribute('role')).toBe(false)
+    expect(container.querySelector('.diagit-placeholder')).toBeNull()
+    expect(container.querySelector('.diagit-error')!.hasAttribute('role')).toBe(false)
   })
 
   it('shows the error notice with a report link when the model cannot be rendered', async () => {
@@ -49,11 +49,11 @@ describe('ModelPanel', () => {
       new ModelPanel({ notation: new UnreadableNotation(), loadXml: async () => 'not a model' }),
     )
 
-    await vi.waitFor(() => expect(container.querySelector('.git-diagram-error')).not.toBeNull())
-    expect(textOf(container, '.git-diagram-error-title')).toBe('BPMN view could not be rendered')
-    expect(textOf(container, '.git-diagram-error-hint')).toContain('as a BPMN model')
-    expect(textOf(container, '.git-diagram-error-detail')).toBe('unparsable content')
-    const report = container.querySelector<HTMLAnchorElement>('.git-diagram-error-report')!
+    await vi.waitFor(() => expect(container.querySelector('.diagit-error')).not.toBeNull())
+    expect(textOf(container, '.diagit-error-title')).toBe('BPMN view could not be rendered')
+    expect(textOf(container, '.diagit-error-hint')).toContain('as a BPMN model')
+    expect(textOf(container, '.diagit-error-detail')).toBe('unparsable content')
+    const report = container.querySelector<HTMLAnchorElement>('.diagit-error-report')!
     expect(report.textContent).toBe('Report this problem')
     expect(report.href).toContain('https://github.com/Miragon/diagit/issues/new')
   })

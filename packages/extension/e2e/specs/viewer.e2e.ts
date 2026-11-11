@@ -34,7 +34,7 @@ describe('standalone viewer page', () => {
 
   it('marks Camunda 7 transaction boundaries', async () => {
     await expectRenders('c7-async.bpmn')
-    await expect($$('.git-diagram-transaction-boundary')).toBeElementsArrayOfSize(1)
+    await expect($$('.diagit-transaction-boundary')).toBeElementsArrayOfSize(1)
   })
 
   it('renders a .dmn file with dmn-js', async () => {

@@ -78,7 +78,7 @@ await save(
 )
 
 await page.goto(`http://localhost:${port}/octo/flows/pull/1/files`)
-const panel = page.locator('git-diagram-diff')
+const panel = page.locator('diagit-diff')
 await panel.locator('.djs-element').first().waitFor({ state: 'attached', timeout: 20_000 })
 await page.waitForTimeout(1000)
 await save('notations/bpmn-plain.png', await cropToContent(page, await panel.screenshot()))

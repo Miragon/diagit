@@ -24,7 +24,7 @@ export class TransactionBoundaryOverlays {
 
   private addMarker(shape: any, left: number): void {
     const marker = document.createElement('div')
-    marker.className = 'git-diagram-transaction-boundary'
+    marker.className = 'diagit-transaction-boundary'
     marker.style.height = `${shape.height}px`
     this.viewer
       .get('overlays')

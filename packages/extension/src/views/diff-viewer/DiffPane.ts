@@ -36,14 +36,14 @@ export class DiffPane {
       changed: this.legendKey('changed'),
       moved: this.legendKey('moved'),
     }
-    const legend = h('div', { class: 'git-diagram-di-legend' }, Object.values(this.legendKeys))
-    const navigation = h('div', { class: 'git-diagram-di-nav' }, [
+    const legend = h('div', { class: 'diagit-diff-legend' }, Object.values(this.legendKeys))
+    const navigation = h('div', { class: 'diagit-diff-nav' }, [
       this.previousButton,
       this.nextButton,
       this.allButton,
     ])
-    const overlay = h('div', { class: 'git-diagram-di-overlay' }, [legend, navigation])
-    this.element = h('div', { class: 'git-diagram-di-pane' }, [overlay, this.canvas.element])
+    const overlay = h('div', { class: 'diagit-diff-overlay' }, [legend, navigation])
+    this.element = h('div', { class: 'diagit-diff-pane' }, [overlay, this.canvas.element])
   }
 
   get viewer(): DiffableViewer | null {
