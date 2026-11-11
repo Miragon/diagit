@@ -121,7 +121,7 @@ describe('BlobViewerController', () => {
 
       const dismiss = document
         .querySelector(PLACEMENT_NOTICE_TAG)!
-        .shadowRoot!.querySelector<HTMLButtonElement>('button')!
+        .shadowRoot!.querySelector<HTMLButtonElement>('[aria-label="Close"]')!
       dismiss.click()
       document.querySelector('main')!.append(document.createElement('p'))
       await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)

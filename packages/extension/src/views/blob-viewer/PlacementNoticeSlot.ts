@@ -1,10 +1,11 @@
+import { CircleAlert } from 'lucide'
 import { PLACEMENT_NOTICE_TAG } from '../../platform/injectedElements'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
-import { PlacementNotice } from './PlacementNotice'
-import placementNoticeCss from './placementNotice.css?inline'
+import { Toast } from '../../platform/ui/Toast'
+import { diagitRepository } from '../../platform/DiagitRepository'
 
 export class PlacementNoticeSlot {
-  private notice: ShadowPanel<PlacementNotice> | null = null
+  private notice: ShadowPanel<Toast> | null = null
   private shownPath: string | null = null
   private dismissedPath: string | null = null
 
@@ -13,13 +14,22 @@ export class PlacementNoticeSlot {
   async show(path: string, label: string): Promise<void> {
     if (this.shownPath === path || this.dismissedPath === path) return
     this.shownPath = path
-    const notice = await this.page.mountPanel({
-      name: PLACEMENT_NOTICE_TAG,
-      anchor: this.page.document.body,
-      append: 'last',
-      css: placementNoticeCss,
-      render: (container) =>
-        new PlacementNotice({ label, onDismiss: () => this.dismiss(path) }).mount(container),
+    const notice = await Toast.mountOn(this.page, PLACEMENT_NOTICE_TAG, {
+      tone: 'danger',
+      icon: CircleAlert,
+      title: `${label} view could not be added`,
+      message: `Diagit cannot find where to show this ${label} model. The page layout has probably changed.`,
+      actions: [
+        {
+          label: 'Report this problem',
+          variant: 'secondary',
+          url: diagitRepository.problemReportUrl(
+            `${label} view not added to a file page`,
+            `Diagit showed "${label} view could not be added" on a file page.`,
+          ),
+        },
+      ],
+      onClose: () => this.dismiss(path),
     })
     if (this.shownPath === path) this.notice = notice
     else notice.remove()
