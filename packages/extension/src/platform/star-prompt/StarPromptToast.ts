@@ -45,7 +45,7 @@ export class StarPromptToast implements PanelHandle {
     const { storeListingUrl } = this.options
     const star = this.openButton('Star on GitHub', 'diagit-toast-primary', GITHUB_REPOSITORY_URL)
     const rate = storeListingUrl
-      ? [this.openButton('Rate Diagit', 'diagit-toast-ghost', storeListingUrl)]
+      ? [this.openButton('Rate Diagit', 'diagit-toast-secondary', storeListingUrl)]
       : []
     const close = h(
       'button',

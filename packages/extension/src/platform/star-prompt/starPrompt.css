@@ -93,19 +93,17 @@
   transform: translateY(-1px);
 }
 
-.diagit-toast-ghost {
+.diagit-toast .diagit-toast-secondary {
   padding: 0 12px;
-  background: transparent;
+  border: 1px solid var(--cd-ui-linie);
+  background: var(--cd-ui-flaeche-hoch);
   color: var(--cd-ui-text);
 }
 
-.diagit-toast-ghost:hover {
+.diagit-toast .diagit-toast-secondary:hover {
+  border-color: var(--cd-ui-interaktion);
   background: var(--cd-ui-hover);
-}
-
-.diagit-toast-close:hover {
-  background: var(--cd-ui-hover);
-  color: var(--cd-ui-interaktion);
+  color: var(--cd-ui-link);
 }
 
 .diagit-toast .diagit-toast-close {
@@ -122,4 +120,9 @@
 .diagit-toast-close svg {
   width: 16px;
   height: 16px;
+}
+
+.diagit-toast .diagit-toast-close:hover {
+  background: var(--cd-ui-hover);
+  color: var(--cd-ui-interaktion);
 }
