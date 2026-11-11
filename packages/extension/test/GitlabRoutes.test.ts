@@ -36,7 +36,7 @@ describe('GitlabRoutes', () => {
 
   it('builds an encoded raw-file API url', () => {
     expect(routes.rawFileUrl('https://gitlab.com', 'group/proj', 'a/b.bpmn', 'abc123')).toBe(
-      'https://gitlab.com/api/v4/projects/group%2Fproj/repository/files/a%2Fb.bpmn/raw?ref=abc123',
+      'https://gitlab.com/api/v4/projects/group%2Fproj/repository/files/a%2Fb.bpmn/raw?ref=abc123&lfs=true',
     )
   })
 })

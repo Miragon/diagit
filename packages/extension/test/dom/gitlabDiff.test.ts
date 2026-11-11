@@ -64,8 +64,8 @@ describe('GitLab merge-request diff', () => {
       [`${api}/diffs?per_page=100&page=1`]: [
         { old_path: 'flows/old.bpmn', new_path: 'flows/order.bpmn', renamed_file: true },
       ],
-      [`${rawFiles}/flows%2Fold.bpmn/raw?ref=aaa`]: '<old/>',
-      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=bbb`]: '<new/>',
+      [`${rawFiles}/flows%2Fold.bpmn/raw?ref=aaa&lfs=true`]: '<old/>',
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=bbb&lfs=true`]: '<new/>',
     })
 
     const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, withFileBox())
@@ -82,8 +82,8 @@ describe('GitLab merge-request diff', () => {
       [`${commitApi}/diff?per_page=100&page=1`]: [
         { old_path: 'flows/order.bpmn', new_path: 'flows/order.bpmn' },
       ],
-      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ppp`]: '<parent/>',
-      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ccc`]: '<commit/>',
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ppp&lfs=true`]: '<parent/>',
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ccc&lfs=true`]: '<commit/>',
     })
     const commitView = { ...location, search: '?commit_id=ccc' } as Location
 
