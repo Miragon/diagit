@@ -3,11 +3,12 @@ import { errorMessage } from '../platform/utils/errorMessage'
 import type { FileHeaderLocator, VisibleFileHeader } from './FileHeaderLocator'
 import { DiffDataError, type DiffFileBlock, type DiffPage, type DiffSource } from './DiffSource'
 
-const RETRY_FAILED_LOAD_AFTER_MS = 60_000
+const RELOAD_AFTER_MS = 60_000
 
 interface CachedLoad<Data> {
   key: string
   promise: Promise<Data>
+  loadedAt: number | null
   failedAt: number | null
 }
 
@@ -59,20 +60,28 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
 
   private load(location: Location, page: Page): Promise<Data> {
     const cached = this.cachedFor(page)
-    if (cached && !this.mayRetry(cached)) return cached.promise
+    if (cached && !this.isStale(cached)) return cached.promise
     const entry: CachedLoad<Data> = {
       key: page.key,
+      loadedAt: null,
       failedAt: null,
-      promise: this.page.load(location, page).catch((err) => {
-        entry.failedAt = this.now()
-        throw err
-      }),
+      promise: this.page.load(location, page).then(
+        (data) => {
+          entry.loadedAt = this.now()
+          return data
+        },
+        (err) => {
+          entry.failedAt = this.now()
+          throw err
+        },
+      ),
     }
     this.cached = entry
     return entry.promise
   }
 
-  private mayRetry(entry: CachedLoad<Data>): boolean {
-    return entry.failedAt != null && this.now() - entry.failedAt >= RETRY_FAILED_LOAD_AFTER_MS
+  private isStale(entry: CachedLoad<Data>): boolean {
+    const settledAt = entry.failedAt ?? entry.loadedAt
+    return settledAt != null && this.now() - settledAt >= RELOAD_AFTER_MS
   }
 }

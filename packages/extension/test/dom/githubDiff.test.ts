@@ -163,6 +163,36 @@ describe('GitHub pull-request diff limited to commits', () => {
   })
 })
 
+describe('GitHub pull-request diff after a new push', () => {
+  const pushedMetadata = {
+    ...pullRequestMetadata,
+    [`${api}/pulls/1`]: {
+      base: { sha: 'aaa', repo: { full_name: 'o/r' } },
+      head: { sha: 'ccc', repo: { full_name: 'o/r' } },
+    },
+    [`${api}/compare/aaa...ccc?per_page=1`]: { merge_base_commit: { sha: 'aaa' } },
+    'https://github.com/o/r/raw/ccc/flows/order.bpmn': '<pushed/>',
+  }
+
+  it('keeps a successful load for a minute and then loads the new head', async () => {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+    const diff = pullRequestDiff(http)
+    const doc = withFileBoxes(legacyBpmnBox)
+    await diff.collect(location, doc)
+    http.respondWith(pushedMetadata)
+
+    vi.spyOn(Date, 'now').mockReturnValue(1_000_000 + 59_000)
+    await diff.collect(location, doc)
+    expect(metadataRequests(http)).toBe(1)
+
+    vi.spyOn(Date, 'now').mockReturnValue(1_000_000 + 61_000)
+    const [block] = await diff.collect(location, doc)
+
+    expect(metadataRequests(http)).toBe(2)
+    expect(await block!.loadNew()).toBe('<pushed/>')
+  })
+})
+
 describe('GitHub pull-request diff — failed metadata', () => {
   it('does not re-fetch while a failure is cooling down', async () => {
     const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 404 for x', 404))
