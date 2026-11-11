@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FetchProxy } from '../src/background/FetchProxy'
 import { FetchScope } from '../src/background/FetchScope'
 import type { AuthPolicy } from '../src/git-hosts/GitHost'
@@ -168,6 +168,10 @@ describe('FetchProxy', () => {
     const url = 'https://api.github.com/repos/o/r/pulls/1'
     const resetEpochSeconds = 1_800_000_000
 
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
     async function failureWith(status: number, headers: Record<string, string>) {
       const fetch = vi.fn().mockResolvedValue(textResponse(url, '', status, headers))
       return proxyWith(fetch).fetchText(url, githubPage)
@@ -193,17 +197,22 @@ describe('FetchProxy', () => {
 
     it('prefers the wait of retry-after', async () => {
       vi.useFakeTimers({ now: 1_000_000 })
-      try {
-        const response = await failureWith(429, {
-          'retry-after': '30',
-          'x-ratelimit-remaining': '0',
-          'x-ratelimit-reset': String(resetEpochSeconds),
-        })
 
-        expect(response).toMatchObject({ rateLimitResetsAt: 1_030_000 })
-      } finally {
-        vi.useRealTimers()
-      }
+      const response = await failureWith(429, {
+        'retry-after': '30',
+        'x-ratelimit-remaining': '0',
+        'x-ratelimit-reset': String(resetEpochSeconds),
+      })
+
+      expect(response).toMatchObject({ rateLimitResetsAt: 1_030_000 })
+    })
+
+    it('passes on the wait of a secondary GitHub rate limit', async () => {
+      vi.useFakeTimers({ now: 1_000_000 })
+
+      const response = await failureWith(403, { 'retry-after': '60' })
+
+      expect(response).toMatchObject({ status: 403, rateLimitResetsAt: 1_060_000 })
     })
 
     it('ignores a retry-after that is no number of seconds', async () => {

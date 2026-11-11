@@ -7,6 +7,7 @@ type Fetch = typeof fetch
 
 const UNAUTHORIZED = 401
 const RATE_LIMIT_STATUSES = [403, 429]
+const RATE_LIMIT_HEADER_PREFIXES = ['x-ratelimit', 'ratelimit']
 
 export class FetchProxy {
   constructor(
@@ -45,17 +46,18 @@ export class FetchProxy {
     const headers = response.headers
     const retryAfterSeconds = this.secondsIn(headers.get('retry-after'))
     if (retryAfterSeconds !== undefined) return Date.now() + retryAfterSeconds * 1000
-    const resetEpochSeconds =
-      headers.get('x-ratelimit-remaining') === '0'
-        ? this.secondsIn(headers.get('x-ratelimit-reset'))
-        : headers.get('ratelimit-remaining') === '0'
-          ? this.secondsIn(headers.get('ratelimit-reset'))
-          : undefined
+    const exhausted = RATE_LIMIT_HEADER_PREFIXES.find(
+      (prefix) => headers.get(`${prefix}-remaining`) === '0',
+    )
+    const resetEpochSeconds = exhausted
+      ? this.secondsIn(headers.get(`${exhausted}-reset`))
+      : undefined
     return resetEpochSeconds === undefined ? undefined : resetEpochSeconds * 1000
   }
 
   private secondsIn(header: string | null): number | undefined {
-    const seconds = Number(header || NaN)
+    if (header === null) return undefined
+    const seconds = Number(header)
     return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined
   }
 

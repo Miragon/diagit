@@ -65,15 +65,15 @@ export class GithubApiAuth implements AuthPolicy {
 
   async errorHelp(location: Location, err: unknown): Promise<ErrorHelp> {
     const status = err instanceof FetchError ? err.status : undefined
-    const rateLimitReached = rateLimitHint('GitHub', err)
+    const rateLimitNotice = rateLimitHint('GitHub', err)
     if (!this.targets(this.routes.apiBase(location))) {
-      return { hint: rateLimitReached ?? this.enterpriseHint(status) }
+      return { hint: rateLimitNotice ?? this.enterpriseHint(status) }
     }
     const connected = await this.store.token().then(Boolean, () => false)
-    if (rateLimitReached) {
+    if (rateLimitNotice) {
       return connected
-        ? { hint: rateLimitReached }
-        : { hint: `${rateLimitReached} ${RAISE_RATE_LIMIT_HINT}`, action: CONNECT_GITHUB }
+        ? { hint: rateLimitNotice }
+        : { hint: `${rateLimitNotice} ${RAISE_RATE_LIMIT_HINT}`, action: CONNECT_GITHUB }
     }
     switch (status) {
       case 401:

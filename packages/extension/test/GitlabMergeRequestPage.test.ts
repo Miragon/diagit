@@ -15,12 +15,14 @@ const gitlabCom = { origin: 'https://gitlab.com' } as Location
 describe('GitlabMergeRequestPage.errorHelp', () => {
   it('says when an exhausted rate limit resets', async () => {
     const resetsAt = new Date(2030, 0, 1, 14, 32).getTime()
+    const resetTime = new Date(resetsAt).toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+    })
 
     const help = await page.errorHelp(gitlabCom, new FetchError('HTTP 429', 429, resetsAt))
 
-    expect(help.hint).toMatch(
-      /^GitLab's API rate limit is reached\. It resets at (14:32|2:32\sPM)\.$/,
-    )
+    expect(help.hint).toBe(`GitLab's API rate limit is reached. It resets at ${resetTime}.`)
   })
 
   it('leaves out a reset time that has already passed', async () => {
