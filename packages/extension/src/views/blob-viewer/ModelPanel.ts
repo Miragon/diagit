@@ -4,6 +4,8 @@ import { h } from '../../platform/utils/dom'
 import { errorMessage } from '../../platform/utils/errorMessage'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
+import { diagitRepository } from '../../platform/DiagitRepository'
+import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 
 export interface ModelPanelOptions {
@@ -60,7 +62,16 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       xml = await this.options.loadXml()
     } catch (err) {
-      this.placeholder.textContent = `Could not load file: ${errorMessage(err)}`
+      const title = `${this.label} view could not be loaded`
+      this.showError({
+        title,
+        hint: 'Diagit could not download this file. Reload the page to try again.',
+        message: errorMessage(err),
+        reportUrl: diagitRepository.problemReportUrl(
+          `${this.label} file not loaded on a file page`,
+          `Diagit showed "${title}" on a file page.`,
+        ),
+      })
       return
     }
     if (this.destroyed) return
@@ -69,8 +80,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       viewer = await this.options.notation.createViewer(this.canvas, xml)
     } catch (err) {
-      const label = this.options.notation.descriptor.label
-      this.placeholder.textContent = `Could not render ${label}: ${errorMessage(err)}`
+      this.showError(ErrorNotice.unreadableModel(this.label, 'on a file page', err))
       return
     }
     if (this.destroyed) {
@@ -87,5 +97,13 @@ export class ModelPanel implements PanelHandle, Zoomable {
     )
     this.resizeObserver = new ResizeObserver(() => this.viewer?.fit())
     this.resizeObserver.observe(this.canvas)
+  }
+
+  private get label(): string {
+    return this.options.notation.descriptor.label
+  }
+
+  private showError(details: ErrorNoticeDetails): void {
+    this.wrap.replaceChildren(new ErrorNotice(details).element)
   }
 }

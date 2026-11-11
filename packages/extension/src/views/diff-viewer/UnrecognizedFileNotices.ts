@@ -2,13 +2,14 @@ import type { VisibleFileHeader } from '../../git-hosts/FileHeaderLocator'
 import type { NotationLookup } from '../../notations/Notation'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { diagitRepository } from '../../platform/DiagitRepository'
-import { DiffErrorNotice } from './DiffErrorNotice'
+import { DIFF_ERROR_TAG } from '../../platform/injectedElements'
+import { ErrorNotice } from '../../platform/ui/ErrorNotice'
 
 const UNRECOGNIZED_HINT =
   'This file changed and is shown on the page, but Diagit does not recognise this diff view. The page layout has probably changed.'
 
 export class UnrecognizedFileNotices {
-  private readonly shown = new Map<string, ShadowPanel<DiffErrorNotice>>()
+  private readonly shown = new Map<string, ShadowPanel<ErrorNotice>>()
   private readonly mounting = new Set<string>()
 
   constructor(
@@ -40,14 +41,12 @@ export class UnrecognizedFileNotices {
     }
   }
 
-  private mount({ path, header }: VisibleFileHeader): Promise<ShadowPanel<DiffErrorNotice>> {
-    const notation = this.notations.detect(path)
-    const label = notation?.descriptor.label ?? 'Diagram'
-    return DiffErrorNotice.mountOn(this.page, {
-      anchor: header,
-      append: 'after',
-      css: notation?.differ?.css ?? '',
-      details: {
+  private mount({ path, header }: VisibleFileHeader): Promise<ShadowPanel<ErrorNotice>> {
+    const label = this.notations.detect(path)?.descriptor.label ?? 'Diagram'
+    return ErrorNotice.mountOn(
+      this.page,
+      { name: DIFF_ERROR_TAG, anchor: header, append: 'after' },
+      {
         title: `${label} diff could not be shown`,
         message: path,
         hint: UNRECOGNIZED_HINT,
@@ -56,6 +55,6 @@ export class UnrecognizedFileNotices {
           `Diagit showed "${label} diff could not be shown" for a changed file whose diff it did not recognise.`,
         ),
       },
-    })
+    )
   }
 }

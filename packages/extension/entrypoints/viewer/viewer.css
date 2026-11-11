@@ -71,10 +71,8 @@ body {
   height: 48px;
 }
 
-.dropzone-card.error {
-  color: var(--cd-ui-text);
-  border-left: 3px solid var(--cd-ui-danger);
-  background: var(--cd-ui-danger-flaeche);
+.dropzone .git-diagram-error {
+  max-width: 480px;
 }
 
 .dropzone.dragover {

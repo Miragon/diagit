@@ -34,41 +34,6 @@
   background: var(--bg);
 }
 
-/* Notice shown when the diff metadata could not be loaded: a status box with a
-   bar in the danger role. */
-.git-diagram-wrap.git-diagram-error {
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--cd-ui-danger);
-  border-radius: var(--radius);
-  background: var(--cd-ui-danger-flaeche);
-  color: var(--fg);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.git-diagram-error-title {
-  font-weight: 600;
-}
-
-.git-diagram-error-hint {
-  margin-top: 2px;
-}
-
-.git-diagram-error-report {
-  display: inline-block;
-  margin-top: 6px;
-  color: var(--cd-ui-link);
-}
-
-.git-diagram-error-detail {
-  margin-top: 6px;
-  color: var(--fg-muted);
-  font-family: var(--diagit-font-mono);
-  font-size: 12px;
-  word-break: break-all;
-}
-
 .git-diagram-di-pane {
   position: relative;
   flex: 1 1 0;

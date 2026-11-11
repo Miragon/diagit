@@ -1,6 +1,6 @@
 import type { Notation, DiagramViewer, NotationLookup } from '../../notations/Notation'
 import { h } from '../../platform/utils/dom'
-import { errorMessage } from '../../platform/utils/errorMessage'
+import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 
 export class StandaloneViewerPage {
   private readonly fileInput: HTMLInputElement
@@ -66,8 +66,11 @@ export class StandaloneViewerPage {
   private async open(file: File): Promise<void> {
     const notation = this.notations.detect(file.name)
     if (!notation) {
-      const expected = this.fileExtensions.join(' or ')
-      this.showError(`Unsupported file: ${file.name} (expected ${expected}).`)
+      this.showError({
+        title: 'File not supported',
+        hint: `Diagit opens ${this.fileExtensions.join(' or ')} files.`,
+        message: file.name,
+      })
       return
     }
     this.loadAssetCss(notation)
@@ -79,7 +82,9 @@ export class StandaloneViewerPage {
       this.viewer = await notation.createViewer(this.canvas, xml)
       this.dropzone.classList.add('hidden')
     } catch (err) {
-      this.showError(`Could not render ${notation.descriptor.label}: ${errorMessage(err)}`)
+      this.showError(
+        ErrorNotice.unreadableModel(notation.descriptor.label, 'in the standalone viewer', err),
+      )
     }
   }
 
@@ -89,10 +94,10 @@ export class StandaloneViewerPage {
     document.head.append(h('style', { text: notation.assetCss }))
   }
 
-  private showError(text: string): void {
+  private showError(details: ErrorNoticeDetails): void {
     this.dropzone.classList.remove('hidden', 'dragover')
-    this.dropzone.replaceChildren(
-      h('div', { class: 'dropzone-card error', role: 'alert' }, [h('span', { text })]),
-    )
+    const notice = new ErrorNotice(details).element
+    notice.setAttribute('role', 'alert')
+    this.dropzone.replaceChildren(notice)
   }
 }

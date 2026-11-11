@@ -1,0 +1,35 @@
+.git-diagram-error {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--cd-ui-linie);
+  border-left: 3px solid var(--cd-ui-danger);
+  border-radius: var(--cd-radius-md);
+  background: var(--cd-ui-danger-flaeche);
+  color: var(--cd-ui-text);
+  font-family: var(--diagit-font);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.git-diagram-error-title {
+  font-weight: 600;
+}
+
+.git-diagram-error-hint {
+  margin-top: 2px;
+}
+
+.git-diagram-error-report {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--cd-ui-link);
+}
+
+.git-diagram-error-detail {
+  margin-top: 6px;
+  color: var(--cd-ui-text-leise);
+  font-family: var(--diagit-font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
