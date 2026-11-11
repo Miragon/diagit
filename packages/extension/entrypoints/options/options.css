@@ -157,77 +157,6 @@ input:focus-visible {
   border-radius: var(--cd-radius-sm);
 }
 
-.btn {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-sizing: border-box;
-  height: 36px;
-  padding: 0 14px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  text-decoration: none;
-  cursor: pointer;
-  border: 1px solid var(--cd-ui-linie);
-  border-radius: var(--cd-radius-md);
-  background: var(--cd-ui-flaeche-hoch);
-  color: var(--cd-ui-text);
-  transition:
-    background var(--cd-motion-fast) var(--cd-ease),
-    box-shadow var(--cd-motion-fast) var(--cd-ease),
-    transform var(--cd-motion-fast) var(--cd-ease);
-}
-
-.btn:hover {
-  border-color: var(--cd-ui-interaktion);
-  background: var(--cd-ui-hover);
-  color: var(--cd-ui-link);
-}
-
-.btn.primary {
-  background: var(--cd-blau);
-  border-color: var(--cd-blau);
-  color: var(--cd-weiss);
-  box-shadow: var(--cd-shadow-1);
-}
-
-.btn.primary:hover {
-  background: var(--cd-blau-link);
-  border-color: var(--cd-blau-link);
-  box-shadow: var(--cd-shadow-2);
-  transform: translateY(-1px);
-}
-
-.btn.quiet-danger:hover {
-  border-color: var(--cd-ui-danger);
-  background: var(--cd-ui-flaeche-hoch);
-  color: var(--cd-ui-danger);
-}
-
-.btn:disabled,
-.btn:disabled:hover {
-  background: var(--cd-ui-hover);
-  border-color: var(--cd-ui-linie);
-  color: var(--cd-ui-text-leise);
-  box-shadow: none;
-  transform: none;
-  cursor: not-allowed;
-}
-
-.btn.copy {
-  flex: none;
-  align-self: center;
-}
-
-.btn.copy.copied {
-  border-color: var(--cd-ui-success);
-}
-
 .status {
   min-height: 18px;
   font-size: 13px;
@@ -356,12 +285,6 @@ input:focus-visible {
   border: 1.5px solid var(--cd-schwarz);
 }
 
-.btn svg {
-  flex: none;
-  width: 16px;
-  height: 16px;
-}
-
 .support {
   display: flex;
   align-items: center;
@@ -423,10 +346,6 @@ input:focus-visible {
   margin-top: 12px;
 }
 
-.btn.copied {
-  border-color: var(--cd-ui-success);
-}
-
 .page-footer {
   display: flex;
   flex-wrap: wrap;
@@ -445,10 +364,4 @@ input:focus-visible {
 
 .made-by {
   margin-left: auto;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .btn {
-    transition: none;
-  }
 }

@@ -30,7 +30,7 @@ export class SelfHostedHostsSection {
     'aria-label': 'Type',
   }) as HTMLSelectElement
   private readonly addButton = h('button', {
-    class: 'btn primary add-instance',
+    class: 'btn btn-primary add-instance',
     type: 'button',
     text: 'Add instance',
   })
@@ -126,7 +126,7 @@ export class SelfHostedHostsSection {
 
   private renderRow(host: SelfHostedHost): HTMLElement {
     const remove = h('button', {
-      class: 'btn quiet-danger',
+      class: 'btn btn-quiet-danger',
       type: 'button',
       text: 'Remove',
       'aria-label': `Remove ${host.origin}`,

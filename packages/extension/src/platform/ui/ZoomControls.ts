@@ -28,7 +28,7 @@ export class ZoomControls {
   private button(label: string, icon: IconNode, onClick: () => void): HTMLButtonElement {
     return h(
       'button',
-      { class: 'git-diagram-btn', type: 'button', title: label, 'aria-label': label, onClick },
+      { class: 'btn btn-icon', type: 'button', title: label, 'aria-label': label, onClick },
       [lucideIcon(icon)],
     )
   }

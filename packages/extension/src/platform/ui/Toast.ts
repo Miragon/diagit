@@ -20,6 +20,11 @@ export interface ToastOptions {
   onClose: () => void
 }
 
+const VARIANT_CLASS: Record<ToastAction['variant'], string> = {
+  primary: 'btn-primary',
+  secondary: 'btn-secondary',
+}
+
 export class Toast implements PanelHandle {
   private readonly announcement = h('p', {
     class: 'diagit-toast-message',
@@ -67,7 +72,7 @@ export class Toast implements PanelHandle {
 
   private actionButton({ label, variant, url }: ToastAction): HTMLButtonElement {
     return h('button', {
-      class: `diagit-toast-${variant}`,
+      class: `btn btn-small ${VARIANT_CLASS[variant]}`,
       type: 'button',
       text: label,
       onClick: () => {
@@ -81,7 +86,7 @@ export class Toast implements PanelHandle {
     return h(
       'button',
       {
-        class: 'diagit-toast-close',
+        class: 'btn btn-icon',
         type: 'button',
         title: 'Close',
         'aria-label': 'Close',

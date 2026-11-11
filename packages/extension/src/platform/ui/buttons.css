@@ -1,0 +1,116 @@
+.btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: var(--cd-shell-eintrag);
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--cd-radius-md);
+  background: transparent;
+  color: var(--cd-ui-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--cd-motion-fast) var(--cd-ease),
+    border-color var(--cd-motion-fast) var(--cd-ease),
+    color var(--cd-motion-fast) var(--cd-ease),
+    box-shadow var(--cd-motion-fast) var(--cd-ease),
+    transform var(--cd-motion-fast) var(--cd-ease);
+}
+
+.btn svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--cd-ui-fokus);
+  outline-offset: 2px;
+}
+
+.btn-small {
+  height: var(--cd-shell-ziel);
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.btn-large {
+  height: var(--cd-shell-zeile);
+}
+
+.btn-primary {
+  border-color: var(--cd-blau);
+  background: var(--cd-blau);
+  color: var(--cd-weiss);
+  box-shadow: var(--cd-shadow-1);
+}
+
+.btn-primary:is(:hover, :active):not(:disabled) {
+  border-color: var(--cd-blau-link);
+  background: var(--cd-blau-link);
+  box-shadow: var(--cd-shadow-2);
+  transform: translateY(-1px);
+}
+
+.btn-secondary,
+.btn-quiet-danger {
+  border-color: var(--cd-ui-linie);
+  background: var(--cd-ui-flaeche-hoch);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--cd-ui-interaktion);
+  background: var(--cd-ui-hover);
+  color: var(--cd-ui-link);
+}
+
+.btn-quiet-danger:hover:not(:disabled) {
+  border-color: var(--cd-ui-danger);
+  color: var(--cd-ui-danger);
+}
+
+.btn-icon {
+  width: var(--cd-shell-ziel);
+  height: var(--cd-shell-ziel);
+  padding: 0;
+  border: none;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: var(--cd-ui-hover);
+  color: var(--cd-ui-interaktion);
+}
+
+.btn:disabled {
+  border-color: var(--cd-ui-linie);
+  color: var(--cd-ui-text-leise);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled {
+  background: var(--cd-ui-hover);
+}
+
+.btn-icon:disabled {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+
+  .btn-primary:is(:hover, :active):not(:disabled) {
+    transform: none;
+  }
+}

@@ -57,29 +57,30 @@ export class HelpSection {
 
   private reportButton(): HTMLElement {
     const url = this.debugInfo.bugReportUrl()
-    return externalLink(url, { class: 'btn primary' }, [lucideIcon(Bug), 'Report a bug'])
+    return externalLink(url, { class: 'btn btn-primary' }, [lucideIcon(Bug), 'Report a bug'])
   }
 
   private copyButton(): HTMLButtonElement {
-    const button = h('button', { class: 'btn copy-debug-info', type: 'button' }, [
-      lucideIcon(ClipboardCopy),
-      this.copyLabel,
-    ])
-    button.addEventListener('click', () => void this.copyDebugInfo(button))
-    return button
+    return h(
+      'button',
+      {
+        class: 'btn btn-secondary copy-debug-info',
+        type: 'button',
+        onClick: () => void this.copyDebugInfo(),
+      },
+      [lucideIcon(ClipboardCopy), this.copyLabel],
+    )
   }
 
-  private async copyDebugInfo(button: HTMLButtonElement): Promise<void> {
+  private async copyDebugInfo(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.debugInfo.text(await this.setup()))
     } catch {
       return
     }
     this.copyLabel.textContent = 'Copied ✓'
-    button.classList.add('copied')
     window.setTimeout(() => {
       this.copyLabel.textContent = COPY_LABEL
-      button.classList.remove('copied')
     }, COPIED_FEEDBACK_MS)
   }
 }

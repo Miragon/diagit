@@ -36,11 +36,6 @@
   font-family: var(--diagit-font);
 }
 
-.git-diagram-wrap button:focus-visible {
-  outline: 2px solid var(--cd-ui-fokus);
-  outline-offset: 2px;
-}
-
 .git-diagram-toolbar {
   display: flex;
   align-items: center;
@@ -84,6 +79,7 @@
 }
 
 .git-diagram-tab:focus-visible {
+  outline: 2px solid var(--cd-ui-fokus);
   outline-offset: -2px;
 }
 
@@ -119,34 +115,6 @@
   align-self: stretch;
   margin: 4px 2px;
   background: var(--border);
-}
-
-.git-diagram-btn {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--cd-shell-ziel);
-  height: var(--cd-shell-ziel);
-  padding: 0;
-  border: none;
-  border-radius: var(--cd-radius-sm);
-  background: transparent;
-  color: var(--fg);
-}
-
-.git-diagram-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.git-diagram-btn:hover {
-  background: var(--btn-hover);
-  color: var(--selected);
-}
-
-.git-diagram-btn:focus-visible {
-  outline-offset: -2px;
 }
 
 .git-diagram-canvas {

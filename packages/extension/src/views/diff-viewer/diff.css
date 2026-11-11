@@ -1,7 +1,7 @@
 /*
  * Styles for the injected merge-request diff. Scoped to the shadow root. Bundled
  * together with viewer.css, so it inherits its aliases (--fg, --bg, --border,
- * --btn-bg, --btn-hover, --canvas-bg) and the shared toolbar/tab/button
+ * --btn-bg, --btn-hover, --canvas-bg) and the shared toolbar/tab
  * components defined there. Only diff-specific layout + marker colours live here.
  *
  * Change markers use the Miragon status colours: added = success, removed =
@@ -144,29 +144,6 @@
 .git-diagram-di-nav {
   display: flex;
   gap: 6px;
-}
-
-.git-diagram-di-navbtn {
-  cursor: pointer;
-  font-family: var(--diagit-font);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--cd-radius-sm);
-  background: var(--btn-bg);
-  color: var(--fg);
-}
-
-.git-diagram-di-navbtn:hover:not(:disabled) {
-  border-color: var(--selected);
-  background: var(--btn-hover);
-  color: var(--cd-ui-link);
-}
-
-.git-diagram-di-navbtn:disabled {
-  color: var(--fg-muted);
-  cursor: not-allowed;
 }
 
 /* Marker colours per change category, light mode. */

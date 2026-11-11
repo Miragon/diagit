@@ -33,13 +33,6 @@
   .diagit-toast {
     animation: none;
   }
-
-  .diagit-toast-primary,
-  .diagit-toast-primary:hover,
-  .diagit-toast-primary:active {
-    transition: none;
-    transform: none;
-  }
 }
 
 .diagit-toast[data-tone='danger'] {
@@ -75,71 +68,4 @@
   flex: none;
   align-items: center;
   gap: var(--cd-shell-luecke);
-}
-
-.diagit-toast button {
-  cursor: pointer;
-  height: var(--cd-shell-ziel);
-  border: none;
-  border-radius: var(--cd-radius-md);
-  font: inherit;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.diagit-toast button:focus-visible {
-  outline: 2px solid var(--cd-ui-fokus);
-  outline-offset: 2px;
-}
-
-.diagit-toast-primary {
-  padding: 0 12px;
-  background: var(--cd-blau);
-  color: var(--cd-weiss);
-  box-shadow: var(--cd-shadow-1);
-  transition:
-    background var(--cd-motion-fast) var(--cd-ease),
-    box-shadow var(--cd-motion-fast) var(--cd-ease),
-    transform var(--cd-motion-fast) var(--cd-ease);
-}
-
-.diagit-toast-primary:hover,
-.diagit-toast-primary:active {
-  background: var(--cd-blau-link);
-  box-shadow: var(--cd-shadow-2);
-  transform: translateY(-1px);
-}
-
-.diagit-toast .diagit-toast-secondary {
-  padding: 0 12px;
-  border: 1px solid var(--cd-ui-linie);
-  background: var(--cd-ui-flaeche-hoch);
-  color: var(--cd-ui-text);
-}
-
-.diagit-toast .diagit-toast-secondary:hover {
-  border-color: var(--cd-ui-interaktion);
-  background: var(--cd-ui-hover);
-  color: var(--cd-ui-link);
-}
-
-.diagit-toast .diagit-toast-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--cd-shell-ziel);
-  padding: 0;
-  border-radius: var(--cd-radius-sm);
-  background: transparent;
-  color: var(--cd-ui-text);
-}
-
-.diagit-toast-close svg {
-  width: 16px;
-  height: 16px;
-}
-
-.diagit-toast .diagit-toast-close:hover {
-  background: var(--cd-ui-hover);
-  color: var(--cd-ui-interaktion);
 }
