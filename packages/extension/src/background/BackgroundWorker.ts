@@ -53,7 +53,10 @@ export class BackgroundWorker {
       (perms) => void this.access.revoke(perms.origins ?? []),
     )
     browser.runtime.onInstalled.addListener(({ reason }) => {
-      if (reason === 'update' && !this.browserReinjectsOnUpdate) void this.restoreViewsInOpenTabs()
+      if (reason !== 'update' || this.browserReinjectsOnUpdate) return
+      this.restoreViewsInOpenTabs().catch((err) =>
+        console.error('[diagit] could not restore views in open tabs', err),
+      )
     })
     browser.runtime.onMessage.addListener((message: BackgroundRequest, sender, sendResponse) =>
       this.handle(message, sender, sendResponse),

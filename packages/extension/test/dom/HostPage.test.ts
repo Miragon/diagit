@@ -70,6 +70,19 @@ describe('HostPage after the extension was updated or removed', () => {
   })
 })
 
+describe('HostPage navigation after the extension was updated or removed', () => {
+  it('ignores a navigation once its extension context is gone', async () => {
+    const onChange = vi.fn()
+    page.onChange(10, onChange)
+
+    context.loseExtensionContext()
+    context.navigate()
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    expect(onChange).not.toHaveBeenCalled()
+  })
+})
+
 describe('HostPage.onElementChange', () => {
   it('stops reacting and drops a waiting change once stopped', async () => {
     const onChange = vi.fn()

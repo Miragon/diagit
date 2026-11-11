@@ -85,7 +85,8 @@ export class HostAccess {
           .catch(() => []),
       ),
     )
-    return tabsPerPattern.flat().flatMap((tab) => (tab.id == null ? [] : [tab.id]))
+    const tabIds = tabsPerPattern.flat().flatMap((tab) => (tab.id == null ? [] : [tab.id]))
+    return [...new Set(tabIds)]
   }
 
   private async grantedOrigins(): Promise<string[]> {

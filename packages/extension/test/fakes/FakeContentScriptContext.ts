@@ -29,10 +29,8 @@ export class FakeContentScriptContext {
   }
 
   private checkExtensionContext(): boolean {
-    if (!this.extensionContextLost) return false
-    this.extensionContextLost = false
-    this.invalidate()
-    return true
+    if (this.extensionContextLost) this.notifyInvalidated()
+    return this.extensionContextLost
   }
 
   navigate(url = 'https://github.com/'): void {
@@ -44,6 +42,11 @@ export class FakeContentScriptContext {
   }
 
   invalidate(): void {
+    this.notifyInvalidated()
+    this.extensionContextLost = false
+  }
+
+  private notifyInvalidated(): void {
     this.invalidationListeners.splice(0).forEach((listener) => listener())
     this.navigationListeners.length = 0
   }
