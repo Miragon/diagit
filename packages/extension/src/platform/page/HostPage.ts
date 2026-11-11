@@ -3,7 +3,7 @@ import {
   createShadowRootUi,
   type ShadowRootContentScriptUi,
 } from 'wxt/utils/content-script-ui/shadow-root'
-import { SHADOW_CANVAS_CSS, SHADOW_TOKENS_CSS } from '../theme/brandTheme'
+import { SHADOW_BASE_CSS, SHADOW_CANVAS_CSS } from '../theme/brandTheme'
 
 export interface PanelHandle {
   destroy(): void
@@ -81,7 +81,7 @@ export class HostPage {
       append: options.append,
       onMount: (container, shadow) => {
         const style = this.document.createElement('style')
-        style.textContent = [SHADOW_TOKENS_CSS, options.css, SHADOW_CANVAS_CSS].join('\n')
+        style.textContent = [SHADOW_BASE_CSS, options.css, SHADOW_CANVAS_CSS].join('\n')
         shadow.append(style)
         return options.render(container)
       },

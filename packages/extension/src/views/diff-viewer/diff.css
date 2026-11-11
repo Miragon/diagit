@@ -64,7 +64,7 @@
 .git-diagram-error-detail {
   margin-top: 6px;
   color: var(--fg-muted);
-  font-family: var(--font-mono);
+  font-family: var(--diagit-font-mono);
   font-size: 12px;
   word-break: break-all;
 }
@@ -148,7 +148,7 @@
 
 .git-diagram-di-navbtn {
   cursor: pointer;
-  font-family: var(--font);
+  font-family: var(--diagit-font);
   font-size: 13px;
   font-weight: 600;
   padding: 4px 10px;

@@ -60,6 +60,8 @@ describe('BlobViewerController', () => {
     const panelStyles = file.previousElementSibling!.shadowRoot!.querySelectorAll('style')
     const panelCss = [...panelStyles].map((style) => style.textContent).join('\n')
     expect(panelCss).toContain('--cd-ui-text')
+    expect(panelCss).toContain('--diagit-font:')
+    expect(panelCss).toContain('--diagit-font-mono:')
     expect(panelCss).not.toContain(':root')
   })
 

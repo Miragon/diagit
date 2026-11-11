@@ -1,4 +1,4 @@
-import '../../src/platform/theme/cd-tokens.generated.css'
+import '../../src/platform/ui/base.css'
 import '../options/options.css'
 import './alert.css'
 
