@@ -73,7 +73,7 @@ describe('GitHub pull-request diff', () => {
     const http = new FakeHttpClient().respondWith(pullRequestMetadata)
     const doc = withFileBoxes(`
       <div id="diff-1" aria-labelledby="heading-1">
-        <div data-diff-header-wrapper><h3 id="heading-1">‎flows/old.bpmn → flows/⁦order⁩.bpmn</h3></div>
+        <div data-diff-header-wrapper><h3 id="heading-1">\u200eflows/old.bpmn → flows/\u2066order\u2069.bpmn</h3></div>
         <div><table data-diff-anchor></table></div>
       </div>`)
 

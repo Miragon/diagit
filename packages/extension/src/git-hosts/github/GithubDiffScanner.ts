@@ -2,8 +2,8 @@ import type { ChangedFile } from '../DiffSource'
 import { notationDetector, type NotationDetector } from '../../notations/NotationDetector'
 import { isRendered } from '../../platform/utils/isRendered'
 import { githubSelectors } from './githubSelectors'
+import { stripBidiMarks } from '../../platform/utils/stripBidiMarks'
 
-const BIDI_MARKS = /[‎‏‪-‮⁦-⁩]/gu
 const RENAME_ARROW = '→'
 
 export class GithubDiffScanner {
@@ -62,7 +62,7 @@ export class GithubDiffScanner {
   }
 
   private headSidePath(headerText: string): string {
-    const clean = headerText.replace(BIDI_MARKS, '').trim()
+    const clean = stripBidiMarks(headerText).trim()
     return (clean.split(RENAME_ARROW).pop() ?? clean).trim()
   }
 

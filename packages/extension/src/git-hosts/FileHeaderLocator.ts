@@ -1,7 +1,7 @@
 import { notationDetector, type NotationDetector } from '../notations/NotationDetector'
 import { isRendered } from '../platform/utils/isRendered'
+import { stripBidiMarks } from '../platform/utils/stripBidiMarks'
 
-const BIDI_MARKS = /[‎‏‪-‮⁦-⁩]/gu
 const REGIONS_THAT_ONLY_MENTION_FILES =
   '[role="tree"], [role="dialog"], [role="listbox"], [role="menu"], [role="tooltip"], [popover], nav, [contenteditable="true"]'
 const HEADER_LIKE =
@@ -33,7 +33,7 @@ export class FileHeaderLocator {
     if (!wanted.size) return []
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      const path = (node.textContent ?? '').replace(BIDI_MARKS, '').trim()
+      const path = stripBidiMarks(node.textContent ?? '').trim()
       const label = node.parentElement
       if (!wanted.has(path) || headerByPath.has(path) || !label) continue
       if (!isRendered(label) || label.closest(this.regionsThatOnlyMentionFiles)) continue
