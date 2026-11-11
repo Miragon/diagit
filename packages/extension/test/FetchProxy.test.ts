@@ -13,8 +13,19 @@ const tokenForApi: AuthPolicy = {
 const githubPage = 'https://github.com'
 const gitlabPage = 'https://gitlab.com'
 
-function textResponse(url: string, text: string, status = 200): Response {
-  return { ok: status < 400, status, url, text: async () => text } as unknown as Response
+function textResponse(
+  url: string,
+  text: string,
+  status = 200,
+  headers: Record<string, string> = {},
+): Response {
+  return {
+    ok: status < 400,
+    status,
+    url,
+    headers: new Headers(headers),
+    text: async () => text,
+  } as unknown as Response
 }
 
 function opaqueRedirect(url: string): Response {
@@ -150,6 +161,74 @@ describe('FetchProxy', () => {
       ok: false,
       error: 'HTTP 404 for https://gitlab.com/a',
       status: 404,
+    })
+  })
+
+  describe('rate limits', () => {
+    const url = 'https://api.github.com/repos/o/r/pulls/1'
+    const resetEpochSeconds = 1_800_000_000
+
+    async function failureWith(status: number, headers: Record<string, string>) {
+      const fetch = vi.fn().mockResolvedValue(textResponse(url, '', status, headers))
+      return proxyWith(fetch).fetchText(url, githubPage)
+    }
+
+    it('passes on when an exhausted GitHub rate limit resets', async () => {
+      const response = await failureWith(403, {
+        'x-ratelimit-remaining': '0',
+        'x-ratelimit-reset': String(resetEpochSeconds),
+      })
+
+      expect(response).toMatchObject({ status: 403, rateLimitResetsAt: resetEpochSeconds * 1000 })
+    })
+
+    it('passes on when an exhausted GitLab rate limit resets', async () => {
+      const response = await failureWith(429, {
+        'ratelimit-remaining': '0',
+        'ratelimit-reset': String(resetEpochSeconds),
+      })
+
+      expect(response).toMatchObject({ status: 429, rateLimitResetsAt: resetEpochSeconds * 1000 })
+    })
+
+    it('prefers the wait of retry-after', async () => {
+      vi.useFakeTimers({ now: 1_000_000 })
+      try {
+        const response = await failureWith(429, {
+          'retry-after': '30',
+          'x-ratelimit-remaining': '0',
+          'x-ratelimit-reset': String(resetEpochSeconds),
+        })
+
+        expect(response).toMatchObject({ rateLimitResetsAt: 1_030_000 })
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('ignores a retry-after that is no number of seconds', async () => {
+      const response = await failureWith(429, { 'retry-after': 'soon' })
+
+      expect(response).toMatchObject({ status: 429 })
+      expect(response).not.toHaveProperty('rateLimitResetsAt', expect.anything())
+    })
+
+    it('passes on no reset time for a failure that is no rate limit', async () => {
+      const response = await failureWith(404, {
+        'x-ratelimit-remaining': '0',
+        'x-ratelimit-reset': String(resetEpochSeconds),
+      })
+
+      expect(response).not.toHaveProperty('rateLimitResetsAt', expect.anything())
+    })
+
+    it('passes on no reset time while requests remain', async () => {
+      const response = await failureWith(403, {
+        'x-ratelimit-remaining': '12',
+        'x-ratelimit-reset': String(resetEpochSeconds),
+      })
+
+      expect(response).not.toHaveProperty('rateLimitResetsAt', expect.anything())
     })
   })
 

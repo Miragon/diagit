@@ -99,6 +99,9 @@ describe('GithubApiAuth.headersAfterUnauthorized', () => {
 describe('GithubApiAuth.errorHelp', () => {
   const notFound = new FetchError('HTTP 404', 404)
   const forbidden = new FetchError('HTTP 403', 403)
+  const resetsAt = new Date(2030, 0, 1, 14, 32).getTime()
+  const resetTime = String.raw`(14:32|2:32\sPM)`
+  const rateLimited = (status: number) => new FetchError(`HTTP ${status}`, status, resetsAt)
   const connectGithub = { label: 'Connect GitHub', opensOptions: true }
   const installApp = {
     label: 'Install on this repository',
@@ -114,8 +117,34 @@ describe('GithubApiAuth.errorHelp', () => {
 
   it('offers to connect GitHub for a 403 while not connected', async () => {
     const help = await (await authWithToken('')).errorHelp(githubCom, forbidden)
-    expect(help.hint).toMatch(/rate limit|SSO/i)
+    expect(help.hint).toMatch(/SSO/)
+    expect(help.hint).not.toMatch(/rate limit/i)
     expect(help.action).toEqual(connectGithub)
+  })
+
+  it('says when an exhausted rate limit resets and offers to connect GitHub to raise it', async () => {
+    const help = await (await authWithToken('')).errorHelp(githubCom, rateLimited(403))
+    expect(help.hint).toMatch(
+      new RegExp(
+        `^GitHub's API rate limit is reached\\. It resets at ${resetTime}\\. Connect GitHub to raise the limit\\.$`,
+      ),
+    )
+    expect(help.action).toEqual(connectGithub)
+  })
+
+  it('says the rate limit is reached for a 429 without a reset time', async () => {
+    const help = await (
+      await authWithToken('')
+    ).errorHelp(githubCom, new FetchError('HTTP 429', 429))
+    expect(help.hint).toBe("GitHub's API rate limit is reached. Connect GitHub to raise the limit.")
+  })
+
+  it('offers no action for an exhausted rate limit while connected', async () => {
+    const help = await (await authWithToken('secret')).errorHelp(githubCom, rateLimited(429))
+    expect(help.hint).toMatch(
+      new RegExp(`^GitHub's API rate limit is reached\\. It resets at ${resetTime}\\.$`),
+    )
+    expect(help.action).toBeUndefined()
   })
 
   it('links to the app installation for a 404 or 403 while connected', async () => {
@@ -152,6 +181,14 @@ describe('GithubApiAuth.errorHelp', () => {
     const auth = await authWithToken('secret')
     const help = await auth.errorHelp(enterprise, notFound)
     expect(help.hint).not.toMatch(/GitHub App|api\.github\.com|expired/)
+    expect(help.action).toBeUndefined()
+  })
+
+  it('says when the rate limit resets on Enterprise, without offering to connect', async () => {
+    const help = await (await authWithToken('')).errorHelp(enterprise, rateLimited(403))
+    expect(help.hint).toMatch(
+      new RegExp(`^GitHub's API rate limit is reached\\. It resets at ${resetTime}\\.$`),
+    )
     expect(help.action).toBeUndefined()
   })
 })

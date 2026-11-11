@@ -7,6 +7,7 @@ export class FetchError extends Error {
   constructor(
     message: string,
     readonly status?: number,
+    readonly rateLimitResetsAt?: number,
   ) {
     super(message)
     this.name = 'FetchError'

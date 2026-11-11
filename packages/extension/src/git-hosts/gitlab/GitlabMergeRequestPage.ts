@@ -1,4 +1,5 @@
 import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSource'
+import { rateLimitHint } from '../utils/rateLimitHint'
 import type { GitlabDiffScanner } from './GitlabDiffScanner'
 import type { GitlabRestApi, MergeRequestData } from './GitlabRestApi'
 import type { GitlabRoutes, MergeRequestRef } from './GitlabRoutes'
@@ -55,7 +56,7 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
     }
   }
 
-  async errorHelp(): Promise<ErrorHelp> {
-    return { hint: METADATA_ERROR_HINT }
+  async errorHelp(_location: Location, err: unknown): Promise<ErrorHelp> {
+    return { hint: rateLimitHint('GitLab', err) ?? METADATA_ERROR_HINT }
   }
 }

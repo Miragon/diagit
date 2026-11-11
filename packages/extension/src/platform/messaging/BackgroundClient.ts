@@ -12,7 +12,9 @@ export class BackgroundClient implements HttpClient {
     const request: FetchTextRequest = { type: 'fetchText', url }
     const response = (await browser.runtime.sendMessage(request)) as FetchTextResponse | undefined
     if (!response) throw new Error('No response from background worker')
-    if (!response.ok) throw new FetchError(response.error, response.status)
+    if (!response.ok) {
+      throw new FetchError(response.error, response.status, response.rateLimitResetsAt)
+    }
     return response.text
   }
 
