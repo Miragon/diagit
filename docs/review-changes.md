@@ -19,9 +19,9 @@ Diagit adds its panel above the text diff of every changed `.bpmn` file on these
 
 The text diff below stays where it is. Diagit only adds to the page.
 
-## Switch between Plain and Diff
+## Plain and Diff
 
-The panel opens on **Plain**: the model as it is after the change. **Diff** shows the version before the change on the left and after it on the right.
+**Diff** shows the version before the change on the left and after it on the right. **Plain** shows the model as it is after the change. The panel opens on **Diff** when the file has both versions, and on **Plain** when the file was added or deleted.
 
 ## Read the colours
 
