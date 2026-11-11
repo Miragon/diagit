@@ -113,3 +113,31 @@ describe('HostAccess.restoreOnStartup', () => {
     expect(scripting.registered).toEqual(new Set([viewRouterId]))
   })
 })
+
+describe('HostAccess.openTabIds', () => {
+  it('finds the open tabs of the public hosts and of granted self-hosted origins', async () => {
+    await store.save({ origin })
+    await store.save({ origin: 'https://revoked.example.com' })
+    vi.mocked(browserApi.permissions.contains).mockImplementation(
+      async ({ origins }) => origins[0] === pattern,
+    )
+    vi.mocked(browserApi.tabs.query).mockImplementation(async ({ url }) =>
+      url === 'https://github.com/*' ? [{ id: 1 }, { url: 'tab without id' }] : [{ id: 2 }],
+    )
+
+    expect(await access.openTabIds(['https://github.com/*'])).toEqual([1, 2])
+    expect(vi.mocked(browserApi.tabs.query).mock.calls).toEqual([
+      [{ url: 'https://github.com/*' }],
+      [{ url: pattern }],
+    ])
+  })
+
+  it('skips a pattern the browser cannot query', async () => {
+    vi.mocked(browserApi.tabs.query).mockImplementation(async ({ url }) => {
+      if (url === 'https://broken/*') throw new Error('Invalid url pattern')
+      return [{ id: 5 }]
+    })
+
+    expect(await access.openTabIds(['https://broken/*', 'https://github.com/*'])).toEqual([5])
+  })
+})

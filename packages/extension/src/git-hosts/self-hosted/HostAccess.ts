@@ -67,15 +67,34 @@ export class HostAccess {
   }
 
   async restoreOnStartup(): Promise<void> {
-    for (const host of await this.store.list()) {
-      const origins = [originToPattern(host.origin)]
-      if (!(await this.browserApi().permissions.contains({ origins }))) continue
+    for (const origin of await this.grantedOrigins()) {
       try {
-        await this.registrar.register(host.origin)
+        await this.registrar.register(origin)
       } catch (err) {
-        console.error(`[diagit] could not register ${host.origin}`, err)
+        console.error(`[diagit] could not register ${origin}`, err)
       }
     }
+  }
+
+  async openTabIds(publicPatterns: string[]): Promise<number[]> {
+    const selfHostedPatterns = (await this.grantedOrigins()).map(originToPattern)
+    const tabsPerPattern = await Promise.all(
+      [...publicPatterns, ...selfHostedPatterns].map((url) =>
+        this.browserApi()
+          .tabs.query({ url })
+          .catch(() => []),
+      ),
+    )
+    return tabsPerPattern.flat().flatMap((tab) => (tab.id == null ? [] : [tab.id]))
+  }
+
+  private async grantedOrigins(): Promise<string[]> {
+    const granted: string[] = []
+    for (const host of await this.store.list()) {
+      const origins = [originToPattern(host.origin)]
+      if (await this.browserApi().permissions.contains({ origins })) granted.push(host.origin)
+    }
+    return granted
   }
 
   private originsOf(patterns: string[]): string[] {

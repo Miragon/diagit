@@ -40,7 +40,9 @@ export class HostPage {
   }
 
   onNavigation(listener: (url: URL) => void): void {
-    this.ctx.addEventListener(this.win, 'wxt:locationchange', (event) => listener(event.newUrl))
+    this.ctx.addEventListener(this.win, 'wxt:locationchange', (event) => {
+      if (!this.ctx.isInvalid) listener(event.newUrl)
+    })
   }
 
   onChange(delayMs: number, onChange: () => void): void {
@@ -91,7 +93,7 @@ export class HostPage {
   ): { schedule: () => void; stop: () => void } {
     let pending: ReturnType<typeof setTimeout> | null = null
     const schedule = () => {
-      if (pending) return
+      if (pending || this.ctx.isInvalid) return
       pending = setTimeout(() => {
         pending = null
         onChange()

@@ -13,6 +13,7 @@ vi.mock('wxt/browser', () => {
       runtime: {
         getURL: (path: string) => `chrome-extension://diagit${path}`,
         onMessage: listenable(),
+        onInstalled: listenable(),
         openOptionsPage: vi.fn(() => Promise.resolve()),
       },
       action: { onClicked: listenable() },
@@ -30,9 +31,20 @@ const SELF_HOSTED_FILE = 'https://git.example.com/group/repo/-/blob/main/order.b
 
 const TRUSTED_TAB = { tabId: 1, origin: 'https://github.com' }
 
-function startedWorker(): void {
-  const access = { restoreOnStartup: () => Promise.resolve() }
-  const hosts = { isSupportedUrl: (url: string) => url === SELF_HOSTED_FILE }
+const OPEN_TAB_IDS = [3, 4]
+const PUBLIC_PATTERNS = ['https://github.com/*', 'https://gitlab.com/*']
+
+const access = {
+  restoreOnStartup: () => Promise.resolve(),
+  openTabIds: vi.fn(async (_publicPatterns: string[]) => OPEN_TAB_IDS),
+}
+const injector = { injectRouter: vi.fn(async (_tabId: number) => undefined) }
+
+function startedWorker(browserReinjectsOnUpdate = false): void {
+  const hosts = {
+    isSupportedUrl: (url: string) => url === SELF_HOSTED_FILE,
+    publicMatchPatterns: () => PUBLIC_PATTERNS,
+  }
   const senders = {
     pageOf: (sender: { trusted?: boolean }) => (sender.trusted ? TRUSTED_TAB : undefined),
   }
@@ -40,8 +52,9 @@ function startedWorker(): void {
     access as never,
     hosts as never,
     {} as never,
-    {} as never,
+    injector as never,
     senders as never,
+    browserReinjectsOnUpdate,
   ).start()
 }
 
@@ -59,6 +72,11 @@ function clickToolbar(url: string): void {
 function domainAllowedBeforeClick(allowed: boolean): void {
   const contains = browser.permissions.contains as unknown as () => Promise<boolean>
   vi.mocked(contains).mockResolvedValue(allowed)
+}
+
+function installed(reason: string): void {
+  const [onInstalled] = vi.mocked(browser.runtime.onInstalled.addListener).mock.lastCall!
+  ;(onInstalled as (details: { reason: string }) => void)({ reason })
 }
 
 async function settled(): Promise<void> {
@@ -126,5 +144,38 @@ describe('BackgroundWorker openOptions message', () => {
   it('refuses an untrusted sender', async () => {
     expect(await sendMessage({ type: 'openOptions' }, {})).toBe(false)
     expect(browser.runtime.openOptionsPage).not.toHaveBeenCalled()
+  })
+})
+
+describe('BackgroundWorker extension update', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('loads the view router into every open tab of a supported host', async () => {
+    startedWorker()
+
+    installed('update')
+    await settled()
+
+    expect(access.openTabIds).toHaveBeenCalledWith(PUBLIC_PATTERNS)
+    expect(injector.injectRouter.mock.calls).toEqual([[3], [4]])
+  })
+
+  it('leaves open tabs alone on a fresh install or a browser update', async () => {
+    startedWorker()
+
+    installed('install')
+    installed('browser_update')
+    await settled()
+
+    expect(injector.injectRouter).not.toHaveBeenCalled()
+  })
+
+  it('leaves open tabs alone where the browser injects the new version itself', async () => {
+    startedWorker(true)
+
+    installed('update')
+    await settled()
+
+    expect(injector.injectRouter).not.toHaveBeenCalled()
   })
 })
