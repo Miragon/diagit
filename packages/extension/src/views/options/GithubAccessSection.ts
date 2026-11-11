@@ -9,6 +9,7 @@ import {
 import type { GithubTokenStore } from '../../git-hosts/github/GithubTokenStore'
 import { h } from '../../platform/utils/dom'
 import { errorMessage } from '../../platform/utils/errorMessage'
+import { externalLink } from '../../platform/utils/externalLink'
 
 const COPIED_FEEDBACK_MS = 1500
 
@@ -34,12 +35,7 @@ export class GithubAccessSection {
         ]),
         h('p', { class: 'intro' }, [
           'First ',
-          h('a', {
-            href: GITHUB_APP_INSTALL_URL,
-            target: '_blank',
-            rel: 'noreferrer',
-            text: 'install the GitHub App',
-          }),
+          externalLink(GITHUB_APP_INSTALL_URL, { text: 'install the GitHub App' }),
           ' on the accounts and repositories it may read, then connect below. The extension only ever gets access to the repos you install it on, and the access token is stored in this browser and sent only to ',
           h('code', { text: 'api.github.com' }),
           '; the refresh token that renews it is sent only to ',
@@ -115,12 +111,7 @@ export class GithubAccessSection {
     this.body.replaceChildren(
       h('p', { class: 'auth-hint' }, [
         'Enter this code at ',
-        h('a', {
-          href: code.verificationUri,
-          target: '_blank',
-          rel: 'noreferrer',
-          text: 'github.com/login/device',
-        }),
+        externalLink(code.verificationUri, { text: 'github.com/login/device' }),
         ' (a new tab should open automatically):',
       ]),
       h('div', { class: 'user-code-row' }, [
@@ -151,13 +142,7 @@ export class GithubAccessSection {
         class: 'auth-hint',
         text: 'Disconnect only removes the access and refresh tokens from this browser. To remove the GitHub App itself, uninstall it and revoke its authorisation in your GitHub settings.',
       }),
-      h('a', {
-        class: 'btn',
-        href: GITHUB_INSTALLED_APPS_URL,
-        target: '_blank',
-        rel: 'noreferrer',
-        text: 'Uninstall on GitHub',
-      }),
+      externalLink(GITHUB_INSTALLED_APPS_URL, { class: 'btn', text: 'Uninstall on GitHub' }),
     ])
   }
 
