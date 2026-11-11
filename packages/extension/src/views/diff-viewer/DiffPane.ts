@@ -87,6 +87,6 @@ export class DiffPane {
   }
 
   private navButton(text: string): HTMLButtonElement {
-    return h('button', { class: 'git-diagram-di-navbtn', type: 'button', text })
+    return h('button', { class: 'btn btn-secondary btn-small', type: 'button', text })
   }
 }

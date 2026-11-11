@@ -25,13 +25,15 @@ export class OptionsPageChrome {
 
   supportCard(): HTMLElement {
     const reviewUrl = this.reviewUrl()
-    const rate = reviewUrl ? [this.externalLink('Rate Diagit', reviewUrl, 'btn', ThumbsUp)] : []
+    const rate = reviewUrl
+      ? [this.externalLink('Rate Diagit', reviewUrl, 'btn btn-secondary', ThumbsUp)]
+      : []
     return h('aside', { class: 'card support' }, [
       h('div', { class: 'support-text' }, [
         h('strong', { text: 'Like Diagit?' }),
         h('span', { class: 'hint', text: 'A star or a rating helps other teams find it.' }),
       ]),
-      this.externalLink('Star on GitHub', diagitRepository.url, 'btn', Star),
+      this.externalLink('Star on GitHub', diagitRepository.url, 'btn btn-secondary', Star),
       ...rate,
     ])
   }

@@ -67,7 +67,7 @@ export class Toast implements PanelHandle {
 
   private actionButton({ label, variant, url }: ToastAction): HTMLButtonElement {
     return h('button', {
-      class: `diagit-toast-${variant}`,
+      class: `btn btn-small btn-${variant}`,
       type: 'button',
       text: label,
       onClick: () => {
@@ -81,7 +81,7 @@ export class Toast implements PanelHandle {
     return h(
       'button',
       {
-        class: 'diagit-toast-close',
+        class: 'btn btn-icon',
         type: 'button',
         title: 'Close',
         'aria-label': 'Close',

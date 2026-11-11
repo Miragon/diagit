@@ -52,7 +52,7 @@ export class GithubAccessSection {
     const [token, login] = await Promise.all([this.tokens.token(), this.tokens.login()])
     if (token) {
       const disconnect = h('button', {
-        class: 'btn quiet-danger',
+        class: 'btn btn-quiet-danger',
         type: 'button',
         text: 'Disconnect',
       })
@@ -67,7 +67,11 @@ export class GithubAccessSection {
       )
       return
     }
-    const connect = h('button', { class: 'btn primary', type: 'button', text: 'Connect GitHub' })
+    const connect = h('button', {
+      class: 'btn btn-primary',
+      type: 'button',
+      text: 'Connect GitHub',
+    })
     connect.addEventListener('click', () => void this.connect())
     this.body.replaceChildren(h('div', { class: 'row auth-row' }, [connect]))
   }
@@ -102,7 +106,7 @@ export class GithubAccessSection {
 
   private showUserCode(code: DeviceCode): void {
     const copyButton = h('button', {
-      class: 'btn copy',
+      class: 'btn btn-secondary',
       type: 'button',
       text: 'Copy',
       title: 'Copy the code to your clipboard',
@@ -142,7 +146,10 @@ export class GithubAccessSection {
         class: 'auth-hint',
         text: 'Disconnect only removes the access and refresh tokens from this browser. To remove the GitHub App itself, uninstall it and revoke its authorisation in your GitHub settings.',
       }),
-      externalLink(GITHUB_INSTALLED_APPS_URL, { class: 'btn', text: 'Uninstall on GitHub' }),
+      externalLink(GITHUB_INSTALLED_APPS_URL, {
+        class: 'btn btn-secondary',
+        text: 'Uninstall on GitHub',
+      }),
     ])
   }
 

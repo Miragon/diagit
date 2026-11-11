@@ -24,37 +24,8 @@ body {
   z-index: var(--cd-shell-ebene-inseln);
 }
 
-.btn {
-  cursor: pointer;
+.toolbar .btn {
   height: var(--cd-shell-zeile);
-  padding: 0 16px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: var(--cd-radius-md);
-  transition:
-    background var(--cd-motion-fast) var(--cd-ease),
-    box-shadow var(--cd-motion-fast) var(--cd-ease),
-    transform var(--cd-motion-fast) var(--cd-ease);
-}
-
-.btn.primary {
-  border: 1px solid var(--cd-blau);
-  background: var(--cd-blau);
-  color: var(--cd-weiss);
-  box-shadow: var(--cd-shadow-1);
-}
-
-.btn.primary:hover {
-  border-color: var(--cd-blau-link);
-  background: var(--cd-blau-link);
-  box-shadow: var(--cd-shadow-2);
-  transform: translateY(-1px);
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--cd-ui-fokus);
-  outline-offset: 2px;
 }
 
 .stage {
@@ -118,10 +89,4 @@ body {
 
 .dropzone.hidden {
   display: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .btn {
-    transition: none;
-  }
 }

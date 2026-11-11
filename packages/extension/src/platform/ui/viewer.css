@@ -121,34 +121,6 @@
   background: var(--border);
 }
 
-.git-diagram-btn {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--cd-shell-ziel);
-  height: var(--cd-shell-ziel);
-  padding: 0;
-  border: none;
-  border-radius: var(--cd-radius-sm);
-  background: transparent;
-  color: var(--fg);
-}
-
-.git-diagram-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.git-diagram-btn:hover {
-  background: var(--btn-hover);
-  color: var(--selected);
-}
-
-.git-diagram-btn:focus-visible {
-  outline-offset: -2px;
-}
-
 .git-diagram-canvas {
   position: relative;
   /* Static height; the diagram is fit into it. bpmn-js/dmn-js zoom-to-fit
