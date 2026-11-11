@@ -1,4 +1,4 @@
-import { browser } from 'wxt/browser'
+import { version } from '../../package.json'
 
 const BROWSER_SIGNATURES: readonly { name: string; pattern: RegExp }[] = [
   { name: 'Edge', pattern: /Edg\/(\d+)/ },
@@ -13,7 +13,7 @@ export class ExtensionEnvironment {
   ) {}
 
   static current(): ExtensionEnvironment {
-    return new ExtensionEnvironment(browser.runtime.getManifest().version, navigator.userAgent)
+    return new ExtensionEnvironment(version, navigator.userAgent)
   }
 
   describe(): string {
