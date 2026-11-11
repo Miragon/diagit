@@ -13,9 +13,50 @@ describe('GithubRoutes.pullRequest', () => {
       owner: 'org',
       repo: 'repo',
       number: '7',
+      revisions: null,
       key: 'org/repo!7',
     })
     expect(routes.pullRequest(loc('/org/repo/issues/7'))).toBeNull()
+  })
+
+  it('compares the whole pull request on its tabs and the commit list', () => {
+    for (const tab of ['', '/files', '/changes', '/commits', '/checks']) {
+      expect(routes.pullRequest(loc(`/o/r/pull/7${tab}`))).toMatchObject({
+        revisions: null,
+        key: 'o/r!7',
+      })
+    }
+  })
+
+  it('takes a single commit from the commit, files and changes views', () => {
+    for (const view of ['commits', 'files', 'changes']) {
+      expect(routes.pullRequest(loc(`/o/r/pull/7/${view}/c0ffee0`))).toMatchObject({
+        revisions: { commit: 'c0ffee0' },
+        key: 'o/r!7@c0ffee0',
+      })
+    }
+  })
+
+  it('takes a commit range from the files and changes views', () => {
+    for (const view of ['files', 'changes']) {
+      expect(routes.pullRequest(loc(`/o/r/pull/7/${view}/aaaaaaa..bbbbbbb`))).toMatchObject({
+        revisions: { base: 'aaaaaaa', head: 'bbbbbbb' },
+        key: 'o/r!7@aaaaaaa..bbbbbbb',
+      })
+    }
+  })
+
+  it('resolves no pull request for revisions it cannot read', () => {
+    expect(routes.pullRequest(loc('/o/r/pull/7/files/not-a-sha'))).toBeNull()
+    expect(routes.pullRequest(loc('/o/r/pull/7/files/aaaaaaa...bbbbbbb'))).toBeNull()
+    expect(routes.pullRequest(loc('/o/r/pull/7/files/..bbbbbbb'))).toBeNull()
+  })
+})
+
+describe('GithubRoutes.pullRequestDiffs', () => {
+  it('counts a single commit view as a diff, but not the commit list', () => {
+    expect(routes.pullRequestDiffs(loc('/o/r/pull/7/commits/c0ffee0'))).toBe(true)
+    expect(routes.pullRequestDiffs(loc('/o/r/pull/7/commits'))).toBe(false)
   })
 })
 

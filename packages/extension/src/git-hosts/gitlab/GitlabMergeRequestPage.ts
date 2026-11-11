@@ -30,7 +30,9 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
   }
 
   load(location: Location, page: MergeRequestRef): Promise<MergeRequestData> {
-    return this.api.loadMergeRequest(location, page)
+    return page.commit
+      ? this.api.loadCommit(location, page, page.commit)
+      : this.api.loadMergeRequest(location, page)
   }
 
   changedPaths(data: MergeRequestData): string[] {

@@ -1,6 +1,7 @@
 export interface MergeRequestRef {
   projectPath: string
   iid: string
+  commit: string | null
   key: string
 }
 
@@ -11,11 +12,21 @@ const MERGE_REQUEST_PATH = /^\/(.+?)\/-\/merge_requests\/(\d+)/
 const MERGE_REQUEST_DIFFS_PATH = /^\/.+?\/-\/merge_requests\/\d+\/diffs/
 
 export class GitlabRoutes {
-  mergeRequest(location: Pick<Location, 'pathname'>): MergeRequestRef | null {
+  mergeRequest(location: Pick<Location, 'pathname' | 'search'>): MergeRequestRef | null {
     const match = location.pathname.match(MERGE_REQUEST_PATH)
     if (!match) return null
     const [, projectPath, iid] = match
-    return { projectPath: projectPath!, iid: iid!, key: `${projectPath}!${iid}` }
+    const query = new URLSearchParams(location.search)
+    const commit = query.get('commit_id')
+    const comparesOtherVersions = query.has('start_sha') || (!commit && query.has('diff_id'))
+    if (comparesOtherVersions) return null
+    const mergeRequestKey = `${projectPath}!${iid}`
+    return {
+      projectPath: projectPath!,
+      iid: iid!,
+      commit,
+      key: commit ? `${mergeRequestKey}@${commit}` : mergeRequestKey,
+    }
   }
 
   mergeRequestDiffs(location: Pick<Location, 'pathname'>): boolean {
@@ -24,6 +35,10 @@ export class GitlabRoutes {
 
   mergeRequestApi(origin: string, ref: MergeRequestRef): string {
     return `${this.projectApi(origin, ref.projectPath)}/merge_requests/${ref.iid}`
+  }
+
+  commitApi(origin: string, projectPath: string, sha: string): string {
+    return `${this.projectApi(origin, projectPath)}/repository/commits/${encodeURIComponent(sha)}`
   }
 
   rawFileUrl(origin: string, projectPath: string, path: string, ref: string): string {

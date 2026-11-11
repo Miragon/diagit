@@ -71,6 +71,25 @@ describe('GitLab merge-request diff', () => {
     expect(await block!.loadNew()).toBe('<new/>')
   })
 
+  it('compares a single commit with its parent when the view is limited to one commit', async () => {
+    const commitApi = 'https://gitlab.com/api/v4/projects/group%2Fproject/repository/commits/ccc'
+    const http = new FakeHttpClient().respondWith({
+      [commitApi]: { id: 'ccc', parent_ids: ['ppp'] },
+      [`${commitApi}/diff?per_page=100&page=1`]: [
+        { old_path: 'flows/order.bpmn', new_path: 'flows/order.bpmn' },
+      ],
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ppp`]: '<parent/>',
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ccc`]: '<commit/>',
+    })
+    const commitView = { ...location, search: '?commit_id=ccc' } as Location
+
+    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(commitView, withFileBox())
+
+    expect(await block!.loadOld()).toBe('<parent/>')
+    expect(await block!.loadNew()).toBe('<commit/>')
+    expect(http.requests).not.toContain(api)
+  })
+
   it('ignores files that are not diffable diagrams', async () => {
     const http = new FakeHttpClient()
 

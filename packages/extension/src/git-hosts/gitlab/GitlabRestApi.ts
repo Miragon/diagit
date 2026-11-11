@@ -22,6 +22,11 @@ interface MergeRequestResponse {
   diff_refs: { base_sha: string; head_sha: string }
 }
 
+interface CommitResponse {
+  id: string
+  parent_ids: string[]
+}
+
 export class GitlabRestApi {
   constructor(
     private readonly http: HttpClient,
@@ -37,6 +42,24 @@ export class GitlabRestApi {
       projectPath: ref.projectPath,
       baseSha: mergeRequest.diff_refs.base_sha,
       headSha: mergeRequest.diff_refs.head_sha,
+      changeByPath: this.indexByPath(changes),
+    }
+  }
+
+  async loadCommit(
+    location: Location,
+    ref: Pick<MergeRequestRef, 'projectPath'>,
+    sha: string,
+  ): Promise<MergeRequestData> {
+    const commitApi = this.routes.commitApi(location.origin, ref.projectPath, sha)
+    const commit = await this.http.fetchJson<CommitResponse>(commitApi)
+    const changes = await fetchAllPages<MergeRequestChange>(this.http, `${commitApi}/diff`)
+    const rootCommitHasNoBase = ''
+    return {
+      origin: location.origin,
+      projectPath: ref.projectPath,
+      baseSha: commit.parent_ids[0] ?? rootCommitHasNoBase,
+      headSha: commit.id,
       changeByPath: this.indexByPath(changes),
     }
   }

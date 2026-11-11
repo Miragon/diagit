@@ -1,6 +1,6 @@
 import type { HttpClient } from '../../platform/messaging/HttpClient'
 import { fetchAllPages } from '../../platform/utils/fetchAllPages'
-import type { CommitRef, GithubRoutes, PullRequestRef } from './GithubRoutes'
+import type { CommitRange, CommitRef, GithubRoutes, PullRequestRef } from './GithubRoutes'
 
 export interface GithubDiffFile {
   filename: string
@@ -23,6 +23,7 @@ interface PullRequestResponse {
 
 interface CompareResponse {
   merge_base_commit: { sha: string }
+  files?: GithubDiffFile[]
 }
 
 interface CommitResponse {
@@ -56,7 +57,10 @@ export class GithubRestApi {
     }
   }
 
-  async loadCommit(location: Location, ref: CommitRef): Promise<GithubDiffData> {
+  async loadCommit(
+    location: Location,
+    ref: Pick<CommitRef, 'owner' | 'repo' | 'sha'>,
+  ): Promise<GithubDiffData> {
     const repo = `${ref.owner}/${ref.repo}`
     const commit = await this.http.fetchJson<CommitResponse>(
       `${this.routes.apiBase(location)}/repos/${repo}/commits/${ref.sha}`,
@@ -68,6 +72,24 @@ export class GithubRestApi {
       headRepo: repo,
       headSha: commit.sha,
       fileByPath: this.indexByPath(commit.files ?? []),
+    }
+  }
+
+  async loadComparison(
+    location: Location,
+    ref: Pick<PullRequestRef, 'owner' | 'repo'>,
+    range: CommitRange,
+  ): Promise<GithubDiffData> {
+    const repo = `${ref.owner}/${ref.repo}`
+    const comparison = await this.http.fetchJson<CompareResponse>(
+      `${this.routes.apiBase(location)}/repos/${repo}/compare/${range.base}...${range.head}`,
+    )
+    return {
+      baseRepo: repo,
+      baseSha: range.base,
+      headRepo: repo,
+      headSha: range.head,
+      fileByPath: this.indexByPath(comparison.files ?? []),
     }
   }
 
