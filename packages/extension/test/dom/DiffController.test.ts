@@ -121,7 +121,7 @@ describe('DiffController', () => {
     const notice = code.previousElementSibling!.shadowRoot!
     await vi.waitFor(() =>
       expect(notice.querySelector('.git-diagram-error-title')?.textContent).toBe(
-        'BPMN diff unavailable',
+        'BPMN diff could not be loaded',
       ),
     )
     expect(notice.querySelector('.git-diagram-error-hint')?.textContent).toBe('Connect the app.')

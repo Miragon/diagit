@@ -41,6 +41,7 @@ describe('ModelPanel', () => {
       'HTTP 500 for https://github.com/o/r/raw/main/order.bpmn',
     )
     expect(container.querySelector('.git-diagram-placeholder')).toBeNull()
+    expect(container.querySelector('.git-diagram-error')!.hasAttribute('role')).toBe(false)
   })
 
   it('shows the error notice with a report link when the model cannot be rendered', async () => {

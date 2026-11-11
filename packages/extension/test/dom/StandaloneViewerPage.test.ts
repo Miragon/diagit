@@ -41,6 +41,7 @@ describe('StandaloneViewerPage', () => {
     expect(textOf(app, '.git-diagram-error-hint')).toContain('as a BPMN model')
     expect(textOf(app, '.git-diagram-error-detail')).toBe('unparsable content')
     expect(textOf(app, '.git-diagram-error-report')).toBe('Report this problem')
+    expect(app.querySelector('.git-diagram-error')!.getAttribute('role')).toBe('alert')
   })
 
   it('shows the error notice without a report link for an unsupported file', async () => {

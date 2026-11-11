@@ -80,11 +80,11 @@ export class DiffController {
 
   private async mountError(file: ChangedFile, err: DiffDataError) {
     const label = this.notations.detect(file.path)?.descriptor.label ?? 'Diagram'
-    await ErrorNotice.mountOn(this.page, DIFF_ERROR_TAG, {
-      anchor: file.anchor,
-      append: file.append,
-      details: { title: `${label} diff unavailable`, message: err.message, hint: err.hint },
-    })
+    await ErrorNotice.mountOn(
+      this.page,
+      { name: DIFF_ERROR_TAG, anchor: file.anchor, append: file.append },
+      { title: `${label} diff could not be loaded`, message: err.message, hint: err.hint },
+    )
   }
 
   private async mount(block: DiffFileBlock, differ: DiagramDiffer): Promise<void> {

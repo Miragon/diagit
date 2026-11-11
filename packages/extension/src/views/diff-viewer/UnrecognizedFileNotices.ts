@@ -43,10 +43,10 @@ export class UnrecognizedFileNotices {
 
   private mount({ path, header }: VisibleFileHeader): Promise<ShadowPanel<ErrorNotice>> {
     const label = this.notations.detect(path)?.descriptor.label ?? 'Diagram'
-    return ErrorNotice.mountOn(this.page, DIFF_ERROR_TAG, {
-      anchor: header,
-      append: 'after',
-      details: {
+    return ErrorNotice.mountOn(
+      this.page,
+      { name: DIFF_ERROR_TAG, anchor: header, append: 'after' },
+      {
         title: `${label} diff could not be shown`,
         message: path,
         hint: UNRECOGNIZED_HINT,
@@ -55,6 +55,6 @@ export class UnrecognizedFileNotices {
           `Diagit showed "${label} diff could not be shown" for a changed file whose diff it did not recognise.`,
         ),
       },
-    })
+    )
   }
 }

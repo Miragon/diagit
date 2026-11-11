@@ -5,19 +5,13 @@ import { errorMessage } from '../../platform/utils/errorMessage'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { diagitRepository } from '../../platform/DiagitRepository'
-import { ErrorNotice } from '../../platform/ui/ErrorNotice'
+import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 
 export interface ModelPanelOptions {
   notation: Notation
   loadXml: () => Promise<string>
   onRendered?: () => void
-}
-
-interface PanelError {
-  title: string
-  hint: string
-  report: string
 }
 
 export class ModelPanel implements PanelHandle, Zoomable {
@@ -68,10 +62,15 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       xml = await this.options.loadXml()
     } catch (err) {
-      this.showError(err, {
-        title: `${this.label} view could not be loaded`,
-        hint: 'Diagit could not fetch this file from the page. Reload the page to try again.',
-        report: `${this.label} file not loaded on a file page`,
+      const title = `${this.label} view could not be loaded`
+      this.showError({
+        title,
+        hint: 'Diagit could not download this file. Reload the page to try again.',
+        message: errorMessage(err),
+        reportUrl: diagitRepository.problemReportUrl(
+          `${this.label} file not loaded on a file page`,
+          `Diagit showed "${title}" on a file page.`,
+        ),
       })
       return
     }
@@ -81,11 +80,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       viewer = await this.options.notation.createViewer(this.canvas, xml)
     } catch (err) {
-      this.showError(err, {
-        title: `${this.label} view could not be rendered`,
-        hint: `Diagit could not read this file as a ${this.label} model. If it opens in other tools, report this problem.`,
-        report: `${this.label} file not rendered on a file page`,
-      })
+      this.showError(ErrorNotice.unreadableModel(this.label, 'on a file page', err))
       return
     }
     if (this.destroyed) {
@@ -108,12 +103,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
     return this.options.notation.descriptor.label
   }
 
-  private showError(err: unknown, { title, hint, report }: PanelError): void {
-    const reportUrl = diagitRepository.problemReportUrl(
-      report,
-      `Diagit showed "${title}" on a file page.`,
-    )
-    const notice = new ErrorNotice({ title, hint, message: errorMessage(err), reportUrl })
-    this.wrap.replaceChildren(notice.element)
+  private showError(details: ErrorNoticeDetails): void {
+    this.wrap.replaceChildren(new ErrorNotice(details).element)
   }
 }

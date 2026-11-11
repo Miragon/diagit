@@ -1,7 +1,5 @@
 import type { Notation, DiagramViewer, NotationLookup } from '../../notations/Notation'
 import { h } from '../../platform/utils/dom'
-import { errorMessage } from '../../platform/utils/errorMessage'
-import { diagitRepository } from '../../platform/DiagitRepository'
 import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 
 export class StandaloneViewerPage {
@@ -84,17 +82,9 @@ export class StandaloneViewerPage {
       this.viewer = await notation.createViewer(this.canvas, xml)
       this.dropzone.classList.add('hidden')
     } catch (err) {
-      const label = notation.descriptor.label
-      const title = `${label} view could not be rendered`
-      this.showError({
-        title,
-        hint: `Diagit could not read this file as a ${label} model. If it opens in other tools, report this problem.`,
-        message: errorMessage(err),
-        reportUrl: diagitRepository.problemReportUrl(
-          `${label} file not rendered in the standalone viewer`,
-          `Diagit showed "${title}" in the standalone viewer.`,
-        ),
-      })
+      this.showError(
+        ErrorNotice.unreadableModel(notation.descriptor.label, 'in the standalone viewer', err),
+      )
     }
   }
 
@@ -106,6 +96,8 @@ export class StandaloneViewerPage {
 
   private showError(details: ErrorNoticeDetails): void {
     this.dropzone.classList.remove('hidden', 'dragover')
-    this.dropzone.replaceChildren(new ErrorNotice(details).element)
+    const notice = new ErrorNotice(details).element
+    notice.setAttribute('role', 'alert')
+    this.dropzone.replaceChildren(notice)
   }
 }
