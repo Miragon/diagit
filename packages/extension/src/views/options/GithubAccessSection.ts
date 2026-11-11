@@ -12,6 +12,8 @@ import { errorMessage } from '../../platform/utils/errorMessage'
 import { externalLink } from '../../platform/utils/externalLink'
 
 const COPIED_FEEDBACK_MS = 1500
+const EXPIRED_HINT =
+  'Your GitHub connection expired. Connect again to see diffs in private repositories.'
 
 type StatusKind = 'error' | 'ok'
 
@@ -49,7 +51,11 @@ export class GithubAccessSection {
   }
 
   private async render(): Promise<void> {
-    const [token, login] = await Promise.all([this.tokens.token(), this.tokens.login()])
+    const [token, login, expired] = await Promise.all([
+      this.tokens.token(),
+      this.tokens.login(),
+      this.tokens.connectionExpired(),
+    ])
     if (token) {
       const disconnect = h('button', {
         class: 'btn btn-quiet-danger',
@@ -73,7 +79,10 @@ export class GithubAccessSection {
       text: 'Connect GitHub',
     })
     connect.addEventListener('click', () => void this.connect())
-    this.body.replaceChildren(h('div', { class: 'row auth-row' }, [connect]))
+    this.body.replaceChildren(
+      ...(expired ? [h('p', { class: 'auth-hint', text: EXPIRED_HINT })] : []),
+      h('div', { class: 'row auth-row' }, [connect]),
+    )
   }
 
   private async connect(): Promise<void> {

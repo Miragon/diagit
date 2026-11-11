@@ -112,6 +112,7 @@ describe('GithubTokenRefresher.validToken', () => {
     await expect(refresher.validToken()).resolves.toBe('')
     expect(await store.token()).toBe('')
     expect(await store.login()).toBe('')
+    expect(await store.connectionExpired()).toBe(true)
   })
 
   it('forgets the connection without asking GitHub once the refresh token expired', async () => {
@@ -123,6 +124,7 @@ describe('GithubTokenRefresher.validToken', () => {
     await expect(refresher.validToken()).resolves.toBe('')
     expect(fetch).not.toHaveBeenCalled()
     expect(await store.tokenSet()).toEqual({ accessToken: '', refreshToken: '' })
+    expect(await store.connectionExpired()).toBe(true)
   })
 
   it('keeps using the still valid token when the refresh fails on the network', async () => {
@@ -159,6 +161,7 @@ describe('GithubTokenRefresher.validToken', () => {
 
     await expect(refresher.validToken()).resolves.toBe('ghu_old')
     expect(await store.tokenSet()).toEqual(expiringTokens)
+    expect(await store.connectionExpired()).toBe(false)
   })
 
   it('does not bring back tokens the user disconnected during the refresh', async () => {
@@ -172,6 +175,7 @@ describe('GithubTokenRefresher.validToken', () => {
 
     await expect(token).resolves.toBe('')
     expect(await store.tokenSet()).toEqual({ accessToken: '', refreshToken: '' })
+    expect(await store.connectionExpired()).toBe(false)
   })
 
   it('keeps a connection made during the refresh', async () => {
@@ -199,6 +203,7 @@ describe('GithubTokenRefresher.validToken', () => {
 
     await expect(token).resolves.toBe('ghu_other')
     expect(await store.tokenSet()).toEqual(otherAccountTokens)
+    expect(await store.connectionExpired()).toBe(false)
   })
 
   it('uses a token that never expires as it is', async () => {

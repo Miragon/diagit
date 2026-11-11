@@ -8,6 +8,7 @@ const BEARER_PREFIX = 'Bearer '
 
 const CONNECT_APP_HINT =
   ' Connect the GitHub App in the extension options and install it on this repository (authorise it for the organisation if it uses SSO).'
+const MAYBE_EXPIRED_HINT = ' If you connected GitHub before, the connection may have expired.'
 const RECONNECT_APP_HINT = ' Reconnect the GitHub App in the extension options.'
 
 export class GithubApiAuth implements AuthPolicy {
@@ -52,7 +53,7 @@ export class GithubApiAuth implements AuthPolicy {
       case 403:
         return `GitHub returned 403: the anonymous rate limit is exhausted, or the app is not authorised for this organisation (SSO).${connectApp}`
       case 404:
-        return `This looks like a private repository the page login cannot reach from api.github.com.${connectApp}`
+        return `This looks like a private repository the page login cannot reach from api.github.com.${connectApp}${tokenCanHelp ? MAYBE_EXPIRED_HINT : ''}`
       default:
         return `Could not load the diff metadata${tokenCanHelp ? ' from api.github.com' : ''}.${connectApp}`
     }

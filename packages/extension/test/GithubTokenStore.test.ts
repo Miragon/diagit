@@ -40,4 +40,25 @@ describe('GithubTokenStore', () => {
     expect(area.items).toEqual({})
     expect(await store.token()).toBe('')
   })
+
+  it('remembers that an expired connection was removed, legacy keys included', async () => {
+    const { area, store } = legacyConnection()
+
+    await store.expire()
+
+    expect(area.items).toEqual({ githubDisconnectReason: 'expired' })
+    expect(await store.connectionExpired()).toBe(true)
+  })
+
+  it('forgets the expiry once the user connects again or disconnects', async () => {
+    const { store } = legacyConnection()
+
+    await store.expire()
+    await store.connect(tokens, 'hubot')
+    expect(await store.connectionExpired()).toBe(false)
+
+    await store.expire()
+    await store.disconnect()
+    expect(await store.connectionExpired()).toBe(false)
+  })
 })

@@ -102,6 +102,7 @@ describe('GithubApiAuth.errorHint', () => {
     const hint = auth.errorHint(githubCom, new FetchError('HTTP 404', 404))
     expect(hint).toMatch(/private repository/i)
     expect(hint).toMatch(/GitHub App/i)
+    expect(hint).toMatch(/may have expired/)
   })
 
   it('maps 403 to a rate-limit / SSO hint', async () => {
@@ -111,6 +112,8 @@ describe('GithubApiAuth.errorHint', () => {
 
   it('never suggests the GitHub App on Enterprise, where the token cannot help', async () => {
     const auth = await authWithToken('')
-    expect(auth.errorHint(enterprise, new FetchError('HTTP 404', 404))).not.toMatch(/GitHub App/)
+    const hint = auth.errorHint(enterprise, new FetchError('HTTP 404', 404))
+    expect(hint).not.toMatch(/GitHub App/)
+    expect(hint).not.toMatch(/expired/)
   })
 })
