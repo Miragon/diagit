@@ -23,18 +23,22 @@ function withFileBox(path = 'flows/order.bpmn', content = ''): Document {
   return document
 }
 
-function withRapidDiffFile(path = 'flows/order.bpmn', isOpen = true): Document {
-  const fileData = JSON.stringify({ old_path: path, new_path: path })
-  document.body.innerHTML = `
+function rapidDiffFileMarkup(fileData: string, isOpen = true, header = ''): string {
+  return `
     <diff-file data-testid="rd-diff-file" data-file-data='${fileData}'>
       <article class="rd-diff-file">
-        <header data-testid="rd-diff-file-header"></header>
+        <header data-testid="rd-diff-file-header">${header}</header>
         <details class="rd-diff-file-details" data-file-body ${isOpen ? 'open' : ''}>
           <summary></summary>
           <div data-testid="rd-diff-file-body"><table></table></div>
         </details>
       </article>
     </diff-file>`
+}
+
+function withRapidDiffFile(path = 'flows/order.bpmn', isOpen = true): Document {
+  const fileData = JSON.stringify({ old_path: path, new_path: path })
+  document.body.innerHTML = rapidDiffFileMarkup(fileData, isOpen)
   return document
 }
 
@@ -141,6 +145,26 @@ describe('GitLab merge-request diff', () => {
 
     expect(block).toMatchObject({ path: 'flows/order.bpmn', append: 'first' })
     expect(block!.anchor.dataset.testid).toBe('rd-diff-file-body')
+  })
+
+  it('keeps finding Rapid Diffs files when one carries unreadable file data', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [],
+    })
+    const validFileData = JSON.stringify({
+      old_path: 'flows/order.bpmn',
+      new_path: 'flows/order.bpmn',
+    })
+    document.body.innerHTML = [
+      rapidDiffFileMarkup('{'),
+      rapidDiffFileMarkup('null', true, '<span data-path="flows/fallback.bpmn"></span>'),
+      rapidDiffFileMarkup(validFileData),
+    ].join('')
+
+    const blocks = await new GitlabHost(http).mergeRequestDiff.collect(location, document)
+
+    expect(blocks.map((block) => block.path)).toEqual(['flows/fallback.bpmn', 'flows/order.bpmn'])
   })
 
   it('treats a closed Rapid Diffs file as collapsed although its hidden content keeps a box', async () => {
