@@ -3,6 +3,8 @@ import type { SettingsStore } from '../../platform/settings/SettingsStore'
 const CONNECTION_KEY = 'githubConnection'
 const LEGACY_TOKEN_KEY = 'githubApiToken'
 const LEGACY_LOGIN_KEY = 'githubLogin'
+const DISCONNECT_REASON_KEY = 'githubDisconnectReason'
+const EXPIRED_REASON = 'expired'
 
 export interface GithubTokenSet {
   accessToken: string
@@ -34,11 +36,21 @@ export class GithubTokenStore {
   async connect(tokens: GithubTokenSet, login: string): Promise<void> {
     await this.settings.writeRecord<GithubConnection>(CONNECTION_KEY, { tokens, login })
     await this.forgetLegacyConnection()
+    await this.settings.remove(DISCONNECT_REASON_KEY)
   }
 
   async disconnect(): Promise<void> {
-    await this.forgetLegacyConnection()
-    await this.settings.remove(CONNECTION_KEY)
+    await this.settings.remove(DISCONNECT_REASON_KEY)
+    await this.forgetConnection()
+  }
+
+  async expire(): Promise<void> {
+    await this.settings.writeString(DISCONNECT_REASON_KEY, EXPIRED_REASON)
+    await this.forgetConnection()
+  }
+
+  async connectionExpired(): Promise<boolean> {
+    return (await this.settings.readString(DISCONNECT_REASON_KEY)) === EXPIRED_REASON
   }
 
   async connection(): Promise<GithubConnection> {
@@ -52,6 +64,11 @@ export class GithubTokenStore {
       this.settings.readString(LEGACY_LOGIN_KEY),
     ])
     return { tokens: { accessToken: accessToken.trim(), refreshToken: '' }, login }
+  }
+
+  private async forgetConnection(): Promise<void> {
+    await this.forgetLegacyConnection()
+    await this.settings.remove(CONNECTION_KEY)
   }
 
   private async forgetLegacyConnection(): Promise<void> {

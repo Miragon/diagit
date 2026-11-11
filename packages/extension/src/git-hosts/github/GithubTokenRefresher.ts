@@ -54,7 +54,7 @@ export class GithubTokenRefresher {
 
   private forget(sent: GithubTokenSet): Promise<string> {
     return this.unlessReplacedSince(sent, async () => {
-      await this.store.disconnect()
+      await this.store.expire()
       return ''
     })
   }

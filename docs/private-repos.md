@@ -26,6 +26,10 @@ Back in the options, press **Connect GitHub**. Diagit shows a code. Open `github
 Either the anonymous rate limit of `api.github.com` is used up, which can happen in public repositories when you are not connected, or your organisation uses SSO and has not authorised the app. Connect GitHub as described above, and, if your organisation uses SSO, authorise the app for it.
 :::
 
+::: details The options say the GitHub connection expired
+GitHub no longer renews the connection, because its refresh token ran out or the app's authorisation was revoked. Diagit then removes the tokens from this browser. Press **Connect GitHub** again.
+:::
+
 ## Disconnect
 
 **Disconnect** removes the access token and its refresh token from this browser. To remove the app itself, uninstall it and revoke its authorisation in your GitHub settings (**Uninstall on GitHub**).
