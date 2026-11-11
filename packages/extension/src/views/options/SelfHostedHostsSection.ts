@@ -29,7 +29,7 @@ export class SelfHostedHostsSection {
     text: 'Add instance',
   })
   private readonly status = h('p', { class: 'status' })
-  private readonly list = h('ul', { class: 'list' })
+  private readonly rows = h('tbody')
 
   constructor(
     private readonly access: HostAccess,
@@ -47,7 +47,7 @@ export class SelfHostedHostsSection {
         h('div', { class: 'card' }, [
           h('div', { class: 'row' }, [this.originInput, this.typeSelect, this.addButton]),
           this.status,
-          this.list,
+          this.instanceTable(),
         ]),
       ]),
     )
@@ -87,21 +87,43 @@ export class SelfHostedHostsSection {
   private async refresh(): Promise<void> {
     const hosts = await this.access.list()
     if (!hosts.length) {
-      this.list.replaceChildren(
-        h('li', { class: 'empty', text: 'No self-hosted instances added yet.' }),
+      this.rows.replaceChildren(
+        h('tr', {}, [
+          h('td', { class: 'empty', colspan: '3', text: 'No self-hosted instances added yet.' }),
+        ]),
       )
       return
     }
-    this.list.replaceChildren(...hosts.map((host) => this.renderRow(host)))
+    this.rows.replaceChildren(...hosts.map((host) => this.renderRow(host)))
+  }
+
+  private instanceTable(): HTMLTableElement {
+    return h('table', { class: 'instances' }, [
+      h('thead', {}, [
+        h('tr', {}, [
+          h('th', { scope: 'col', text: 'Instance' }),
+          h('th', { scope: 'col', text: 'Type' }),
+          h('th', { scope: 'col' }, [h('span', { class: 'visually-hidden', text: 'Actions' })]),
+        ]),
+      ]),
+      this.rows,
+    ])
   }
 
   private renderRow(host: SelfHostedHost): HTMLElement {
-    const remove = h('button', { class: 'btn danger', type: 'button', text: 'Remove' })
+    const remove = h('button', {
+      class: 'btn quiet-danger',
+      type: 'button',
+      text: 'Remove',
+      'aria-label': `Remove ${host.origin}`,
+    })
     remove.addEventListener('click', () => void this.remove(host))
-    return h('li', {}, [
-      h('span', { class: 'origin-name', text: host.origin }),
-      h('span', { class: 'badge', text: this.hosts.hostById(host.type)?.label ?? 'Self-hosted' }),
-      remove,
+    return h('tr', {}, [
+      h('td', { class: 'origin-cell', text: host.origin }),
+      h('td', {}, [
+        h('span', { class: 'tag', text: this.hosts.hostById(host.type)?.label ?? 'Self-hosted' }),
+      ]),
+      h('td', { class: 'action-cell' }, [remove]),
     ])
   }
 
