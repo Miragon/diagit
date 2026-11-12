@@ -30,6 +30,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
   private viewer: DiagramViewer | null = null
   private stopTrackingZoom: (() => void) | null = null
   private destroyed = false
+  private retried = false
   private resizeObserver: ResizeObserver | null = null
   private detachFocusZoom: (() => void) | null = null
 
@@ -74,6 +75,11 @@ export class ModelPanel implements PanelHandle, Zoomable {
     this.viewer?.destroy()
     this.viewer = null
     this.wrap.remove()
+  }
+
+  private retry(): void {
+    this.retried = true
+    void this.load()
   }
 
   private async load(): Promise<void> {
@@ -137,7 +143,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
       tone: 'danger',
       title,
       body: `Check your connection and try again. ${CODE_STILL_SHOWN}`,
-      action: { label: 'Try again', icon: RotateCw, onClick: () => void this.load() },
+      action: { label: 'Try again', icon: RotateCw, onClick: () => this.retry() },
       reportUrl: diagitRepository.problemReportUrl(
         `${this.label} file not loaded on a file page`,
         `Diagit showed "${title}" on a file page.`,
@@ -148,7 +154,8 @@ export class ModelPanel implements PanelHandle, Zoomable {
   }
 
   private showError(details: NoticeDetails): void {
-    this.canvas.replaceChildren(new Notice(details, 'pane').element)
+    const notice = new Notice({ ...details, followsUserAction: this.retried }, 'pane')
+    this.canvas.replaceChildren(notice.element)
     this.zoomControls.element.hidden = true
   }
 }

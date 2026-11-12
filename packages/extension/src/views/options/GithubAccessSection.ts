@@ -198,11 +198,12 @@ export class GithubAccessSection {
     const { reported, ...copy } = FAILURE_COPY[reason]
     const action = { label: 'Connect GitHub', icon: Link, onClick: () => void this.connect() }
     if (!reported) {
-      return { ...copy, action }
+      return { ...copy, action, followsUserAction: true }
     }
     return {
       ...copy,
       action,
+      followsUserAction: true,
       reportUrl: diagitRepository.problemReportUrl(
         `GitHub authorisation failed ${PLACE}`,
         `Diagit showed "${copy.title}" ${PLACE}.`,

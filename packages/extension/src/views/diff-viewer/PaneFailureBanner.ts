@@ -13,7 +13,7 @@ export class PaneFailureBanner {
   constructor({ tone, title, meta, reportUrl, offersReload }: PaneFailure) {
     this.element = h(
       'div',
-      { class: 'diagit-notice', 'data-tone': tone, 'data-layout': 'bar', role: 'alert' },
+      { class: 'diagit-notice', 'data-tone': tone, 'data-layout': 'bar', role: 'status' },
       [
         lucideIcon(Notice.toneIcon(tone), 'diagit-notice-icon'),
         h('span', { class: 'diagit-notice-title' }, [

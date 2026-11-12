@@ -157,7 +157,7 @@ describe('StandaloneViewerPage', () => {
 
     await vi.waitFor(() => expect(app.querySelector('.diagit-notice')).not.toBeNull())
     expect(app.querySelector<HTMLElement>('.diagit-notice')!.dataset.tone).toBe('warning')
-    expect(app.querySelector('.diagit-notice')!.getAttribute('role')).toBe('status')
+    expect(app.querySelector('.diagit-notice')!.getAttribute('role')).toBe('alert')
     expect(textOf(app, '.diagit-notice-title')).toBe("Diagit can't open notes.txt")
     expect(textOf(app, '.diagit-notice-body')).toBe('It opens .bpmn files.')
     expect(app.querySelector('.diagit-notice-actions')).toBeNull()

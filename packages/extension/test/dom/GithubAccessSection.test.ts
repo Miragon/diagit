@@ -64,6 +64,7 @@ describe('GithubAccessSection', () => {
     const notice = card.querySelector<HTMLElement>('.diagit-notice')!
     expect(notice.dataset.layout).toBe('row')
     expect(notice.dataset.tone).toBe('danger')
+    expect(notice.getAttribute('role')).toBe('alert')
     expect(notice.querySelector('.diagit-notice-title')!.textContent).toBe(
       'GitHub authorisation could not start',
     )

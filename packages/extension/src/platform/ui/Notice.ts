@@ -21,6 +21,7 @@ export interface NoticeDetails {
   body: string
   action?: NoticeAction
   reportUrl?: string
+  followsUserAction?: boolean
 }
 
 export interface NoticePanel {
@@ -88,7 +89,7 @@ export class Notice implements PanelHandle {
         class: 'diagit-notice',
         'data-tone': details.tone,
         'data-layout': layout,
-        role: details.tone === 'danger' ? 'alert' : 'status',
+        role: details.followsUserAction ? 'alert' : 'status',
       },
       [
         lucideIcon(Notice.toneIcon(details.tone), 'diagit-notice-icon'),

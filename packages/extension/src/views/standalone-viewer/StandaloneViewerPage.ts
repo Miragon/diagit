@@ -290,7 +290,7 @@ export class StandaloneViewerPage implements Zoomable {
 
   private showError(details: NoticeDetails): void {
     this.closeDiagram()
-    this.canvas.replaceChildren(new Notice(details, 'pane').element)
+    this.canvas.replaceChildren(new Notice({ ...details, followsUserAction: true }, 'pane').element)
     this.panel.classList.add('has-error')
   }
 }

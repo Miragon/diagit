@@ -18,17 +18,21 @@ const withAction: NoticeDetails = {
 }
 
 describe('Notice', () => {
-  it.each<[NoticeTone, string]>([
-    ['danger', 'alert'],
-    ['warning', 'status'],
-    ['info', 'status'],
-    ['success', 'status'],
-  ])('marks the %s tone and announces it as %s', (tone, role) => {
-    const notice = new Notice({ ...details, tone })
+  it.each<NoticeTone>(['danger', 'warning', 'info', 'success'])(
+    'marks the %s tone and announces it politely',
+    (tone) => {
+      const notice = new Notice({ ...details, tone })
 
-    expect(notice.element.dataset.tone).toBe(tone)
-    expect(notice.element.getAttribute('role')).toBe(role)
-    expect(notice.element.querySelector('svg.diagit-notice-icon')).not.toBeNull()
+      expect(notice.element.dataset.tone).toBe(tone)
+      expect(notice.element.getAttribute('role')).toBe('status')
+      expect(notice.element.querySelector('svg.diagit-notice-icon')).not.toBeNull()
+    },
+  )
+
+  it('announces a notice that follows a user action as an alert', () => {
+    const notice = new Notice({ ...details, followsUserAction: true })
+
+    expect(notice.element.getAttribute('role')).toBe('alert')
   })
 
   it('shows the cause as title and the remedy as body, but no technical detail', () => {

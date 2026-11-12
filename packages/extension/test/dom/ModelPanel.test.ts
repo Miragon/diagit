@@ -46,6 +46,7 @@ describe('ModelPanel', () => {
     const notice = container.querySelector<HTMLElement>('.diagit-canvas > .diagit-notice')!
     expect(notice.dataset.layout).toBe('pane')
     expect(notice.dataset.tone).toBe('danger')
+    expect(notice.getAttribute('role')).toBe('status')
     expect(textOf(container, '.diagit-notice-title')).toBe('BPMN file could not be downloaded')
     expect(textOf(container, '.diagit-notice-body')).toBe(
       'Check your connection and try again. The code below still shows the file.',
@@ -85,6 +86,26 @@ describe('ModelPanel', () => {
     expect(attempts).toBe(2)
     expect(container.querySelector('.diagit-notice')).toBeNull()
     expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+  })
+
+  it('announces a failure after "Try again" as an alert', async () => {
+    const container = mountPanel(
+      new ModelPanel({
+        notation: new FakeNotation(),
+        fileName: 'order.bpmn',
+        loadXml: async () => {
+          throw new Error('offline')
+        },
+        reportContext: FAKE_REPORT_CONTEXT,
+      }),
+    )
+    await vi.waitFor(() => expect(container.querySelector('.diagit-notice')).not.toBeNull())
+
+    container.querySelector<HTMLButtonElement>('.diagit-notice-actions button')!.click()
+
+    await vi.waitFor(() =>
+      expect(container.querySelector('.diagit-notice')!.getAttribute('role')).toBe('alert'),
+    )
   })
 
   it('names the file and its notation in the toolbar', () => {

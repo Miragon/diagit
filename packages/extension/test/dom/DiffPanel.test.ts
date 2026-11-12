@@ -15,7 +15,8 @@ const diffPanes = (container: HTMLElement) => [
     .querySelector('.diagit-diff-grid')!
     .querySelectorAll<HTMLElement>('.diagit-diff-pane'),
 ]
-const failureIn = (pane: Element) => pane.querySelector<HTMLElement>('[role="alert"]')!
+const failureIn = (pane: Element) =>
+  pane.querySelector<HTMLElement>('.diagit-notice[role="status"]')!
 const reportedConsole = (pane: Element) => {
   const report = failureIn(pane).querySelector<HTMLAnchorElement>('[aria-label="Report problem"]')!
   return new URL(report.href).searchParams.get('console')
