@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ModelPanel } from '../../src/views/blob-viewer/ModelPanel'
 import { FakeDiffableViewer } from '../fakes/FakeDiffableViewer'
+import { FakeFullScreen } from '../fakes/FakeFullScreen'
 import { FakeNotation } from '../fakes/FakeNotation'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
@@ -22,6 +23,7 @@ function textOf(container: HTMLElement, selector: string): string {
 }
 
 afterEach(() => {
+  FakeFullScreen.uninstall()
   document.body.innerHTML = ''
 })
 
@@ -186,5 +188,71 @@ describe('ModelPanel', () => {
     expect(report.href).toContain('https://github.com/Miragon/diagit/issues/new')
     expect(new URL(report.href).searchParams.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)
     expect(reportedConsole(container)).not.toContain('unparsable content')
+  })
+
+  describe('full screen', () => {
+    function fullScreenPanel(viewer = new FakeDiffableViewer(), loadXml = async () => '<bpmn/>') {
+      FakeFullScreen.install()
+      const notation = new FakeNotation()
+      vi.spyOn(notation, 'createViewer').mockResolvedValue(viewer)
+      const container = mountPanel(
+        new ModelPanel({
+          notation,
+          filePath: 'flows/order.bpmn',
+          loadXml,
+          reportContext: FAKE_REPORT_CONTEXT,
+        }),
+      )
+      const button = () => container.querySelector<HTMLButtonElement>('[aria-label="Full screen"]')!
+      return { container, viewer, button }
+    }
+
+    it('puts the whole file panel in full screen without changing its theme', async () => {
+      const { container, button } = fullScreenPanel()
+      await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
+      const wrap = container.querySelector<HTMLElement>('.diagit-wrap')!
+      const theme = wrap.dataset.cdTheme
+
+      button().click()
+      await Promise.resolve()
+
+      expect(document.fullscreenElement).toBe(wrap)
+      expect(wrap.dataset.cdTheme).toBe(theme)
+    })
+
+    it('fits the diagram on entering and on leaving full screen', async () => {
+      const { container, viewer, button } = fullScreenPanel()
+      await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
+      const fitsAfterRender = viewer.fits
+
+      button().click()
+      await Promise.resolve()
+      expect(viewer.fits).toBe(fitsAfterRender + 1)
+
+      FakeFullScreen.exit()
+      expect(viewer.fits).toBe(fitsAfterRender + 2)
+    })
+
+    it('keeps only the full screen button on a decision table', async () => {
+      const viewer = new FakeDiffableViewer()
+      viewer.level = null
+      const { container, button } = fullScreenPanel(viewer)
+      await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
+
+      expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+      expect(button().hidden).toBe(false)
+      expect(container.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(true)
+    })
+
+    it('hides the island while the diagram loads and after a download error', async () => {
+      const { container } = fullScreenPanel(new FakeDiffableViewer(), async () => {
+        throw new Error('offline')
+      })
+      const zoom = container.querySelector<HTMLElement>('.diagit-zoom')!
+
+      expect(zoom.hidden).toBe(true)
+      await vi.waitFor(() => expect(container.querySelector('.diagit-notice')).not.toBeNull())
+      expect(zoom.hidden).toBe(true)
+    })
   })
 })

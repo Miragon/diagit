@@ -40,6 +40,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
       this.canvas,
       this.zoomControls.element,
     ])
+    this.zoomControls.allowFullScreen(this.wrap)
   }
 
   mount(container: HTMLElement): this {
@@ -81,7 +82,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   private async load(): Promise<void> {
     this.canvas.replaceChildren(this.placeholder)
-    this.zoomControls.showLevel(null)
+    this.zoomControls.hide()
     let xml: string
     try {
       xml = await this.options.loadXml()
@@ -152,6 +153,6 @@ export class ModelPanel implements PanelHandle, Zoomable {
   private showError(details: NoticeDetails): void {
     const notice = new Notice({ ...details, followsUserAction: this.retried }, 'pane')
     this.canvas.replaceChildren(notice.element)
-    this.zoomControls.showLevel(null)
+    this.zoomControls.hide()
   }
 }

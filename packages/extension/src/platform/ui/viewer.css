@@ -164,6 +164,17 @@
   overflow: hidden;
 }
 
+.diagit-wrap:fullscreen {
+  display: flex;
+  flex-direction: column;
+}
+
+.diagit-wrap:fullscreen > .diagit-canvas {
+  flex: 1;
+  height: auto;
+  border-bottom: none;
+}
+
 /* Focused pane: wheel zoom is live. */
 .diagit-canvas.is-active,
 .diagit-diff-area.is-active {
