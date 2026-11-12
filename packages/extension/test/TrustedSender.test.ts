@@ -13,11 +13,19 @@ const firefoxTopFrame: MessageSender = { id: 'diagit-id', url: githubTab.url, ta
 
 describe('TrustedSender.pageOf', () => {
   it('returns the tab and origin of our own content script on the tab origin', () => {
-    expect(senders.pageOf(chromeTopFrame)).toEqual({ tabId: 7, origin: 'https://github.com' })
+    expect(senders.pageOf(chromeTopFrame)).toEqual({
+      tabId: 7,
+      origin: 'https://github.com',
+      incognito: false,
+    })
   })
 
   it('falls back to the frame url where the browser sends no origin', () => {
-    expect(senders.pageOf(firefoxTopFrame)).toEqual({ tabId: 7, origin: 'https://github.com' })
+    expect(senders.pageOf(firefoxTopFrame)).toEqual({
+      tabId: 7,
+      origin: 'https://github.com',
+      incognito: false,
+    })
   })
 
   it('accepts a prerendered page, whose top frame has no frame id 0', () => {
@@ -25,7 +33,13 @@ describe('TrustedSender.pageOf', () => {
     expect(senders.pageOf(prerendered)).toEqual({
       tabId: 7,
       origin: 'https://github.com',
+      incognito: false,
     })
+  })
+
+  it('tells whether the tab is incognito', () => {
+    const incognitoTab = { ...chromeTopFrame, tab: { ...githubTab, incognito: true } }
+    expect(senders.pageOf(incognitoTab)?.incognito).toBe(true)
   })
 
   it('refuses a foreign extension', () => {

@@ -5,13 +5,16 @@ import type {
   FetchTextResponse,
   InjectViewScriptRequest,
   OpenOptionsRequest,
+  OpenViewerRequest,
 } from './messages'
 
 export class BackgroundClient implements HttpClient {
   async fetchText(url: string): Promise<string> {
     const request: FetchTextRequest = { type: 'fetchText', url }
     const response = (await browser.runtime.sendMessage(request)) as FetchTextResponse | undefined
-    if (!response) throw new Error('No response from background worker')
+    if (!response) {
+      throw new Error('No response from background worker')
+    }
     if (!response.ok) {
       throw new FetchError(response.error, response.status, response.rateLimitResetsAt)
     }
@@ -29,6 +32,11 @@ export class BackgroundClient implements HttpClient {
 
   async openOptions(): Promise<void> {
     const request: OpenOptionsRequest = { type: 'openOptions' }
+    await browser.runtime.sendMessage(request).catch(() => undefined)
+  }
+
+  async openViewer(url: string): Promise<void> {
+    const request: OpenViewerRequest = { type: 'openViewer', url }
     await browser.runtime.sendMessage(request).catch(() => undefined)
   }
 }

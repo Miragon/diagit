@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { browser } from 'wxt/browser'
 import { BlobPage } from '../../src/git-hosts/BlobPage'
 import { HOST_TAG, PLACEMENT_NOTICE_TAG } from '../../src/platform/injectedElements'
 import { BlobViewerController } from '../../src/views/blob-viewer/BlobViewerController'
@@ -7,6 +8,13 @@ import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { FakeHttpClient } from '../fakes/FakeHttpClient'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
+
+vi.mock('wxt/browser', () => ({
+  browser: {
+    runtime: { sendMessage: vi.fn(() => Promise.resolve(true)) },
+    extension: { inIncognitoContext: false },
+  },
+}))
 
 const context = new FakeContentScriptContext()
 
@@ -99,6 +107,12 @@ describe('BlobViewerController', () => {
       return document.querySelector(PLACEMENT_NOTICE_TAG)?.shadowRoot?.textContent ?? ''
     }
 
+    function noticeButtons(): HTMLButtonElement[] {
+      return [
+        ...document.querySelector(PLACEMENT_NOTICE_TAG)!.shadowRoot!.querySelectorAll('button'),
+      ]
+    }
+
     beforeEach(() => {
       vi.useFakeTimers()
     })
@@ -116,13 +130,41 @@ describe('BlobViewerController', () => {
       expect(noticeText()).toContain('view could not be added')
       expect(noticeText()).toContain('Report this problem')
       const openTab = vi.spyOn(window, 'open').mockReturnValue(null)
-      const reportButton = [
-        ...document.querySelector(PLACEMENT_NOTICE_TAG)!.shadowRoot!.querySelectorAll('button'),
-      ].find((button) => button.textContent === 'Report this problem')!
+      const reportButton = noticeButtons().find(
+        (button) => button.textContent === 'Report this problem',
+      )!
       reportButton.click()
       const fields = new URL(String(openTab.mock.calls[0]![0])).searchParams
       expect(fields.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
       expect(fields.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)
+    })
+
+    it('offers to open the model in the viewer as the primary action', async () => {
+      document.body.innerHTML = '<main></main>'
+      startOn('/o/r/blob/main/order.bpmn')
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+
+      const [openButton] = noticeButtons()
+      expect(openButton!.textContent).toBe('Open in Diagit')
+      expect(openButton!.classList).toContain('btn-primary')
+      openButton!.click()
+
+      expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
+        type: 'openViewer',
+        url: 'https://github.com/o/r/raw/main/order.bpmn',
+      })
+      expect(document.querySelector(PLACEMENT_NOTICE_TAG)).toBeNull()
+    })
+
+    it('offers no viewer in an incognito window, where it would open in a normal one', async () => {
+      vi.mocked(browser.extension).inIncognitoContext = true
+      document.body.innerHTML = '<main></main>'
+      startOn('/o/r/blob/main/order.bpmn')
+      await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
+      vi.mocked(browser.extension).inIncognitoContext = false
+
+      expect(noticeButtons().map((button) => button.textContent)).not.toContain('Open in Diagit')
+      expect(noticeText()).toContain('Report this problem')
     })
 
     it('stays quiet on a file that is not a diagram', async () => {

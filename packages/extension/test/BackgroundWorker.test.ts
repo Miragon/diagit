@@ -16,6 +16,7 @@ vi.mock('wxt/browser', () => {
         onInstalled: listenable(),
         openOptionsPage: vi.fn(() => Promise.resolve()),
       },
+      tabs: { create: vi.fn(() => Promise.resolve({})) },
       action: { onClicked: listenable() },
       permissions: {
         onAdded: listenable(),
@@ -29,7 +30,7 @@ vi.mock('wxt/browser', () => {
 
 const SELF_HOSTED_FILE = 'https://git.example.com/group/repo/-/blob/main/order.bpmn'
 
-const TRUSTED_TAB = { tabId: 1, origin: 'https://github.com' }
+const TRUSTED_TAB = { tabId: 1, origin: 'https://github.com', incognito: false }
 
 const OPEN_TAB_IDS = [3, 4]
 const PUBLIC_PATTERNS = ['https://github.com/*', 'https://gitlab.com/*']
@@ -46,7 +47,8 @@ function startedWorker(browserReinjectsOnUpdate = false): void {
     publicMatchPatterns: () => PUBLIC_PATTERNS,
   }
   const senders = {
-    pageOf: (sender: { trusted?: boolean }) => (sender.trusted ? TRUSTED_TAB : undefined),
+    pageOf: (sender: { trusted?: boolean; incognito?: boolean }) =>
+      sender.trusted ? { ...TRUSTED_TAB, incognito: sender.incognito === true } : undefined,
   }
   new BackgroundWorker(
     access as never,
@@ -58,7 +60,10 @@ function startedWorker(browserReinjectsOnUpdate = false): void {
   ).start()
 }
 
-function sendMessage(message: unknown, sender: { trusted?: boolean }): Promise<unknown> {
+function sendMessage(
+  message: unknown,
+  sender: { trusted?: boolean; incognito?: boolean },
+): Promise<unknown> {
   const [onMessage] = vi.mocked(browser.runtime.onMessage.addListener).mock.lastCall!
   const handle = onMessage as (m: unknown, s: unknown, respond: (r: unknown) => void) => boolean
   return new Promise((respond) => handle(message, sender, respond))
@@ -144,6 +149,47 @@ describe('BackgroundWorker openOptions message', () => {
   it('refuses an untrusted sender', async () => {
     expect(await sendMessage({ type: 'openOptions' }, {})).toBe(false)
     expect(browser.runtime.openOptionsPage).not.toHaveBeenCalled()
+  })
+})
+
+describe('BackgroundWorker openViewer message', () => {
+  const RAW_FILE = 'https://github.com/o/r/raw/main/order%20v2.bpmn'
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    startedWorker()
+  })
+
+  it('opens the viewer with a file of the sender page origin', async () => {
+    expect(await sendMessage({ type: 'openViewer', url: RAW_FILE }, { trusted: true })).toBe(true)
+
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: `chrome-extension://diagit/viewer.html?src=${encodeURIComponent(RAW_FILE)}`,
+    })
+  })
+
+  it('refuses a file of another origin', async () => {
+    for (const url of [
+      'https://gitlab.com/o/r/-/raw/main/order.bpmn',
+      'https://github.com.evil.example/o/r/raw/main/order.bpmn',
+      'http://github.com/o/r/raw/main/order.bpmn',
+      'javascript:alert(1)',
+      'not a url',
+    ]) {
+      expect(await sendMessage({ type: 'openViewer', url }, { trusted: true })).toBe(false)
+    }
+    expect(browser.tabs.create).not.toHaveBeenCalled()
+  })
+
+  it('refuses an incognito tab, whose viewer would open in a normal window', async () => {
+    const incognitoTab = { trusted: true, incognito: true }
+    expect(await sendMessage({ type: 'openViewer', url: RAW_FILE }, incognitoTab)).toBe(false)
+    expect(browser.tabs.create).not.toHaveBeenCalled()
+  })
+
+  it('refuses an untrusted sender', async () => {
+    expect(await sendMessage({ type: 'openViewer', url: RAW_FILE }, {})).toBe(false)
+    expect(browser.tabs.create).not.toHaveBeenCalled()
   })
 })
 

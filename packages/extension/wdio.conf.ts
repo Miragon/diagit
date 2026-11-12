@@ -38,6 +38,13 @@ const selected = (process.env.WDIO_BROWSERS ?? 'chrome,edge,firefox')
 // (`npm run build`), not `e2e:build`.
 const live = Boolean(process.env.WDIO_LIVE)
 
+// Firefox lets WebDriver BiDi read an extension tab (moz-extension://, the
+// standalone viewer opened from the placement notice) only with system access.
+// geckodriver refuses this variable as a capability, so Firefox inherits it.
+if (selected.includes('firefox') && !live) {
+  process.env.MOZ_REMOTE_ALLOW_SYSTEM_ACCESS = '1'
+}
+
 const chromiumArgs = (): string[] => [
   ...(process.env.WDIO_HEADED ? [] : ['--headless=new']),
   '--no-sandbox',
@@ -82,7 +89,9 @@ export const config: Options.Testrunner = {
 
   capabilities: selected.map((name) => {
     const cap = CAPABILITIES[name]
-    if (!cap) throw new Error(`Unknown WDIO_BROWSERS entry: ${name}`)
+    if (!cap) {
+      throw new Error(`Unknown WDIO_BROWSERS entry: ${name}`)
+    }
     return cap
   }),
 
@@ -98,7 +107,9 @@ export const config: Options.Testrunner = {
 
   onPrepare: async () => {
     // The live canary drives real github.com, so it needs no fixture server.
-    if (!live) server = await startFixtureServer(PORT)
+    if (!live) {
+      server = await startFixtureServer(PORT)
+    }
   },
   before: async (_caps, _specs, browser) => {
     await browser.webExtensionInstall({
@@ -106,7 +117,9 @@ export const config: Options.Testrunner = {
     })
   },
   afterTest: async (test, _ctx, _result) => {
-    if (!process.env.WDIO_SCREENSHOTS) return
+    if (!process.env.WDIO_SCREENSHOTS) {
+      return
+    }
     mkdirSync(screenshotDir, { recursive: true })
     const browserName = browser.capabilities.browserName ?? 'browser'
     const safe = `${browserName}--${test.title}`.replace(/[^\w.-]+/g, '_')

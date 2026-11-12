@@ -63,6 +63,8 @@ Diagit has its own viewer page for files that are not in a repository. Drop a fi
   <figcaption>Diagit's Diagram Viewer with a local .storm file</figcaption>
 </figure>
 
+When Diagit cannot find where to show its view on a file page, for example after GitHub or GitLab changed their layout, it says so in a notice at the bottom right. **Open in Diagit** in that notice opens the file in this viewer. Diagit reads it with the login you already have in the browser, and only from GitHub, GitLab and the domains you allowed.
+
 The viewer has no button in the browser yet. Open it by address:
 
 | Browser | Address                                                                                                                    |

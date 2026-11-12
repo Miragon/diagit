@@ -1,12 +1,18 @@
 import { Upload } from 'lucide'
 import type { Notation, DiagramViewer, NotationLookup } from '../../notations/Notation'
-import type { ReportContext } from '../../platform/DiagitRepository'
+import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { h } from '../../platform/utils/dom'
+import { errorMessage } from '../../platform/utils/errorMessage'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
 import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 
 const NO_FILE = 'No file open'
+
+export interface LinkedModelSource {
+  mayRead(url: string): Promise<boolean>
+  fetchText(url: string): Promise<string>
+}
 
 export class StandaloneViewerPage implements Zoomable {
   private readonly fileInput: HTMLInputElement
@@ -31,6 +37,7 @@ export class StandaloneViewerPage implements Zoomable {
     private readonly fileExtensions: string[],
     notationLabels: string[],
     private readonly reportContext: ReportContext,
+    private readonly linkedModels: LinkedModelSource,
   ) {
     const lastExtensions = fileExtensions.map((extension) =>
       extension.slice(extension.lastIndexOf('.')),
@@ -69,6 +76,23 @@ export class StandaloneViewerPage implements Zoomable {
     new ResizeObserver(() => this.viewer?.fit()).observe(this.stage)
   }
 
+  async openLink(url: string): Promise<void> {
+    const openCountBefore = this.openCount
+    const mayRead = await this.linkedModels.mayRead(url)
+    if (openCountBefore !== this.openCount) {
+      return
+    }
+    if (!mayRead) {
+      this.showError({
+        title: 'Model could not be opened',
+        hint: 'Diagit only opens models from GitHub, GitLab and the domains you allowed.',
+        message: url,
+      })
+      return
+    }
+    await this.open(this.linkedFileName(url), () => this.linkedModels.fetchText(url))
+  }
+
   zoomBy(factor: number): void {
     this.viewer?.zoomBy(factor)
   }
@@ -96,30 +120,46 @@ export class StandaloneViewerPage implements Zoomable {
 
   private openFirst(files: FileList | null | undefined): void {
     const file = files?.[0]
-    if (file) void this.open(file)
+    if (file) {
+      void this.open(file.name, () => file.text())
+    }
   }
 
-  private async open(file: File): Promise<void> {
+  private async open(fileName: string, readContent: () => Promise<string>): Promise<void> {
     const openId = ++this.openCount
-    const notation = this.notations.detect(file.name)
+    const notation = this.notations.detect(fileName)
     if (!notation) {
       this.showError({
         title: 'File not supported',
         hint: `Diagit opens ${this.fileExtensions.join(' or ')} files.`,
-        message: file.name,
+        message: fileName,
       })
       return
     }
     this.loadAssetCss(notation)
-    const xml = await file.text()
-    if (openId !== this.openCount) return
+    let xml: string
+    try {
+      xml = await readContent()
+    } catch (err) {
+      if (openId === this.openCount) {
+        this.showError(this.loadFailure(notation.descriptor.label, err))
+      }
+      return
+    }
+    if (openId !== this.openCount) {
+      return
+    }
     this.closeDiagram()
     try {
       const viewer = await notation.createViewer(this.canvas, xml)
-      if (openId !== this.openCount) return viewer.destroy()
+      if (openId !== this.openCount) {
+        return viewer.destroy()
+      }
       this.viewer = viewer
     } catch (err) {
-      if (openId !== this.openCount) return
+      if (openId !== this.openCount) {
+        return
+      }
       this.showError(
         ErrorNotice.unreadableModel(
           notation.descriptor.label,
@@ -130,7 +170,7 @@ export class StandaloneViewerPage implements Zoomable {
       )
       return
     }
-    this.showDiagram(file.name, notation.descriptor.label)
+    this.showDiagram(fileName, notation.descriptor.label)
   }
 
   private showDiagram(fileName: string, notationLabel: string): void {
@@ -151,8 +191,33 @@ export class StandaloneViewerPage implements Zoomable {
     this.panel.classList.remove('has-diagram')
   }
 
+  private linkedFileName(url: string): string {
+    const lastSegment = new URL(url).pathname.split('/').pop() ?? ''
+    try {
+      return decodeURIComponent(lastSegment)
+    } catch {
+      return lastSegment
+    }
+  }
+
+  private loadFailure(label: string, err: unknown): ErrorNoticeDetails {
+    const title = `${label} view could not be loaded`
+    return {
+      title,
+      hint: 'Diagit could not download this file. Reload the page to try again.',
+      message: errorMessage(err),
+      reportUrl: diagitRepository.problemReportUrl(
+        `${label} file not loaded in the standalone viewer`,
+        `Diagit showed "${title}" in the standalone viewer.`,
+        this.reportContext,
+      ),
+    }
+  }
+
   private loadAssetCss(notation: Notation): void {
-    if (this.loadedAssetCss.has(notation)) return
+    if (this.loadedAssetCss.has(notation)) {
+      return
+    }
     this.loadedAssetCss.add(notation)
     document.head.append(h('style', { text: notation.assetCss }))
   }

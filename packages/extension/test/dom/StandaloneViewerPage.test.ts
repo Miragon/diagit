@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { FetchError } from '../../src/platform/messaging/HttpClient'
 import { StandaloneViewerPage } from '../../src/views/standalone-viewer/StandaloneViewerPage'
 import { FakeDiffableViewer } from '../fakes/FakeDiffableViewer'
+import { FakeLinkedModels } from '../fakes/FakeLinkedModels'
 import { FakeNotation } from '../fakes/FakeNotation'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
@@ -17,16 +19,23 @@ class UnreadableNotation extends FakeNotation {
   }
 }
 
-function mountPage(notation: FakeNotation): HTMLElement {
+const READABLE_FILE = 'https://github.com/o/r/raw/main/order.bpmn'
+
+function mountPage(
+  notation: FakeNotation,
+  linkedModels = new FakeLinkedModels(async () => '<bpmn/>'),
+): { app: HTMLElement; page: StandaloneViewerPage } {
   const app = document.createElement('div')
   document.body.append(app)
-  new StandaloneViewerPage(
+  const page = new StandaloneViewerPage(
     new FakeNotationLookup([notation]),
     ['.bpmn'],
     ['BPMN', 'DMN'],
     FAKE_REPORT_CONTEXT,
-  ).mount(app)
-  return app
+    linkedModels,
+  )
+  page.mount(app)
+  return { app, page }
 }
 
 function openFile(app: HTMLElement, file: File): void {
@@ -45,7 +54,7 @@ afterEach(() => {
 
 describe('StandaloneViewerPage', () => {
   it('names the supported notations while no file is open', () => {
-    const app = mountPage(new FakeNotation())
+    const { app } = mountPage(new FakeNotation())
 
     expect(textOf(app, '.file-name')).toBe('No file open')
     expect(textOf(app, '.dropzone')).toContain('BPMN, DMN')
@@ -54,7 +63,7 @@ describe('StandaloneViewerPage', () => {
 
   it('shows the file name and notation and fits the diagram once it is open', async () => {
     const viewer = new FakeDiffableViewer()
-    const app = mountPage(notationRendering(viewer))
+    const { app } = mountPage(notationRendering(viewer))
 
     openFile(app, new File(['<definitions/>'], 'order.bpmn'))
 
@@ -72,7 +81,7 @@ describe('StandaloneViewerPage', () => {
     vi.spyOn(notation, 'createViewer')
       .mockReturnValueOnce(new Promise((resolve) => (renderSlowViewer = resolve)))
       .mockResolvedValueOnce(fastViewer)
-    const app = mountPage(notation)
+    const { app } = mountPage(notation)
 
     openFile(app, new File(['<definitions/>'], 'slow.bpmn'))
     await vi.waitFor(() => expect(notation.createViewer).toHaveBeenCalledOnce())
@@ -87,7 +96,7 @@ describe('StandaloneViewerPage', () => {
 
   it('closes the open diagram when the next file is not supported', async () => {
     const viewer = new FakeDiffableViewer()
-    const app = mountPage(notationRendering(viewer))
+    const { app } = mountPage(notationRendering(viewer))
     openFile(app, new File(['<definitions/>'], 'order.bpmn'))
     await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('order.bpmn'))
 
@@ -100,7 +109,7 @@ describe('StandaloneViewerPage', () => {
   })
 
   it('shows the error notice with a report link when the model cannot be rendered', async () => {
-    const app = mountPage(new UnreadableNotation())
+    const { app } = mountPage(new UnreadableNotation())
 
     openFile(app, new File(['not a model'], 'order.bpmn'))
 
@@ -115,7 +124,7 @@ describe('StandaloneViewerPage', () => {
   })
 
   it('shows the error notice without a report link for an unsupported file', async () => {
-    const app = mountPage(new FakeNotation())
+    const { app } = mountPage(new FakeNotation())
 
     openFile(app, new File(['hello'], 'notes.txt'))
 
@@ -124,5 +133,105 @@ describe('StandaloneViewerPage', () => {
     expect(textOf(app, '.diagit-error-hint')).toBe('Diagit opens .bpmn files.')
     expect(textOf(app, '.diagit-error-detail')).toBe('notes.txt')
     expect(app.querySelector('.diagit-error-report')).toBeNull()
+  })
+})
+
+describe('StandaloneViewerPage with a linked model', () => {
+  it('renders the model it may read with its file name and notation', async () => {
+    const linkedModels = new FakeLinkedModels(async () => '<bpmn/>')
+    const { app, page } = mountPage(new FakeNotation(), linkedModels)
+
+    await page.openLink(READABLE_FILE)
+
+    expect(linkedModels.fetched).toEqual([READABLE_FILE])
+    expect(app.querySelector('.canvas .fake-diagram')).not.toBeNull()
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(true)
+    expect(textOf(app, '.file-name')).toBe('order.bpmn')
+    expect(textOf(app, '.notation-badge')).toBe('BPMN')
+  })
+
+  it('names the linked model by the decoded last segment of its path', async () => {
+    const { app, page } = mountPage(new FakeNotation())
+
+    await page.openLink('https://github.com/o/r/raw/main/models/order%20process.bpmn')
+
+    expect(textOf(app, '.file-name')).toBe('order process.bpmn')
+  })
+
+  it('refuses a model from a domain Diagit may not read and fetches nothing', async () => {
+    const linkedModels = new FakeLinkedModels(async () => '<bpmn/>')
+    const { app, page } = mountPage(new FakeNotation(), linkedModels)
+
+    await page.openLink('https://evil.example/order.bpmn')
+
+    expect(linkedModels.fetched).toEqual([])
+    expect(textOf(app, '.diagit-error-title')).toBe('Model could not be opened')
+    expect(textOf(app, '.diagit-error-hint')).toBe(
+      'Diagit only opens models from GitHub, GitLab and the domains you allowed.',
+    )
+    expect(textOf(app, '.diagit-error-detail')).toBe('https://evil.example/order.bpmn')
+    expect(app.querySelector('.canvas .fake-diagram')).toBeNull()
+    expect(textOf(app, '.file-name')).toBe('No file open')
+  })
+
+  it('shows the download error with a report link', async () => {
+    const linkedModels = new FakeLinkedModels(async (url) => {
+      throw new FetchError(`HTTP 404 for ${url}`, 404)
+    })
+    const { app, page } = mountPage(new FakeNotation(), linkedModels)
+
+    await page.openLink(READABLE_FILE)
+
+    expect(textOf(app, '.diagit-error-title')).toBe('BPMN view could not be loaded')
+    expect(textOf(app, '.diagit-error-detail')).toBe(`HTTP 404 for ${READABLE_FILE}`)
+    expect(textOf(app, '.diagit-error-report')).toBe('Report this problem')
+  })
+
+  it('refuses a file that is no supported model without fetching it', async () => {
+    const linkedModels = new FakeLinkedModels(async () => 'hello')
+    const { app, page } = mountPage(new FakeNotation(), linkedModels)
+
+    await page.openLink('https://github.com/o/r/raw/main/notes.txt')
+
+    expect(linkedModels.fetched).toEqual([])
+    expect(textOf(app, '.diagit-error-title')).toBe('File not supported')
+  })
+
+  it('keeps a file dropped while the linked model still downloads', async () => {
+    let finishDownload: (xml: string) => void = () => undefined
+    const linkedModels = new FakeLinkedModels(
+      () => new Promise((resolve) => (finishDownload = resolve)),
+    )
+    const notation = new FakeNotation()
+    const createViewer = vi.spyOn(notation, 'createViewer')
+    const { app, page } = mountPage(notation, linkedModels)
+    const linkedModelLoaded = page.openLink(READABLE_FILE)
+    await vi.waitFor(() => expect(linkedModels.fetched).toEqual([READABLE_FILE]))
+
+    openFile(app, new File(['<bpmn/>'], 'local.bpmn'))
+    await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('local.bpmn'))
+    finishDownload('<bpmn/>')
+    await linkedModelLoaded
+
+    expect(createViewer).toHaveBeenCalledOnce()
+    expect(textOf(app, '.file-name')).toBe('local.bpmn')
+  })
+
+  it('keeps a file dropped while Diagit still checks whether it may read the link', async () => {
+    let answerMayRead: (mayRead: boolean) => void = () => undefined
+    const linkedModels = new FakeLinkedModels(async () => '<bpmn/>')
+    vi.spyOn(linkedModels, 'mayRead').mockReturnValue(
+      new Promise((resolve) => (answerMayRead = resolve)),
+    )
+    const { app, page } = mountPage(new FakeNotation(), linkedModels)
+    const linkedModelLoaded = page.openLink('https://evil.example/order.bpmn')
+
+    openFile(app, new File(['<bpmn/>'], 'local.bpmn'))
+    await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('local.bpmn'))
+    answerMayRead(false)
+    await linkedModelLoaded
+
+    expect(app.querySelector('.diagit-error')).toBeNull()
+    expect(textOf(app, '.file-name')).toBe('local.bpmn')
   })
 })
