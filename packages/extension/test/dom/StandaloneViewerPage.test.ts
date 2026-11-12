@@ -1,8 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { StandaloneViewerPage } from '../../src/views/standalone-viewer/StandaloneViewerPage'
+import { FakeDiffableViewer } from '../fakes/FakeDiffableViewer'
 import { FakeNotation } from '../fakes/FakeNotation'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
+
+function notationRendering(viewer: FakeDiffableViewer): FakeNotation {
+  const notation = new FakeNotation()
+  vi.spyOn(notation, 'createViewer').mockResolvedValue(viewer)
+  return notation
+}
 
 class UnreadableNotation extends FakeNotation {
   override async createViewer(): Promise<never> {
@@ -16,6 +23,7 @@ function mountPage(notation: FakeNotation): HTMLElement {
   new StandaloneViewerPage(
     new FakeNotationLookup([notation]),
     ['.bpmn'],
+    ['BPMN', 'DMN'],
     FAKE_REPORT_CONTEXT,
   ).mount(app)
   return app
@@ -23,7 +31,7 @@ function mountPage(notation: FakeNotation): HTMLElement {
 
 function openFile(app: HTMLElement, file: File): void {
   const input = app.querySelector<HTMLInputElement>('input[type=file]')!
-  Object.defineProperty(input, 'files', { value: [file] })
+  Object.defineProperty(input, 'files', { value: [file], configurable: true })
   input.dispatchEvent(new Event('change'))
 }
 
@@ -36,6 +44,40 @@ afterEach(() => {
 })
 
 describe('StandaloneViewerPage', () => {
+  it('names the supported notations while no file is open', () => {
+    const app = mountPage(new FakeNotation())
+
+    expect(textOf(app, '.file-name')).toBe('No file open')
+    expect(textOf(app, '.dropzone')).toContain('BPMN, DMN')
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(false)
+  })
+
+  it('shows the file name and notation and fits the diagram once it is open', async () => {
+    const viewer = new FakeDiffableViewer()
+    const app = mountPage(notationRendering(viewer))
+
+    openFile(app, new File(['<definitions/>'], 'order.bpmn'))
+
+    await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('order.bpmn'))
+    expect(textOf(app, '.notation-badge')).toBe('BPMN')
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(true)
+    expect(viewer.fits).toBe(1)
+  })
+
+  it('closes the open diagram when the next file is not supported', async () => {
+    const viewer = new FakeDiffableViewer()
+    const app = mountPage(notationRendering(viewer))
+    openFile(app, new File(['<definitions/>'], 'order.bpmn'))
+    await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('order.bpmn'))
+
+    openFile(app, new File(['hello'], 'notes.txt'))
+
+    await vi.waitFor(() => expect(app.querySelector('.diagit-error')).not.toBeNull())
+    expect(viewer.destroyed).toBe(true)
+    expect(textOf(app, '.file-name')).toBe('No file open')
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(false)
+  })
+
   it('shows the error notice with a report link when the model cannot be rendered', async () => {
     const app = mountPage(new UnreadableNotation())
 
