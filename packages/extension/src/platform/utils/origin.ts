@@ -3,11 +3,15 @@ const CONCRETE_ORIGIN_PATTERN = /^(https?:\/\/[^/]+)\/\*$/
 
 export function normalizeOrigin(value: string): string | null {
   const trimmed = value.trim()
-  if (!trimmed) return null
+  if (!trimmed) {
+    return null
+  }
   const withProtocol = EXPLICIT_SCHEME.test(trimmed) ? trimmed : `https://${trimmed}`
   try {
     const url = new URL(withProtocol)
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return null
+    }
     return url.origin
   } catch {
     return null
@@ -25,7 +29,9 @@ export function patternToOrigin(pattern: string): string | null {
 export function webOrigin(url: string): string | null {
   try {
     const parsed = new URL(url)
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null
+    }
     return parsed.origin
   } catch {
     return null

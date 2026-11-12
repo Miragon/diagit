@@ -41,7 +41,9 @@ export class DiagramJsViewer implements DiagramViewer {
   ): void {
     const [firstWarning] = warnings
     const importedElements = diagram.get<ElementRegistry>('elementRegistry').getAll().length
-    if (firstWarning && importedElements <= ROOT_ELEMENT_ONLY) throw new Error(firstWarning.message)
+    if (firstWarning && importedElements <= ROOT_ELEMENT_ONLY) {
+      throw new Error(firstWarning.message)
+    }
   }
 
   private constructor(private readonly diagram: DiagramJsDiagram) {}

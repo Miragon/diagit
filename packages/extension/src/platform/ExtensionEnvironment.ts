@@ -23,7 +23,9 @@ export class ExtensionEnvironment {
   browser(): string {
     for (const { name, pattern } of BROWSER_SIGNATURES) {
       const majorVersion = pattern.exec(this.userAgent)?.[1]
-      if (majorVersion) return `${name} ${majorVersion}`
+      if (majorVersion) {
+        return `${name} ${majorVersion}`
+      }
     }
     return 'Unknown browser'
   }

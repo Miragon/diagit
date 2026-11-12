@@ -7,12 +7,16 @@ const EMBEDDED_IMAGE_DATA_URL = /^data:image\/[a-z+.-]+;base64,/
 
 export function parseExcalidrawScene(source: string): ExportSceneData {
   const scene: unknown = JSON.parse(source)
-  if (!isExcalidrawScene(scene)) throw new Error('Not an Excalidraw scene')
+  if (!isExcalidrawScene(scene)) {
+    throw new Error('Not an Excalidraw scene')
+  }
   return { ...scene, files: embeddedImagesOf(scene.files ?? {}) }
 }
 
 function isExcalidrawScene(scene: unknown): scene is ExportSceneData {
-  if (typeof scene !== 'object' || scene === null) return false
+  if (typeof scene !== 'object' || scene === null) {
+    return false
+  }
   const { type, elements } = scene as { type?: unknown; elements?: unknown }
   return type === 'excalidraw' && Array.isArray(elements)
 }

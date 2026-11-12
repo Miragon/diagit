@@ -44,7 +44,9 @@ export class DiffController {
   private async run(): Promise<void> {
     const { location, document } = this.page
     const pageKey = this.source.pageKey(location)
-    if (!this.isShowing(pageKey)) this.showPage(pageKey)
+    if (!this.isShowing(pageKey)) {
+      this.showPage(pageKey)
+    }
     this.releaseDetached()
     if (!pageKey) {
       this.unrecognizedNotices.removeAll()
@@ -54,16 +56,27 @@ export class DiffController {
     try {
       blocks = await this.source.collect(location, document)
     } catch (err) {
-      if (!this.isShowing(pageKey)) return
-      if (err instanceof DiffDataError) this.showErrors(err, pageKey)
-      else console.error('[diagit] failed to load diff data', err)
+      if (!this.isShowing(pageKey)) {
+        return
+      }
+      if (err instanceof DiffDataError) {
+        this.showErrors(err, pageKey)
+      } else {
+        console.error('[diagit] failed to load diff data', err)
+      }
       return
     }
-    if (!this.isShowing(pageKey)) return
+    if (!this.isShowing(pageKey)) {
+      return
+    }
     for (const block of blocks) {
       const differ = this.differFor(block)
-      if (!differ || this.wasReplacedByHost(block)) continue
-      if (this.mounting.has(block.fileRoot) || this.hasPanel(block)) continue
+      if (!differ || this.wasReplacedByHost(block)) {
+        continue
+      }
+      if (this.mounting.has(block.fileRoot) || this.hasPanel(block)) {
+        continue
+      }
       block.fileRoot.querySelector(DIFF_ERROR_TAG)?.remove()
       this.mounting.add(block.fileRoot)
       void this.mount(block, differ, pageKey).finally(() => this.mounting.delete(block.fileRoot))
@@ -73,15 +86,23 @@ export class DiffController {
 
   private async flagUnrecognizedFiles(location: Location, doc: Document): Promise<void> {
     const files = await this.source.unrecognizedFiles(location, doc).catch(() => null)
-    if (files) this.unrecognizedNotices.showOnly(files)
+    if (files) {
+      this.unrecognizedNotices.showOnly(files)
+    }
   }
 
   private showErrors(err: DiffDataError, pageKey: string): void {
     for (const file of err.files) {
       const differ = this.differFor(file)
-      if (!differ || this.wasReplacedByHost(file)) continue
-      if (this.erroring.has(file.fileRoot) || this.hasPanel(file)) continue
-      if (file.fileRoot.querySelector(DIFF_ERROR_TAG)) continue
+      if (!differ || this.wasReplacedByHost(file)) {
+        continue
+      }
+      if (this.erroring.has(file.fileRoot) || this.hasPanel(file)) {
+        continue
+      }
+      if (file.fileRoot.querySelector(DIFF_ERROR_TAG)) {
+        continue
+      }
       this.erroring.add(file.fileRoot)
       void this.mountError(file, err, pageKey).finally(() => this.erroring.delete(file.fileRoot))
     }
@@ -121,14 +142,18 @@ export class DiffController {
   }
 
   private showPage(pageKey: string | null): void {
-    for (const [shown, stopTracking] of this.shownOnPage) this.release(shown, stopTracking)
+    for (const [shown, stopTracking] of this.shownOnPage) {
+      this.release(shown, stopTracking)
+    }
     this.shownOnPage.clear()
     this.shownPageKey = pageKey
   }
 
   private releaseDetached(): void {
     for (const [shown, stopTracking] of this.shownOnPage) {
-      if (shown.shadowHost.isConnected) continue
+      if (shown.shadowHost.isConnected) {
+        continue
+      }
       this.shownOnPage.delete(shown)
       this.release(shown, stopTracking)
     }
@@ -156,7 +181,9 @@ export class DiffController {
     const sync = () => {
       const collapsed = block.isCollapsed()
       panel.shadowHost.toggleAttribute('data-collapsed', collapsed)
-      if (!collapsed && wasHidden) panel.mounted?.refit()
+      if (!collapsed && wasHidden) {
+        panel.mounted?.refit()
+      }
       wasHidden = collapsed
     }
     const stopMirroring = this.page.onElementChange(

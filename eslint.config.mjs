@@ -22,6 +22,11 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
+    rules: {
+      curly: ['error', 'all'],
+    },
+  },
+  {
     files: ['**/*.{ts,tsx,mts,cts}'],
     rules: {
       // TypeScript resolves identifiers itself; no-undef only causes false

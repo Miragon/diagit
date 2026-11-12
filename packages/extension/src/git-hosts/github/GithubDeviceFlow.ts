@@ -58,7 +58,9 @@ export class GithubDeviceFlow {
         device_code: code.deviceCode,
         grant_type: DEVICE_GRANT_TYPE,
       })
-      if (this.readString(data, 'access_token')) return this.tokenSetFrom(data)
+      if (this.readString(data, 'access_token')) {
+        return this.tokenSetFrom(data)
+      }
       switch (this.readString(data, 'error')) {
         case 'authorization_pending':
           break
@@ -102,7 +104,9 @@ export class GithubDeviceFlow {
       const response = await this.fetch(VIEWER_URL, {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
       })
-      if (!response.ok) return ''
+      if (!response.ok) {
+        return ''
+      }
       return this.readString((await response.json()) as Record<string, unknown>, 'login')
     } catch {
       return ''
@@ -114,7 +118,9 @@ export class GithubDeviceFlow {
     params: Record<string, string>,
   ): Promise<Record<string, unknown>> {
     const response = await this.post(url, params)
-    if (!response.ok) throw new DeviceFlowError(`GitHub returned HTTP ${response.status}.`)
+    if (!response.ok) {
+      throw new DeviceFlowError(`GitHub returned HTTP ${response.status}.`)
+    }
     return (await response.json()) as Record<string, unknown>
   }
 
@@ -155,7 +161,9 @@ export class GithubDeviceFlow {
   private delay(ms: number, signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
       const cancelled = () => new DeviceFlowError('Connecting was cancelled.')
-      if (signal?.aborted) return reject(cancelled())
+      if (signal?.aborted) {
+        return reject(cancelled())
+      }
       const timer = setTimeout(resolve, ms)
       signal?.addEventListener(
         'abort',

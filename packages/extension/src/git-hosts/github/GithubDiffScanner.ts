@@ -12,7 +12,9 @@ export class GithubDiffScanner {
   scan(doc: Document): ChangedFile[] {
     return this.diagramFileRoots(doc).flatMap(({ root, path }) => {
       const code = this.codeOf(root)
-      if (!code) return []
+      if (!code) {
+        return []
+      }
       return {
         path,
         anchor: code,
@@ -49,9 +51,13 @@ export class GithubDiffScanner {
     const attribute = githubSelectors.diff.pathAttrs
       .map((name) => root.getAttribute(name))
       .find((value): value is string => !!value)
-    if (attribute) return attribute
+    if (attribute) {
+      return attribute
+    }
     const modern = this.modernFilePath(root)
-    if (modern) return modern
+    if (modern) {
+      return modern
+    }
     const info = root.querySelector(githubSelectors.diff.legacyPathEl)
     return info?.getAttribute('title') || info?.textContent?.trim() || null
   }
@@ -71,7 +77,9 @@ export class GithubDiffScanner {
 
   private codeOf(root: HTMLElement): HTMLElement | null {
     const modern = root.querySelector<HTMLElement>(githubSelectors.diff.modernCode)
-    if (modern) return modern.parentElement ?? modern
+    if (modern) {
+      return modern.parentElement ?? modern
+    }
     return root.querySelector<HTMLElement>(githubSelectors.diff.legacyCode)
   }
 }

@@ -41,7 +41,9 @@ export class HostPage {
 
   onNavigation(listener: (url: URL) => void): void {
     this.ctx.addEventListener(this.win, 'wxt:locationchange', (event) => {
-      if (!this.ctx.isInvalid) listener(event.newUrl)
+      if (!this.ctx.isInvalid) {
+        listener(event.newUrl)
+      }
     })
   }
 
@@ -93,7 +95,9 @@ export class HostPage {
   ): { schedule: () => void; stop: () => void } {
     let pending: ReturnType<typeof setTimeout> | null = null
     const schedule = () => {
-      if (pending || this.ctx.isInvalid) return
+      if (pending || this.ctx.isInvalid) {
+        return
+      }
       pending = setTimeout(() => {
         pending = null
         onChange()
@@ -103,7 +107,9 @@ export class HostPage {
     observer.observe(target, init)
     const disconnect = () => {
       observer.disconnect()
-      if (pending) clearTimeout(pending)
+      if (pending) {
+        clearTimeout(pending)
+      }
       pending = null
     }
     const stopDisconnectingOnInvalidation = this.ctx.onInvalidated(disconnect)

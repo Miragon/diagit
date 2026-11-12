@@ -8,11 +8,17 @@ export class TransactionBoundaryOverlays {
   constructor(private readonly viewer: NavigatedViewer) {}
 
   show(): void {
-    if (!usesCamunda7(this.viewer.getDefinitions())) return
+    if (!usesCamunda7(this.viewer.getDefinitions())) {
+      return
+    }
     for (const shape of this.flowNodeShapes()) {
       const { before, after } = transactionBoundariesOf(shape.businessObject)
-      if (before) this.addMarker(shape, -MARKER_GAP)
-      if (after) this.addMarker(shape, shape.width + MARKER_GAP)
+      if (before) {
+        this.addMarker(shape, -MARKER_GAP)
+      }
+      if (after) {
+        this.addMarker(shape, shape.width + MARKER_GAP)
+      }
     }
   }
 

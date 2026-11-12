@@ -14,7 +14,9 @@ export class ViewScriptInjector {
   ) {}
 
   async inject(tabId: number | undefined, script: string): Promise<boolean> {
-    if (tabId == null || !this.knownScripts.includes(script)) return false
+    if (tabId == null || !this.knownScripts.includes(script)) {
+      return false
+    }
     try {
       await this.load(tabId, script)
       return true

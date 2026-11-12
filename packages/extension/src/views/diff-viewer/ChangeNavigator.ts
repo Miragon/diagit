@@ -37,11 +37,15 @@ export class ChangeNavigator {
   showAll(): void {
     this.clearActive()
     this.index = -1
-    for (const viewer of this.viewers) viewer?.fit()
+    for (const viewer of this.viewers) {
+      viewer?.fit()
+    }
   }
 
   private go(direction: number): void {
-    if (!this.hasChanges) return
+    if (!this.hasChanges) {
+      return
+    }
     const from = this.index < 0 && direction < 0 ? 0 : this.index
     this.index = (from + direction + this.ids.length) % this.ids.length
     this.focus(this.ids[this.index]!)
@@ -57,7 +61,9 @@ export class ChangeNavigator {
   }
 
   private clearActive(): void {
-    if (!this.activeId) return
+    if (!this.activeId) {
+      return
+    }
     for (const viewer of this.viewersShowing(this.activeId)) {
       viewer.removeMarker(this.activeId, MARKER.active)
     }

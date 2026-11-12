@@ -33,14 +33,24 @@ export class GithubTokenRefresher {
 
   private async refresh(staleToken: string, offlineFallback: string): Promise<string> {
     const tokens = await this.store.tokenSet()
-    if (tokens.accessToken !== staleToken) return tokens.accessToken
-    if (!tokens.refreshToken) return ''
-    if (this.expiresSoon(tokens.refreshTokenExpiresAt)) return this.forget(tokens)
+    if (tokens.accessToken !== staleToken) {
+      return tokens.accessToken
+    }
+    if (!tokens.refreshToken) {
+      return ''
+    }
+    if (this.expiresSoon(tokens.refreshTokenExpiresAt)) {
+      return this.forget(tokens)
+    }
     try {
       return await this.rotate(tokens, await this.deviceFlow.refresh(tokens.refreshToken))
     } catch (err) {
-      if (err instanceof DeviceFlowError) return this.forget(tokens)
-      if (this.hasExpired(tokens.accessTokenExpiresAt)) throw err
+      if (err instanceof DeviceFlowError) {
+        return this.forget(tokens)
+      }
+      if (this.hasExpired(tokens.accessTokenExpiresAt)) {
+        throw err
+      }
       return this.unlessReplacedSince(tokens, async () => offlineFallback)
     }
   }

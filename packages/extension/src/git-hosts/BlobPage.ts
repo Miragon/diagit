@@ -32,7 +32,9 @@ export class BlobPage {
 
   filePath(location: Location): string {
     const [path] = location.pathname.split(this.config.blobSegment).slice(1)
-    if (!path) return location.pathname
+    if (!path) {
+      return location.pathname
+    }
     return decodeURIComponent(path.replace(LEADING_REF_SEGMENT, ''))
   }
 
@@ -43,13 +45,17 @@ export class BlobPage {
 
   findInsertAnchor(doc: Document): HTMLElement | null {
     const code = this.findCode(doc)
-    if (!code) return null
+    if (!code) {
+      return null
+    }
     const climbs = Array.isArray(this.config.insertClimb)
       ? this.config.insertClimb
       : [this.config.insertClimb]
     for (const climb of climbs) {
       const ancestor = code.closest<HTMLElement>(climb)
-      if (ancestor) return ancestor
+      if (ancestor) {
+        return ancestor
+      }
     }
     return code
   }
@@ -57,7 +63,9 @@ export class BlobPage {
   private findCode(doc: Document): HTMLElement | null {
     for (const selector of this.config.contentSelectors) {
       const el = doc.querySelector<HTMLElement>(selector)
-      if (el) return el
+      if (el) {
+        return el
+      }
     }
     return null
   }

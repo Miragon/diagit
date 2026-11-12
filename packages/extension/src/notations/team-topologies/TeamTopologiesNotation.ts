@@ -23,7 +23,9 @@ export class TeamTopologiesNotation extends DiagramJsNotation<NavigatedViewer> {
 
   private parse(source: string): TtDocument {
     const parsed = parseDocument(JSON.parse(source))
-    if (!parsed.ok) throw new Error(parsed.error)
+    if (!parsed.ok) {
+      throw new Error(parsed.error)
+    }
     return parsed.document
   }
 }

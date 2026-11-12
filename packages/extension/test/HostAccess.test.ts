@@ -19,7 +19,9 @@ class FakeScripting implements ScriptingApi {
   }
 
   async registerContentScripts(scripts: { id: string }[]) {
-    if (this.failRegistration) throw new Error('boom')
+    if (this.failRegistration) {
+      throw new Error('boom')
+    }
     scripts.forEach((script) => this.registered.add(script.id))
   }
 
@@ -134,7 +136,9 @@ describe('HostAccess.openTabIds', () => {
 
   it('skips a pattern the browser cannot query', async () => {
     vi.mocked(browserApi.tabs.query).mockImplementation(async ({ url }) => {
-      if (url === 'https://broken/*') throw new Error('Invalid url pattern')
+      if (url === 'https://broken/*') {
+        throw new Error('Invalid url pattern')
+      }
       return [{ id: 5 }]
     })
 

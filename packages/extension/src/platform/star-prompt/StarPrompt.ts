@@ -37,8 +37,12 @@ export class StarPrompt {
   }
 
   private async onDiagramViews(views: DiagramViews | undefined): Promise<void> {
-    if (!views || views.pageCount < PAGES_BEFORE_PROMPT) return
-    if (views.lastPage !== this.page.location.pathname || this.showing) return
+    if (!views || views.pageCount < PAGES_BEFORE_PROMPT) {
+      return
+    }
+    if (views.lastPage !== this.page.location.pathname || this.showing) {
+      return
+    }
     this.showing = true
     if (await this.wasDismissed()) {
       this.showing = false

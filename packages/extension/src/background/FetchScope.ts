@@ -22,7 +22,9 @@ const REDIRECT_TARGET_BY_PAGE_ORIGIN: ReadonlyMap<string, string> = new Map([
 export class FetchScope {
   grantFor(pageOrigin: string, targetUrl: string): FetchGrant | null {
     const targetOrigin = webOrigin(targetUrl)
-    if (!targetOrigin) return null
+    if (!targetOrigin) {
+      return null
+    }
     if (targetOrigin === AUTHENTICATED_API_BY_PAGE_ORIGIN.get(pageOrigin)) {
       return { withAuth: true, followsRedirects: false }
     }
@@ -33,7 +35,9 @@ export class FetchScope {
   }
 
   allowsResponseFrom(pageOrigin: string, responseUrl: string): boolean {
-    if (this.grantFor(pageOrigin, responseUrl)) return true
+    if (this.grantFor(pageOrigin, responseUrl)) {
+      return true
+    }
     return webOrigin(responseUrl) === REDIRECT_TARGET_BY_PAGE_ORIGIN.get(pageOrigin)
   }
 

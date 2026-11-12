@@ -28,9 +28,13 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
 
   async collect(location: Location, doc: Document): Promise<DiffFileBlock[]> {
     const page = this.page.identify(location)
-    if (!page) return []
+    if (!page) {
+      return []
+    }
     const files = this.page.scan(doc)
-    if (!files.length) return []
+    if (!files.length) {
+      return []
+    }
     let data: Data
     try {
       data = await this.load(location, page)
@@ -43,11 +47,17 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
 
   async unrecognizedFiles(location: Location, doc: Document): Promise<VisibleFileHeader[]> {
     const page = this.page.identify(location)
-    if (!page || !this.page.showsDiffs(location)) return []
+    if (!page || !this.page.showsDiffs(location)) {
+      return []
+    }
     const cached = this.cachedFor(page)
-    if (cached?.failedAt != null) return []
+    if (cached?.failedAt != null) {
+      return []
+    }
     const recognizedPaths = new Set(this.page.recognizedPaths(doc))
-    if (!cached && !recognizedPaths.size && !this.fileHeaders.mentionsDiagram(doc)) return []
+    if (!cached && !recognizedPaths.size && !this.fileHeaders.mentionsDiagram(doc)) {
+      return []
+    }
     const missedPaths = this.page
       .changedPaths(await this.load(location, page))
       .filter((path) => this.notations.isDiffable(path) && !recognizedPaths.has(path))
@@ -60,7 +70,9 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
 
   private load(location: Location, page: Page): Promise<Data> {
     const cached = this.cachedFor(page)
-    if (cached && !this.isStale(cached)) return cached.promise
+    if (cached && !this.isStale(cached)) {
+      return cached.promise
+    }
     const entry: CachedLoad<Data> = {
       key: page.key,
       loadedAt: null,

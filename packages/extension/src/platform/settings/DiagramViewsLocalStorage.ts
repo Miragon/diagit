@@ -20,7 +20,9 @@ export class DiagramViewsLocalStorage {
 
   private async countPage(page: string): Promise<void> {
     const views = await this.store.readRecord<DiagramViews>(DIAGRAM_VIEWS_KEY)
-    if (views?.lastPage === page) return
+    if (views?.lastPage === page) {
+      return
+    }
     const pageCount = (views?.pageCount ?? 0) + 1
     await this.store.writeRecord<DiagramViews>(DIAGRAM_VIEWS_KEY, { pageCount, lastPage: page })
   }

@@ -36,14 +36,18 @@ const COMMIT_PATH = /^\/([^/]+)\/([^/]+)\/commit\/([0-9a-fA-F]{7,64})/
 export class GithubRoutes {
   pullRequest(location: Pick<Location, 'pathname'>): PullRequestRef | null {
     const match = location.pathname.match(PULL_REQUEST_PATH)
-    if (!match) return null
+    if (!match) {
+      return null
+    }
     const [, owner, repo, number, revisionPath] = match
     const pullRequestKey = `${owner}/${repo}!${number}`
     if (!revisionPath) {
       return { owner: owner!, repo: repo!, number: number!, revisions: null, key: pullRequestKey }
     }
     const revisions = this.revisions(revisionPath)
-    if (!revisions) return null
+    if (!revisions) {
+      return null
+    }
     return {
       owner: owner!,
       repo: repo!,
@@ -59,14 +63,18 @@ export class GithubRoutes {
 
   commit(location: Pick<Location, 'pathname'>): CommitRef | null {
     const match = location.pathname.match(COMMIT_PATH)
-    if (!match) return null
+    if (!match) {
+      return null
+    }
     const [, owner, repo, sha] = match
     return { owner: owner!, repo: repo!, sha: sha!, key: `${owner}/${repo}@${sha}` }
   }
 
   private revisions(revisionPath: string): PullRequestRevisions | null {
     const match = revisionPath.match(REVISIONS)
-    if (!match) return null
+    if (!match) {
+      return null
+    }
     const [, base, head] = match
     return base ? { base, head: head! } : { commit: head! }
   }

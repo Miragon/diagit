@@ -24,7 +24,9 @@ export function fitWithPadding(canvas: FitCanvas, pad = 48): void {
   const viewbox = canvas.viewbox()
   const content = viewbox?.inner
   const viewport = viewbox?.outer
-  if (!content?.width || !content?.height || !viewport?.width || !viewport?.height) return
+  if (!content?.width || !content?.height || !viewport?.width || !viewport?.height) {
+    return
+  }
 
   const scaleWithPadding = (padding: number) =>
     Math.min(
@@ -33,14 +35,20 @@ export function fitWithPadding(canvas: FitCanvas, pad = 48): void {
       (viewport.height - padding * 2) / content.height,
     )
   let scale = scaleWithPadding(pad)
-  if (scale <= 0) scale = scaleWithPadding(0)
+  if (scale <= 0) {
+    scale = scaleWithPadding(0)
+  }
   const containerIsMeasurable = Number.isFinite(scale) && scale > 0
-  if (!containerIsMeasurable) return
+  if (!containerIsMeasurable) {
+    return
+  }
 
   const width = viewport.width / scale
   const height = viewport.height / scale
   const x = content.x + content.width / 2 - width / 2
   const y = content.y + content.height / 2 - height / 2
-  if (![x, y, width, height].every(Number.isFinite)) return
+  if (![x, y, width, height].every(Number.isFinite)) {
+    return
+  }
   canvas.viewbox({ x, y, width, height })
 }

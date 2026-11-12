@@ -40,22 +40,36 @@ export class SemanticSignature {
     seen: Set<object>,
     depth: number,
   ): unknown {
-    if (node === null || typeof node !== 'object') return node
-    if (depth > MAX_DEPTH) return '__max__'
+    if (node === null || typeof node !== 'object') {
+      return node
+    }
+    if (depth > MAX_DEPTH) {
+      return '__max__'
+    }
     if (Array.isArray(node)) {
       return node.map((item) => this.serialize(item, diagramElements, seen, depth + 1))
     }
-    if (diagramElements.has(node.id)) return 'ref:' + node.id
-    if (seen.has(node)) return '__cycle__'
+    if (diagramElements.has(node.id)) {
+      return 'ref:' + node.id
+    }
+    if (seen.has(node)) {
+      return '__cycle__'
+    }
     seen.add(node)
 
     const out: Record<string, any> = {}
-    if (node.$type) out.__type = node.$type
+    if (node.$type) {
+      out.__type = node.$type
+    }
 
     for (const key of this.semanticKeys(node)) {
-      if (key === '$type' || SKIPPED_KEYS.has(key)) continue
+      if (key === '$type' || SKIPPED_KEYS.has(key)) {
+        continue
+      }
       const value = node[key]
-      if (typeof value === 'function' || value === undefined) continue
+      if (typeof value === 'function' || value === undefined) {
+        continue
+      }
       out[key] = this.serialize(value, diagramElements, seen, depth + 1)
     }
 

@@ -18,7 +18,9 @@ export class FakeDiffableViewer implements DiffableViewer {
 
   removeMarker(id: string, marker: string): void {
     const index = this.markers.findIndex((entry) => entry.id === id && entry.marker === marker)
-    if (index >= 0) this.markers.splice(index, 1)
+    if (index >= 0) {
+      this.markers.splice(index, 1)
+    }
   }
 
   focusElement(id: string): void {
