@@ -64,6 +64,27 @@ describe('StandaloneViewerPage', () => {
     expect(viewer.fits).toBe(1)
   })
 
+  it('keeps only the last file when a second one opens before the first has rendered', async () => {
+    const slowViewer = new FakeDiffableViewer()
+    const fastViewer = new FakeDiffableViewer()
+    let renderSlowViewer: (viewer: FakeDiffableViewer) => void = () => {}
+    const notation = new FakeNotation()
+    vi.spyOn(notation, 'createViewer')
+      .mockReturnValueOnce(new Promise((resolve) => (renderSlowViewer = resolve)))
+      .mockResolvedValueOnce(fastViewer)
+    const app = mountPage(notation)
+
+    openFile(app, new File(['<definitions/>'], 'slow.bpmn'))
+    await vi.waitFor(() => expect(notation.createViewer).toHaveBeenCalledOnce())
+    openFile(app, new File(['<definitions/>'], 'fast.bpmn'))
+    await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('fast.bpmn'))
+    renderSlowViewer(slowViewer)
+
+    await vi.waitFor(() => expect(slowViewer.destroyed).toBe(true))
+    expect(textOf(app, '.file-name')).toBe('fast.bpmn')
+    expect(fastViewer.destroyed).toBe(false)
+  })
+
   it('closes the open diagram when the next file is not supported', async () => {
     const viewer = new FakeDiffableViewer()
     const app = mountPage(notationRendering(viewer))

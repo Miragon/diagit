@@ -24,6 +24,7 @@ export class StandaloneViewerPage implements Zoomable {
   private readonly panel: HTMLElement
   private readonly loadedAssetCss = new Set<Notation>()
   private viewer: DiagramViewer | null = null
+  private openCount = 0
 
   constructor(
     private readonly notations: NotationLookup,
@@ -65,6 +66,7 @@ export class StandaloneViewerPage implements Zoomable {
     ])
     app.append(header, this.panel)
     this.listen()
+    new ResizeObserver(() => this.viewer?.fit()).observe(this.stage)
   }
 
   zoomBy(factor: number): void {
@@ -78,15 +80,17 @@ export class StandaloneViewerPage implements Zoomable {
   private listen(): void {
     this.openButton.addEventListener('click', () => this.fileInput.click())
     this.fileInput.addEventListener('change', () => this.openFirst(this.fileInput.files))
-    this.stage.addEventListener('dragover', (event) => {
-      event.preventDefault()
-      this.stage.classList.add('dragover')
-    })
-    this.stage.addEventListener('dragleave', () => this.stage.classList.remove('dragover'))
-    this.stage.addEventListener('drop', (event) => {
+    document.addEventListener('dragover', (event) => event.preventDefault())
+    document.addEventListener('drop', (event) => {
       event.preventDefault()
       this.stage.classList.remove('dragover')
       this.openFirst(event.dataTransfer?.files)
+    })
+    this.stage.addEventListener('dragover', () => this.stage.classList.add('dragover'))
+    this.stage.addEventListener('dragleave', (event) => {
+      if (!this.stage.contains(event.relatedTarget as Node | null)) {
+        this.stage.classList.remove('dragover')
+      }
     })
   }
 
@@ -96,6 +100,7 @@ export class StandaloneViewerPage implements Zoomable {
   }
 
   private async open(file: File): Promise<void> {
+    const openId = ++this.openCount
     const notation = this.notations.detect(file.name)
     if (!notation) {
       this.showError({
@@ -107,10 +112,14 @@ export class StandaloneViewerPage implements Zoomable {
     }
     this.loadAssetCss(notation)
     const xml = await file.text()
+    if (openId !== this.openCount) return
     this.closeDiagram()
     try {
-      this.viewer = await notation.createViewer(this.canvas, xml)
+      const viewer = await notation.createViewer(this.canvas, xml)
+      if (openId !== this.openCount) return viewer.destroy()
+      this.viewer = viewer
     } catch (err) {
+      if (openId !== this.openCount) return
       this.showError(
         ErrorNotice.unreadableModel(
           notation.descriptor.label,
