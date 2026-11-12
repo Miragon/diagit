@@ -24,6 +24,7 @@ type ModelView = 'plain' | 'diff'
 type LoadedModel = PromiseSettledResult<string | null>
 
 const NO_CHANGES: DiagramDiff = { added: [], removed: [], changed: [], moved: [] }
+const ONE_SCREEN_AROUND_THE_VIEWPORT = '100% 0px'
 
 export class DiffPanel implements PanelHandle, Zoomable {
   private readonly oldPane = new DiffPane('old')
@@ -53,11 +54,14 @@ export class DiffPanel implements PanelHandle, Zoomable {
   ])
   private modelView: ModelView = 'plain'
   private viewPickedByUser = false
+  private base: LoadedModel | null = null
   private head: LoadedModel | null = null
   private plainRendered = false
+  private diffRendered = false
   private interactive = false
   private destroyed = false
   private resizeObserver: ResizeObserver | null = null
+  private viewportObserver: IntersectionObserver | null = null
   private detachFocusZoom: (() => void) | null = null
 
   private readonly notices: DiffNotices
@@ -78,7 +82,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.interactive = active
       this.applyInteractive()
     })
-    void this.load()
+    this.loadWhenNearViewport()
     return this
   }
 
@@ -87,11 +91,15 @@ export class DiffPanel implements PanelHandle, Zoomable {
   }
 
   fit(): void {
-    for (const viewer of this.visibleViewers()) viewer?.fit()
+    for (const viewer of this.visibleViewers()) {
+      viewer?.fit()
+    }
   }
 
   zoomBy(factor: number): void {
-    for (const viewer of this.visibleViewers()) viewer?.zoomBy(factor)
+    for (const viewer of this.visibleViewers()) {
+      viewer?.zoomBy(factor)
+    }
   }
 
   destroy(): void {
@@ -99,6 +107,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.detachFocusZoom?.()
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
+    this.viewportObserver?.disconnect()
+    this.viewportObserver = null
     this.destroyViewers()
     this.root.remove()
   }
@@ -116,7 +126,11 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.changeControls.element.style.display = isDiff ? '' : 'none'
     this.diffTab.classList.toggle('is-active', isDiff)
     this.plainTab.classList.toggle('is-active', !isDiff)
-    if (!isDiff) void this.ensurePlainRendered()
+    if (isDiff) {
+      void this.ensureDiffRendered()
+    } else {
+      void this.ensurePlainRendered()
+    }
     this.fit()
   }
 
@@ -132,33 +146,64 @@ export class DiffPanel implements PanelHandle, Zoomable {
     }
   }
 
+  private loadWhenNearViewport(): void {
+    this.viewportObserver = new IntersectionObserver(
+      (entries, observer) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return
+        }
+        observer.disconnect()
+        void this.load()
+      },
+      { rootMargin: ONE_SCREEN_AROUND_THE_VIEWPORT },
+    )
+    this.viewportObserver.observe(this.root)
+  }
+
   private async load(): Promise<void> {
     const { loadOld, loadNew } = this.options
     const [oldModel, newModel] = await Promise.allSettled([
       Promise.resolve().then(loadOld),
       Promise.resolve().then(loadNew),
     ])
-    if (this.destroyed) return
+    if (this.destroyed) {
+      return
+    }
+    this.base = oldModel
     this.head = newModel
+    const opensOnDiff = !this.viewPickedByUser && this.bothVersionsLoaded(oldModel, newModel)
+    this.show(opensOnDiff ? 'diff' : this.modelView)
+  }
 
-    await this.renderPane(this.oldPane, oldModel, 'not in source')
-    await this.renderPane(this.newPane, newModel, 'deleted')
+  private async ensureDiffRendered(): Promise<void> {
+    if (this.diffRendered || this.destroyed || !this.base || !this.head) {
+      return
+    }
+    this.diffRendered = true
+    const { base, head } = this
+    await this.renderPane(this.oldPane, base, 'not in source')
+    await this.renderPane(this.newPane, head, 'deleted')
     if (this.destroyed) {
       this.destroyViewers()
       return
     }
     this.applyInteractive()
-    if (this.oldPane.viewer || this.newPane.viewer) this.options.onRendered?.()
+    if (this.oldPane.viewer || this.newPane.viewer) {
+      this.options.onRendered?.()
+    }
 
-    const diff = await this.computeDiff(oldModel, newModel)
-    if (this.destroyed) return
-    const bothVersionsLoaded = this.bothVersionsLoaded(oldModel, newModel)
-    if (!diff) this.changeControls.showDiffUnavailable()
-    else if (bothVersionsLoaded) this.showDiff(diff)
-
-    if (!this.viewPickedByUser && bothVersionsLoaded) this.show('diff')
-    else if (this.modelView === 'plain') void this.ensurePlainRendered()
-    else this.fit()
+    const diff = await this.computeDiff(base, head)
+    if (this.destroyed) {
+      return
+    }
+    if (!diff) {
+      this.changeControls.showDiffUnavailable()
+    } else if (this.bothVersionsLoaded(base, head)) {
+      this.showDiff(diff)
+    }
+    if (this.modelView === 'diff') {
+      this.fit()
+    }
   }
 
   private showDiff(diff: DiagramDiff): void {
@@ -173,13 +218,17 @@ export class DiffPanel implements PanelHandle, Zoomable {
   }
 
   private async renderPane(pane: DiffPane, model: LoadedModel, emptyLabel: string): Promise<void> {
-    if (model.status === 'rejected')
+    if (model.status === 'rejected') {
       pane.showFailure(this.notices.notLoaded(pane.side, model.reason))
-    else await pane.render(this.options.differ, model.value, emptyLabel, this.notices)
+    } else {
+      await pane.render(this.options.differ, model.value, emptyLabel, this.notices)
+    }
   }
 
   private async ensurePlainRendered(): Promise<void> {
-    if (this.plainRendered || this.destroyed || !this.head) return
+    if (this.plainRendered || this.destroyed || !this.head) {
+      return
+    }
     this.plainRendered = true
     if (this.head.status === 'rejected') {
       this.plainCanvas.showFailure(this.notices.notLoaded('new', this.head.reason))
@@ -192,16 +241,29 @@ export class DiffPanel implements PanelHandle, Zoomable {
       'No current model (file deleted).',
       this.notices,
     )
+    if (this.destroyed) {
+      this.plainCanvas.destroy()
+      return
+    }
     this.applyInteractive()
-    if (this.modelView === 'plain') viewer?.fit()
+    if (viewer) {
+      this.options.onRendered?.()
+    }
+    if (this.modelView === 'plain') {
+      viewer?.fit()
+    }
   }
 
   private async computeDiff(
     oldModel: LoadedModel,
     newModel: LoadedModel,
   ): Promise<DiagramDiff | null> {
-    if (oldModel.status === 'rejected' || newModel.status === 'rejected') return null
-    if (!oldModel.value || !newModel.value) return NO_CHANGES
+    if (oldModel.status === 'rejected' || newModel.status === 'rejected') {
+      return null
+    }
+    if (!oldModel.value || !newModel.value) {
+      return NO_CHANGES
+    }
     try {
       return await this.options.differ.diff(oldModel.value, newModel.value)
     } catch {

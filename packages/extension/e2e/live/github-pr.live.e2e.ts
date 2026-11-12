@@ -17,6 +17,7 @@ describe('LIVE: GitHub PR diff on real github.com', () => {
     await browser.url(PR_URL)
     const host = $(DIFF_PANEL_TAG)
     await host.waitForExist({ timeout: 45_000 })
+    await host.scrollIntoView()
     await expect(host.shadow$('.djs-element')).toBeExisting()
   })
 })

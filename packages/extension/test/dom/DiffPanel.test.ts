@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DiffPanel } from '../../src/views/diff-viewer/DiffPanel'
 import { MARKER } from '../../src/views/diff-viewer/markers'
 import { FetchError } from '../../src/platform/messaging/HttpClient'
 import { FakeDiffer } from '../fakes/FakeDiffer'
+import { FakeIntersectionObserver } from '../fakes/FakeIntersectionObserver'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 const LOADING_LABEL = 'Loading diagram…'
@@ -22,10 +23,17 @@ const position = (container: HTMLElement) =>
   container.querySelector('.diagit-diff-position')?.textContent
 const changeControls = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('.diagit-diff-changes')!
+const untilLoaded = (container: HTMLElement) =>
+  vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
 
 let panel: DiffPanel | null = null
 
-function mount(differ: FakeDiffer, loadOld: () => Promise<string | null>, loadNew = loadOld) {
+function mountAwayFromViewport(
+  differ: FakeDiffer,
+  loadOld: () => Promise<string | null>,
+  loadNew = loadOld,
+  onRendered?: () => void,
+) {
   const container = document.createElement('div')
   document.body.append(container)
   panel = new DiffPanel({
@@ -34,17 +42,150 @@ function mount(differ: FakeDiffer, loadOld: () => Promise<string | null>, loadNe
     loadNew,
     label: 'BPMN',
     reportContext: FAKE_REPORT_CONTEXT,
+    onRendered,
   }).mount(container)
   return container
 }
+
+function mount(differ: FakeDiffer, loadOld: () => Promise<string | null>, loadNew = loadOld) {
+  const container = mountAwayFromViewport(differ, loadOld, loadNew)
+  FakeIntersectionObserver.bringNear()
+  return container
+}
+
+beforeEach(() => {
+  vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver)
+})
 
 afterEach(() => {
   panel?.destroy()
   panel = null
   document.body.innerHTML = ''
+  FakeIntersectionObserver.reset()
+  vi.unstubAllGlobals()
 })
 
 describe('DiffPanel', () => {
+  describe('loading on demand', () => {
+    it('downloads nothing until the panel comes near the viewport', async () => {
+      const loadOld = vi.fn(async () => '<old/>')
+      const loadNew = vi.fn(async () => '<new/>')
+
+      const container = mountAwayFromViewport(new FakeDiffer(), loadOld, loadNew)
+      await Promise.resolve()
+
+      expect(loadOld).not.toHaveBeenCalled()
+      expect(loadNew).not.toHaveBeenCalled()
+      expect(diffPanes(container)[0]!.textContent).toContain(LOADING_LABEL)
+    })
+
+    it('loads and renders once the panel comes within a screen of the viewport', async () => {
+      const differ = new FakeDiffer()
+      const container = mountAwayFromViewport(
+        differ,
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+
+      FakeIntersectionObserver.bringNear()
+
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
+      expect(diffPanes(container)[0]!.textContent).not.toContain(LOADING_LABEL)
+      expect(FakeIntersectionObserver.instances[0]!.options.rootMargin).toBe('100% 0px')
+    })
+
+    it('keeps waiting when the panel is still far from the viewport', async () => {
+      const loadNew = vi.fn(async () => '<new/>')
+      const container = mountAwayFromViewport(new FakeDiffer(), async () => '<old/>', loadNew)
+
+      FakeIntersectionObserver.instances[0]!.report(container, false)
+      await Promise.resolve()
+
+      expect(loadNew).not.toHaveBeenCalled()
+    })
+
+    it('counts a diagram view once a panel that stays on Plain rendered its diagram', async () => {
+      const onRendered = vi.fn()
+      mountAwayFromViewport(
+        new FakeDiffer(),
+        async () => null,
+        async () => '<new/>',
+        onRendered,
+      )
+
+      FakeIntersectionObserver.bringNear()
+
+      await vi.waitFor(() => expect(onRendered).toHaveBeenCalled())
+    })
+
+    it('counts no diagram view when there is no diagram to show', async () => {
+      const onRendered = vi.fn()
+      const container = mountAwayFromViewport(
+        new FakeDiffer(),
+        async () => '<old/>',
+        downloadFailed,
+        onRendered,
+      )
+
+      FakeIntersectionObserver.bringNear()
+      await untilLoaded(container)
+
+      expect(onRendered).not.toHaveBeenCalled()
+    })
+
+    it('releases a diagram that finishes rendering after the panel was destroyed', async () => {
+      const differ = new FakeDiffer()
+      const createViewer = differ.createViewer.bind(differ)
+      let finishRendering!: () => void
+      const rendering = new Promise<void>((done) => (finishRendering = done))
+      const slowCreateViewer = vi
+        .spyOn(differ, 'createViewer')
+        .mockImplementation(async (canvas) => {
+          await rendering
+          return createViewer(canvas)
+        })
+      const onRendered = vi.fn()
+      mountAwayFromViewport(
+        differ,
+        async () => null,
+        async () => '<new/>',
+        onRendered,
+      )
+      FakeIntersectionObserver.bringNear()
+      await vi.waitFor(() => expect(slowCreateViewer).toHaveBeenCalled())
+
+      panel!.destroy()
+      finishRendering()
+
+      await vi.waitFor(() => expect(differ.viewers[0]?.destroyed).toBe(true))
+      expect(onRendered).not.toHaveBeenCalled()
+    })
+
+    it('builds the Diff tab of a panel that stays on Plain only once it is opened', async () => {
+      const differ = new FakeDiffer()
+      const container = mount(
+        differ,
+        async () => null,
+        async () => '<new/>',
+      )
+      await vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
+      expect(differ.viewers).toHaveLength(1)
+
+      buttonNamed(container, 'Diff').click()
+
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
+      expect(diffPanes(container)[0]!.textContent).toContain('not in source')
+    })
+
+    it('stops watching the viewport once destroyed', () => {
+      mountAwayFromViewport(new FakeDiffer(), async () => '<old/>')
+
+      panel!.destroy()
+
+      expect(FakeIntersectionObserver.instances[0]!.observed.size).toBe(0)
+    })
+  })
+
   it('shows a loading label while the models are still on their way', () => {
     const neverArrives = () => new Promise<string | null>(() => {})
 
@@ -65,7 +206,7 @@ describe('DiffPanel', () => {
     await vi.waitFor(() =>
       expect(container.textContent).toContain('No current model (file deleted).'),
     )
-    expect(container.textContent).not.toContain(LOADING_LABEL)
+    expect(plainPane(container).textContent).not.toContain(LOADING_LABEL)
   })
 
   it('marks the diff on both sides and counts every category in the legend', async () => {
@@ -152,10 +293,11 @@ describe('DiffPanel', () => {
       async () => null,
       async () => '<new/>',
     )
-    await vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
+    await untilLoaded(container)
 
     buttonNamed(container, 'Diff').click()
 
+    await vi.waitFor(() => expect(diffPanes(container)[0]!.textContent).toContain('not in source'))
     expect(changeControls(container).textContent).toBe('')
   })
 
@@ -197,8 +339,11 @@ describe('DiffPanel', () => {
     ).not.toBeNull()
     expect(plainPane(container).textContent).toContain('No diagram for this version')
     expect(plainPane(container).textContent).not.toContain('file deleted')
+    buttonNamed(container, 'Diff').click()
     const [, newPane] = diffPanes(container)
-    expect(newPane!.textContent).toContain('New version could not be loaded')
+    await vi.waitFor(() =>
+      expect(newPane!.textContent).toContain('New version could not be loaded'),
+    )
     expect(newPane!.textContent).not.toContain('deleted')
   })
 
@@ -219,6 +364,9 @@ describe('DiffPanel', () => {
   it('names the old version when its download fails', async () => {
     const differ = new FakeDiffer({ added: [], removed: ['R'], changed: [], moved: [] }, ['R'])
     const container = mount(differ, downloadFailed, async () => '<new/>')
+    await untilLoaded(container)
+
+    buttonNamed(container, 'Diff').click()
 
     await vi.waitFor(() =>
       expect(diffPanes(container)[0]!.textContent).toContain('Old version could not be loaded'),
@@ -229,6 +377,9 @@ describe('DiffPanel', () => {
 
   it('says the changes could not be computed when a version is missing', async () => {
     const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
+    await untilLoaded(container)
+
+    buttonNamed(container, 'Diff').click()
 
     await vi.waitFor(() => expect(container.textContent).toContain('Changes could not be computed'))
     expect(container.querySelectorAll('.diagit-diff-legend')).toHaveLength(1)
@@ -290,8 +441,6 @@ describe('DiffPanel', () => {
   describe('the tab it opens on', () => {
     const activeTab = (container: HTMLElement) =>
       container.querySelector('.diagit-tab.is-active')?.textContent
-    const untilLoaded = (container: HTMLElement) =>
-      vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
 
     it('opens on Diff when the file has an old and a new version', async () => {
       const differ = new FakeDiffer()
@@ -329,11 +478,24 @@ describe('DiffPanel', () => {
     it('stays on Plain when a version could not be loaded', async () => {
       const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
 
-      await vi.waitFor(() =>
-        expect(container.textContent).toContain('Changes could not be computed'),
-      )
+      await untilLoaded(container)
 
       expect(activeTab(container)).toBe('Plain')
+    })
+
+    it('builds the Diff tab the user opened while the models were loading', async () => {
+      const differ = new FakeDiffer()
+      const container = mount(
+        differ,
+        async () => null,
+        async () => '<new/>',
+      )
+      buttonNamed(container, 'Diff').click()
+
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(1))
+
+      expect(activeTab(container)).toBe('Diff')
+      expect(diffPanes(container)[1]!.querySelector('.fake-diagram')).not.toBeNull()
     })
 
     it('keeps the tab the user picked while the models were loading', async () => {

@@ -12,6 +12,7 @@ describe('GitHub PR diff (content script)', () => {
 
     const host = $('diagit-diff')
     await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
 
     // A modified file opens on "Diff", which renders both models on diagram-js canvases.
     const shape = host.shadow$('.djs-element')
@@ -25,6 +26,8 @@ describe('GitHub PR diff (content script)', () => {
     await browser.url('/octo/flows/pull/1/files')
 
     const host = $('diagit-diff')
+    await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
     await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
 
     await expect(host.shadow$$('.diagit-diff-legend')).toBeElementsArrayOfSize(1)
