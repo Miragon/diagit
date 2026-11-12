@@ -31,7 +31,7 @@ async function waitForText(context: string, expression: string, expected: string
 
 const RENDERED_SHAPES = `String(document.querySelectorAll('.canvas .djs-element').length > 0)`
 const FILE_NAME = `document.querySelector('.file-name')?.textContent ?? ''`
-const ERROR_TITLE = `document.querySelector('.diagit-error-title')?.textContent ?? ''`
+const ERROR_TITLE = `document.querySelector('.diagit-notice-title')?.textContent ?? ''`
 
 describe('placement notice on a file page Diagit cannot place its view in', () => {
   let viewer: string
@@ -56,7 +56,7 @@ describe('placement notice on a file page Diagit cannot place its view in', () =
 
     await browser.browsingContextNavigate({ context: viewer, url: refused.href, wait: 'complete' })
 
-    await waitForText(viewer, ERROR_TITLE, 'Model could not be opened')
+    await waitForText(viewer, ERROR_TITLE, "Can't open order.bpmn")
     expect(await textIn(viewer, RENDERED_SHAPES)).toBe('false')
   })
 

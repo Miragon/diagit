@@ -32,7 +32,7 @@ describe('GitHub PR diff (content script)', () => {
 
     await expect(host.shadow$$('.diagit-diff-legend')).toBeElementsArrayOfSize(1)
     await expect(host.shadow$$('.diagit-diff-nav')).toBeElementsArrayOfSize(1)
-    await expect(host.shadow$('.diagit-diff-position')).toHaveText('No changes')
+    await expect(host.shadow$('.diagit-diff-total')).toHaveText('No changes')
   })
 
   it('does not stack a second panel when the file is re-rendered (Viewed toggle)', async () => {
