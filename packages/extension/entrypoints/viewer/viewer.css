@@ -11,76 +11,133 @@ body {
 }
 
 #app {
-  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   height: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-/* No header bar: the canvas is borderless and the primary action floats in
-   the top-right anchor (design system §5.2). */
-.toolbar {
-  position: absolute;
-  top: var(--cd-shell-rand);
-  right: var(--cd-shell-rand);
-  z-index: var(--cd-shell-ebene-inseln);
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.stage {
-  position: absolute;
-  inset: 0;
+.page-header h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.app-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--cd-ui-text-leise);
+}
+
+.page-header .btn {
+  margin-left: auto;
+}
+
+.diagit-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  border: 1px solid var(--cd-ui-linie);
+  border-radius: var(--cd-radius-md);
+}
+
+.diagit-toolbar {
+  min-height: var(--cd-shell-zeile);
+  border-bottom: 1px solid var(--cd-ui-linie);
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagit-wrap:not(.has-diagram) .file-name {
+  color: var(--cd-ui-text-leise);
+}
+
+.notation-badge {
+  padding: 2px 6px;
+  border: 1px solid var(--cd-ui-linie);
+  border-radius: var(--cd-radius-sm);
+  color: var(--cd-ui-text-leise);
+  font-size: 11px;
+}
+
+.diagit-wrap:not(.has-diagram) :is(.notation-badge, .diagit-controls),
+.has-diagram .dropzone {
+  display: none;
+}
+
+.diagit-canvas {
+  flex: 1;
+  height: auto;
+  border: none;
+  border-radius: 0 0 var(--cd-radius-md) var(--cd-radius-md);
 }
 
 .canvas {
   position: absolute;
   inset: 0;
-  background: var(--cd-ui-plot);
 }
 
 .dropzone {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: var(--cd-ui-grund);
-}
-
-.dropzone-card {
-  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  max-width: 360px;
-  padding: 32px;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
   text-align: center;
   font-size: 14px;
   line-height: 1.5;
   color: var(--cd-ui-text-leise);
-  border: 1px solid var(--cd-ui-linie);
-  border-radius: var(--cd-radius-lg);
-  background: color-mix(
-    in srgb,
-    var(--cd-ui-flaeche-hoch) var(--cd-ui-chrome-deckkraft),
-    transparent
-  );
-  box-shadow: var(--cd-shadow-2);
+}
+
+.dropzone strong {
+  font-size: 16px;
+  color: var(--cd-ui-text);
 }
 
 .dropzone-icon {
-  width: 48px;
-  height: 48px;
+  width: 28px;
+  height: 28px;
 }
 
-.dropzone .diagit-error {
-  max-width: 480px;
+.error-slot {
+  width: min(420px, 100%);
+  text-align: left;
 }
 
-.dropzone.dragover {
-  background: var(--cd-ui-hover);
+.diagit-canvas.dragover {
   outline: 2px dashed var(--cd-ui-interaktion);
   outline-offset: -12px;
-}
-
-.dropzone.hidden {
-  display: none;
 }
