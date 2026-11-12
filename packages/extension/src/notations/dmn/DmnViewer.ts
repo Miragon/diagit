@@ -35,7 +35,9 @@ export class DmnViewer implements DiagramViewer {
 
   fit(): void {
     const canvas = this.activeCanvas()
-    if (canvas) fitWithPadding(canvas, DMN_FIT_PADDING)
+    if (canvas) {
+      fitWithPadding(canvas, DMN_FIT_PADDING)
+    }
   }
 
   zoomBy(factor: number): void {

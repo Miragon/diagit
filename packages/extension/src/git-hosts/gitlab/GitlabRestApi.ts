@@ -71,8 +71,12 @@ export class GitlabRestApi {
   private indexByPath(changes: MergeRequestChange[]): Map<string, MergeRequestChange> {
     const changeByPath = new Map<string, MergeRequestChange>()
     for (const change of changes) {
-      if (change.new_path) changeByPath.set(change.new_path, change)
-      if (change.old_path) changeByPath.set(change.old_path, change)
+      if (change.new_path) {
+        changeByPath.set(change.new_path, change)
+      }
+      if (change.old_path) {
+        changeByPath.set(change.old_path, change)
+      }
     }
     return changeByPath
   }

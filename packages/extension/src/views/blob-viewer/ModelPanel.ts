@@ -76,7 +76,9 @@ export class ModelPanel implements PanelHandle, Zoomable {
       })
       return
     }
-    if (this.destroyed) return
+    if (this.destroyed) {
+      return
+    }
 
     let viewer: DiagramViewer
     try {

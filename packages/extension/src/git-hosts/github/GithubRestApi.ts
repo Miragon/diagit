@@ -113,7 +113,9 @@ export class GithubRestApi {
     const fileByPath = new Map<string, GithubDiffFile>()
     for (const file of files) {
       fileByPath.set(file.filename, file)
-      if (file.previous_filename) fileByPath.set(file.previous_filename, file)
+      if (file.previous_filename) {
+        fileByPath.set(file.previous_filename, file)
+      }
     }
     return fileByPath
   }

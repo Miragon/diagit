@@ -9,7 +9,9 @@ function jsonResponse(body: unknown, ok = true): Response {
 
 function flowAnswering(...bodies: unknown[]) {
   const fetch = vi.fn()
-  for (const body of bodies) fetch.mockResolvedValueOnce(jsonResponse(body))
+  for (const body of bodies) {
+    fetch.mockResolvedValueOnce(jsonResponse(body))
+  }
   return { fetch, flow: new GithubDeviceFlow(fetch) }
 }
 

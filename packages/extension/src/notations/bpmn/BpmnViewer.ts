@@ -17,7 +17,9 @@ export class BpmnViewer implements DiffableViewer {
       moddleExtensions: { camunda: camundaModdle },
     })
     viewer.on('import.parse.complete', ({ error, definitions }) => {
-      if (!error) dropInvalidDiColors(definitions)
+      if (!error) {
+        dropInvalidDiColors(definitions)
+      }
     })
     try {
       await viewer.importXML(xml)
@@ -59,7 +61,9 @@ export class BpmnViewer implements DiffableViewer {
 
   focusElement(id: string, zoom: number): void {
     const element = this.elementRegistry.get(id)
-    if (!element) return
+    if (!element) {
+      return
+    }
     this.canvas.zoom(zoom)
     this.canvas.scrollToElement(element)
   }

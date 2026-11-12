@@ -9,7 +9,9 @@ export async function fetchAllPages<T>(http: HttpClient, url: string): Promise<T
   for (let page = 1; page <= MAX_PAGES; page++) {
     const batch = await http.fetchJson<T[]>(`${url}${separator}per_page=${PER_PAGE}&page=${page}`)
     items.push(...batch)
-    if (batch.length < PER_PAGE) break
+    if (batch.length < PER_PAGE) {
+      break
+    }
   }
   return items
 }

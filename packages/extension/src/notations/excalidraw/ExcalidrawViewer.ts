@@ -40,7 +40,9 @@ export class ExcalidrawViewer implements DiagramViewer {
   fit(): void {
     const { clientWidth, clientHeight } = this.canvas
     const { naturalWidth, naturalHeight } = this.image
-    if (clientWidth === 0 || clientHeight === 0) return
+    if (clientWidth === 0 || clientHeight === 0) {
+      return
+    }
     const scaleWithPadding = (padding: number) =>
       Math.min(
         (clientWidth - 2 * padding) / naturalWidth,
@@ -59,8 +61,11 @@ export class ExcalidrawViewer implements DiagramViewer {
   }
 
   setInteractive(active: boolean): void {
-    if (active) this.canvas.addEventListener('wheel', this.zoomWithWheel, { passive: false })
-    else this.canvas.removeEventListener('wheel', this.zoomWithWheel)
+    if (active) {
+      this.canvas.addEventListener('wheel', this.zoomWithWheel, { passive: false })
+    } else {
+      this.canvas.removeEventListener('wheel', this.zoomWithWheel)
+    }
   }
 
   destroy(): void {
@@ -71,7 +76,9 @@ export class ExcalidrawViewer implements DiagramViewer {
   }
 
   private readonly startPan = (start: PointerEvent): void => {
-    if (start.button !== MAIN_BUTTON || !start.isPrimary) return
+    if (start.button !== MAIN_BUTTON || !start.isPrimary) {
+      return
+    }
     const originX = start.clientX - this.x
     const originY = start.clientY - this.y
     const pan = new AbortController()

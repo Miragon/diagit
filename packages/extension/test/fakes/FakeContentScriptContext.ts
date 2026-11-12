@@ -15,7 +15,9 @@ export class FakeContentScriptContext {
       this.invalidationListeners.push(listener)
       return () => {
         const index = this.invalidationListeners.indexOf(listener)
-        if (index >= 0) this.invalidationListeners.splice(index, 1)
+        if (index >= 0) {
+          this.invalidationListeners.splice(index, 1)
+        }
       }
     },
   } as unknown as ContentScriptContext
@@ -29,7 +31,9 @@ export class FakeContentScriptContext {
   }
 
   private checkExtensionContext(): boolean {
-    if (this.extensionContextLost) this.notifyInvalidated()
+    if (this.extensionContextLost) {
+      this.notifyInvalidated()
+    }
     return this.extensionContextLost
   }
 

@@ -4,7 +4,9 @@ export function enableFocusZoom(
 ): () => void {
   let active = false
   const set = (next: boolean): void => {
-    if (next === active) return
+    if (next === active) {
+      return
+    }
     active = next
     setActive(next)
     pane.classList.toggle('is-active', next)
@@ -13,7 +15,9 @@ export function enableFocusZoom(
   const onPointerDown = (): void => set(true)
   const onLeave = (): void => set(false)
   const onPointerDownElsewhere = (event: Event): void => {
-    if (!event.composedPath().includes(pane)) set(false)
+    if (!event.composedPath().includes(pane)) {
+      set(false)
+    }
   }
 
   pane.addEventListener('pointerdown', onPointerDown)

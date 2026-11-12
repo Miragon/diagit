@@ -24,7 +24,9 @@ export class SettingsStore {
 
   onChange(key: string, listener: (newValue: unknown) => void): () => void {
     const onStorageChange: StorageChangeListener = (changes, areaName) => {
-      if (areaName === LOCAL_AREA && key in changes) listener(changes[key]!.newValue)
+      if (areaName === LOCAL_AREA && key in changes) {
+        listener(changes[key]!.newValue)
+      }
     }
     this.changeEvents().addListener(onStorageChange)
     return () => this.changeEvents().removeListener(onStorageChange)
@@ -37,8 +39,11 @@ export class SettingsStore {
 
   async writeString(key: string, value: string): Promise<void> {
     const trimmed = value.trim()
-    if (trimmed) await this.area().set({ [key]: trimmed })
-    else await this.area().remove(key)
+    if (trimmed) {
+      await this.area().set({ [key]: trimmed })
+    } else {
+      await this.area().remove(key)
+    }
   }
 
   async readRecord<T>(key: string): Promise<T | undefined> {

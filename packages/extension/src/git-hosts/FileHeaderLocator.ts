@@ -30,13 +30,19 @@ export class FileHeaderLocator {
   findVisible(doc: Document, paths: string[]): VisibleFileHeader[] {
     const wanted = new Set(paths)
     const headerByPath = new Map<string, HTMLElement>()
-    if (!wanted.size) return []
+    if (!wanted.size) {
+      return []
+    }
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const path = stripBidiMarks(node.textContent ?? '').trim()
       const label = node.parentElement
-      if (!wanted.has(path) || headerByPath.has(path) || !label) continue
-      if (!isRendered(label) || label.closest(this.regionsThatOnlyMentionFiles)) continue
+      if (!wanted.has(path) || headerByPath.has(path) || !label) {
+        continue
+      }
+      if (!isRendered(label) || label.closest(this.regionsThatOnlyMentionFiles)) {
+        continue
+      }
       headerByPath.set(path, this.headerAround(label))
     }
     return [...headerByPath].map(([path, header]) => ({ path, header }))
@@ -46,7 +52,9 @@ export class FileHeaderLocator {
     let header = label
     let ancestor: HTMLElement | null = label
     for (let level = 0; level < MAX_HEADER_CLIMB && ancestor; level++) {
-      if (ancestor.matches(HEADER_LIKE)) header = ancestor
+      if (ancestor.matches(HEADER_LIKE)) {
+        header = ancestor
+      }
       ancestor = ancestor.parentElement
     }
     return header

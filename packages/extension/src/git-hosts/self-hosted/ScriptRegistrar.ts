@@ -28,7 +28,9 @@ export class ScriptRegistrar {
 
   async register(origin: string): Promise<void> {
     const ids = await this.registeredScriptIds(origin)
-    if (ids.length) await this.scripting().unregisterContentScripts({ ids })
+    if (ids.length) {
+      await this.scripting().unregisterContentScripts({ ids })
+    }
     await this.scripting().registerContentScripts([this.viewRouterFor(origin)])
   }
 

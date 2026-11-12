@@ -25,12 +25,16 @@ export class ViewRouter {
 
   private loadMissingViewScripts(url: PageUrl): void {
     for (const script of this.catalog.viewScriptsFor(url)) {
-      if (!this.requestedScripts.has(script)) void this.load(script)
+      if (!this.requestedScripts.has(script)) {
+        void this.load(script)
+      }
     }
   }
 
   private async load(script: string): Promise<void> {
     this.requestedScripts.add(script)
-    if (!(await this.loader.injectViewScript(script))) this.requestedScripts.delete(script)
+    if (!(await this.loader.injectViewScript(script))) {
+      this.requestedScripts.delete(script)
+    }
   }
 }

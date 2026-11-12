@@ -9,13 +9,19 @@ export class ModelComparator {
 
     newModel.forEach((element, id) => {
       const old = oldModel.get(id)
-      if (!old) diff.added.push(id)
-      else if (this.semanticChanged(old, oldModel, element, newModel)) diff.changed.push(id)
-      else if (this.layoutChanged(old, element)) diff.moved.push(id)
+      if (!old) {
+        diff.added.push(id)
+      } else if (this.semanticChanged(old, oldModel, element, newModel)) {
+        diff.changed.push(id)
+      } else if (this.layoutChanged(old, element)) {
+        diff.moved.push(id)
+      }
     })
 
     oldModel.forEach((_element, id) => {
-      if (!newModel.has(id)) diff.removed.push(id)
+      if (!newModel.has(id)) {
+        diff.removed.push(id)
+      }
     })
 
     return diff
@@ -34,7 +40,9 @@ export class ModelComparator {
   }
 
   private layoutChanged(a: DiffElement, b: DiffElement): boolean {
-    if (this.boundsChanged(a, b) || this.boundsChanged(a.labelBounds, b.labelBounds)) return true
+    if (this.boundsChanged(a, b) || this.boundsChanged(a.labelBounds, b.labelBounds)) {
+      return true
+    }
     return this.waypointSignature(a.waypoints) !== this.waypointSignature(b.waypoints)
   }
 
@@ -43,7 +51,9 @@ export class ModelComparator {
   }
 
   private waypointSignature(points: DiffElement['waypoints']): string {
-    if (!points) return ''
+    if (!points) {
+      return ''
+    }
     return JSON.stringify(points.map((point) => [point.x, point.y]))
   }
 }

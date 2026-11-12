@@ -28,7 +28,9 @@ export function dropInvalidDiColors(definitions: DiDefinitions): void {
   for (const diagram of definitions.diagrams ?? []) {
     for (const di of diagram.plane?.planeElement ?? []) {
       dropInvalidColors(di)
-      if (di.label) dropInvalidColors(di.label)
+      if (di.label) {
+        dropInvalidColors(di.label)
+      }
     }
   }
 }
@@ -36,6 +38,8 @@ export function dropInvalidDiColors(definitions: DiDefinitions): void {
 function dropInvalidColors(element: DiElement): void {
   for (const attribute of DI_COLOR_ATTRIBUTES) {
     const value = element.get(attribute)
-    if (value !== undefined && !isSafeDiColor(value)) element.set(attribute, undefined)
+    if (value !== undefined && !isSafeDiColor(value)) {
+      element.set(attribute, undefined)
+    }
   }
 }

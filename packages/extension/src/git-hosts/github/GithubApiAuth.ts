@@ -46,7 +46,9 @@ export class GithubApiAuth implements AuthPolicy {
   }
 
   async headersFor(url: string): Promise<HeadersInit | undefined> {
-    if (!this.targets(url)) return undefined
+    if (!this.targets(url)) {
+      return undefined
+    }
     return this.bearer(await this.tokens.validToken())
   }
 
@@ -54,7 +56,9 @@ export class GithubApiAuth implements AuthPolicy {
     url: string,
     rejected: HeadersInit,
   ): Promise<HeadersInit | undefined> {
-    if (!this.targets(url)) return undefined
+    if (!this.targets(url)) {
+      return undefined
+    }
     const rejectedToken = new Headers(rejected).get('Authorization')?.slice(BEARER_PREFIX.length)
     return rejectedToken ? this.bearer(await this.tokens.replacementFor(rejectedToken)) : undefined
   }

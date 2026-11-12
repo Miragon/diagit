@@ -7,7 +7,9 @@ export function detectHostTheme(context?: Element | null): Theme {
     paintedBackgroundNear(context) ??
     readBackground(document.body) ??
     readBackground(document.documentElement)
-  if (rgb) return luminance(rgb) < 0.5 ? 'dark' : 'light'
+  if (rgb) {
+    return luminance(rgb) < 0.5 ? 'dark' : 'light'
+  }
   if (typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches) {
     return 'dark'
   }
@@ -18,7 +20,9 @@ function paintedBackgroundNear(el?: Element | null): [number, number, number] | 
   let node = hostPageContext(el)
   while (node) {
     const rgb = readBackground(node)
-    if (rgb) return rgb
+    if (rgb) {
+      return rgb
+    }
     const parent = node.parentElement
     if (parent) {
       node = parent
@@ -31,9 +35,13 @@ function paintedBackgroundNear(el?: Element | null): [number, number, number] | 
 }
 
 function hostPageContext(el?: Element | null): Element | null {
-  if (!el) return null
+  if (!el) {
+    return null
+  }
   const root = el.getRootNode()
-  if (root instanceof ShadowRoot) return root.host.parentElement ?? root.host
+  if (root instanceof ShadowRoot) {
+    return root.host.parentElement ?? root.host
+  }
   return el
 }
 
@@ -48,12 +56,18 @@ export function diagramColors(theme: Theme): DiagramColors {
 }
 
 function readBackground(el: Element | null): [number, number, number] | null {
-  if (!el) return null
+  if (!el) {
+    return null
+  }
   const match = getComputedStyle(el).backgroundColor.match(/rgba?\(([^)]+)\)/)
-  if (!match) return null
+  if (!match) {
+    return null
+  }
   const parts = match[1]!.split(',').map((s) => parseFloat(s))
   const [r, g, b, a = 1] = parts
-  if (a === 0 || r === undefined || g === undefined || b === undefined) return null
+  if (a === 0 || r === undefined || g === undefined || b === undefined) {
+    return null
+  }
   return [r, g, b]
 }
 

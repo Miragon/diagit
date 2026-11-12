@@ -25,7 +25,9 @@ describe('DiagramViewsLocalStorage', () => {
     const storage = new MemoryStorageArea()
     const diagramViews = diagramViewsOn(storage)
 
-    for (let file = 0; file < 5; file++) await diagramViews.save('/o/r/pull/1/files')
+    for (let file = 0; file < 5; file++) {
+      await diagramViews.save('/o/r/pull/1/files')
+    }
 
     expect(storage.items.diagramViews).toEqual({ pageCount: 1, lastPage: '/o/r/pull/1/files' })
   })

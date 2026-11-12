@@ -40,14 +40,18 @@ export class SelfHostedHostsSection {
     )
     this.addButton.addEventListener('click', () => void this.add())
     this.originInput.addEventListener('keydown', (event) => {
-      if ((event as KeyboardEvent).key === 'Enter') void this.add()
+      if ((event as KeyboardEvent).key === 'Enter') {
+        void this.add()
+      }
     })
     void this.refresh()
   }
 
   private async add(): Promise<void> {
     const origin = normalizeOrigin(this.originInput.value)
-    if (!origin) return this.setStatus('Enter a valid http(s) URL.', 'error')
+    if (!origin) {
+      return this.setStatus('Enter a valid http(s) URL.', 'error')
+    }
 
     let granted: boolean
     try {
@@ -55,7 +59,9 @@ export class SelfHostedHostsSection {
     } catch (err) {
       return this.setStatus(`Could not request permission: ${errorMessage(err)}`, 'error')
     }
-    if (!granted) return this.setStatus('Permission was not granted.', 'error')
+    if (!granted) {
+      return this.setStatus('Permission was not granted.', 'error')
+    }
 
     await this.access.add(origin)
     this.originInput.value = ''

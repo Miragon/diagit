@@ -93,7 +93,9 @@ export class HostAccess {
     const granted: string[] = []
     for (const host of await this.store.list()) {
       const origins = [originToPattern(host.origin)]
-      if (await this.browserApi().permissions.contains({ origins })) granted.push(host.origin)
+      if (await this.browserApi().permissions.contains({ origins })) {
+        granted.push(host.origin)
+      }
     }
     return granted
   }

@@ -9,7 +9,9 @@ async function openDiagramPage(page: number): Promise<void> {
 
 describe('Star prompt', () => {
   it('asks for a star on the fifth page with a diagram and never again once closed', async () => {
-    for (let page = 1; page < PAGES_BEFORE_PROMPT; page++) await openDiagramPage(page)
+    for (let page = 1; page < PAGES_BEFORE_PROMPT; page++) {
+      await openDiagramPage(page)
+    }
     await expect($('diagit-star-prompt')).not.toBeExisting()
 
     await openDiagramPage(PAGES_BEFORE_PROMPT)

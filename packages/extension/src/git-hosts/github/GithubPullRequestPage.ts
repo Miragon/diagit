@@ -13,9 +13,12 @@ export class GithubPullRequestPage extends GithubDiffPage<PullRequestRef> {
 
   load(location: Location, page: PullRequestRef): Promise<GithubDiffData> {
     const { revisions } = page
-    if (!revisions) return this.api.loadPullRequest(location, page)
-    if ('commit' in revisions)
+    if (!revisions) {
+      return this.api.loadPullRequest(location, page)
+    }
+    if ('commit' in revisions) {
       return this.api.loadCommit(location, { ...page, sha: revisions.commit })
+    }
     return this.api.loadComparison(location, page, revisions)
   }
 }

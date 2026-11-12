@@ -11,7 +11,9 @@ export class HostRegistry {
     const publicHost = this.hosts.find(
       (host) => new URL(host.publicOrigin).hostname === url.hostname,
     )
-    if (publicHost) return publicHost
+    if (publicHost) {
+      return publicHost
+    }
     return this.hosts.find((host) => host.recognizesSelfHosted(url)) ?? this.selfHostedFallback
   }
 
@@ -28,7 +30,9 @@ export class HostRegistry {
     } catch {
       return false
     }
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false
+    }
     return this.viewScriptsFor(parsed).length > 0
   }
 

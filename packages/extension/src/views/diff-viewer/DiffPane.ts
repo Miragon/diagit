@@ -48,7 +48,9 @@ export class DiffPane {
   showDiff(diff: DiagramDiff): void {
     for (const category of CATEGORIES_MARKED_ON[this.side]) {
       for (const id of diff[category]) {
-        if (this.viewer?.hasElement(id)) this.viewer.addMarker(id, MARKER[category])
+        if (this.viewer?.hasElement(id)) {
+          this.viewer.addMarker(id, MARKER[category])
+        }
       }
     }
   }

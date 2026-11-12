@@ -7,7 +7,9 @@ export default class DiagitRecipe {
   #resolve
 
   constructor({ gallery = [], hero }, { resolve }) {
-    if (!hero?.path) throw new Error('Das Diagit-Rezept braucht "shots.hero.path".')
+    if (!hero?.path) {
+      throw new Error('Das Diagit-Rezept braucht "shots.hero.path".')
+    }
     this.#gallery = gallery
     this.#hero = hero
     this.#resolve = resolve
@@ -25,7 +27,9 @@ export default class DiagitRecipe {
 
   async #prepare(window, { path, journey }) {
     await window.goto(path)
-    if (journey) await window.journey(this.#resolve(journey))
+    if (journey) {
+      await window.journey(this.#resolve(journey))
+    }
     await window.restPointer()
     await window.pause(300)
   }

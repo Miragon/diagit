@@ -56,7 +56,9 @@ export default defineConfig({
         name: 'excalidraw-patch-bundle',
         enforce: 'pre' as const,
         transform(code: string, id: string) {
-          if (!EXCALIDRAW_BUNDLE.test(id)) return null
+          if (!EXCALIDRAW_BUNDLE.test(id)) {
+            return null
+          }
           const stripped = code.replace(EMBEDDED_BASE64_ASSET, '')
           const withoutWidgets = stripped.replace(THIRD_PARTY_WIDGET_SCRIPT, '')
           if (

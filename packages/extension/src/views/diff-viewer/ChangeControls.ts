@@ -55,8 +55,12 @@ export class ChangeControls {
   }
 
   private positionText({ position, ids }: ChangeNavigator): string {
-    if (position) return `${position} of ${ids.length}`
-    if (ids.length === 0) return 'No changes'
+    if (position) {
+      return `${position} of ${ids.length}`
+    }
+    if (ids.length === 0) {
+      return 'No changes'
+    }
     return ids.length === 1 ? '1 change' : `${ids.length} changes`
   }
 

@@ -18,7 +18,9 @@ export class FetchProxy {
 
   async fetchText(url: string, pageOrigin: string): Promise<FetchTextResponse> {
     const grant = this.scope.grantFor(pageOrigin, url)
-    if (!grant) return { ok: false, error: `Refused to fetch ${url} for this page` }
+    if (!grant) {
+      return { ok: false, error: `Refused to fetch ${url} for this page` }
+    }
     try {
       const response = await this.fetchAuthorized(url, grant)
       if (
@@ -42,10 +44,14 @@ export class FetchProxy {
   }
 
   private rateLimitResetsAt(response: Response): number | undefined {
-    if (!RATE_LIMIT_STATUSES.includes(response.status)) return undefined
+    if (!RATE_LIMIT_STATUSES.includes(response.status)) {
+      return undefined
+    }
     const headers = response.headers
     const retryAfterSeconds = this.secondsIn(headers.get('retry-after'))
-    if (retryAfterSeconds !== undefined) return Date.now() + retryAfterSeconds * 1000
+    if (retryAfterSeconds !== undefined) {
+      return Date.now() + retryAfterSeconds * 1000
+    }
     const exhausted = RATE_LIMIT_HEADER_PREFIXES.find(
       (prefix) => headers.get(`${prefix}-remaining`) === '0',
     )
@@ -56,7 +62,9 @@ export class FetchProxy {
   }
 
   private secondsIn(header: string | null): number | undefined {
-    if (header === null) return undefined
+    if (header === null) {
+      return undefined
+    }
     const seconds = Number(header)
     return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined
   }
@@ -65,7 +73,9 @@ export class FetchProxy {
     const redirect = grant.followsRedirects ? 'follow' : 'manual'
     const headers = grant.withAuth ? await this.authHeadersFor(url) : undefined
     const response = await this.send(url, redirect, headers)
-    if (response.status !== UNAUTHORIZED || !headers) return response
+    if (response.status !== UNAUTHORIZED || !headers) {
+      return response
+    }
     const renewedHeaders = await this.renewedAuthHeadersFor(url, headers)
     return renewedHeaders ? this.send(url, redirect, renewedHeaders) : response
   }
@@ -81,7 +91,9 @@ export class FetchProxy {
   private async authHeadersFor(url: string): Promise<HeadersInit | undefined> {
     for (const policy of this.authPolicies) {
       const headers = await policy.headersFor(url)
-      if (headers) return headers
+      if (headers) {
+        return headers
+      }
     }
     return undefined
   }
@@ -92,7 +104,9 @@ export class FetchProxy {
   ): Promise<HeadersInit | undefined> {
     for (const policy of this.authPolicies) {
       const headers = await policy.headersAfterUnauthorized(url, rejected)
-      if (headers) return headers
+      if (headers) {
+        return headers
+      }
     }
     return undefined
   }

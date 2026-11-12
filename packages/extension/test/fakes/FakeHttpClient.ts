@@ -29,8 +29,12 @@ export class FakeHttpClient implements HttpClient {
   private async respond(url: string): Promise<unknown> {
     this.requests.push(url)
     const response = url in this.responses ? this.responses[url] : this.fallback
-    if (response instanceof Error) throw response
-    if (response === null) throw new FetchError(`HTTP 404 for ${url}`, 404)
+    if (response instanceof Error) {
+      throw response
+    }
+    if (response === null) {
+      throw new FetchError(`HTTP 404 for ${url}`, 404)
+    }
     return response
   }
 }
