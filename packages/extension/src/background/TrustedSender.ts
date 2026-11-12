@@ -4,12 +4,13 @@ export interface MessageSender {
   id?: string
   origin?: string
   url?: string
-  tab?: { id?: number; url?: string }
+  tab?: { id?: number; url?: string; incognito?: boolean }
 }
 
 export interface SenderPage {
   tabId: number
   origin: string
+  incognito: boolean
 }
 
 export class TrustedSender {
@@ -20,7 +21,7 @@ export class TrustedSender {
     if (id !== this.extensionId || tab?.id == null || !tab.url) return undefined
     const tabOrigin = webOrigin(tab.url)
     if (!tabOrigin || this.frameOrigin(sender) !== tabOrigin) return undefined
-    return { tabId: tab.id, origin: tabOrigin }
+    return { tabId: tab.id, origin: tabOrigin, incognito: tab.incognito === true }
   }
 
   private frameOrigin(sender: MessageSender): string | null {

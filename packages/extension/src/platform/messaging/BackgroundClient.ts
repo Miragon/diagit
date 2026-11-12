@@ -5,6 +5,7 @@ import type {
   FetchTextResponse,
   InjectViewScriptRequest,
   OpenOptionsRequest,
+  OpenViewerRequest,
 } from './messages'
 
 export class BackgroundClient implements HttpClient {
@@ -29,6 +30,11 @@ export class BackgroundClient implements HttpClient {
 
   async openOptions(): Promise<void> {
     const request: OpenOptionsRequest = { type: 'openOptions' }
+    await browser.runtime.sendMessage(request).catch(() => undefined)
+  }
+
+  async openViewer(url: string): Promise<void> {
+    const request: OpenViewerRequest = { type: 'openViewer', url }
     await browser.runtime.sendMessage(request).catch(() => undefined)
   }
 }

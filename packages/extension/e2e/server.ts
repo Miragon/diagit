@@ -6,7 +6,8 @@
  * It serves three things:
  *   1. The built extension's own pages/assets from `.output/chrome-mv3`
  *      (so the standalone `viewer.html` can be driven over HTTP, extension-free).
- *   2. GitHub-shaped host pages — a repository landing page, a blob file view, a
+ *   2. GitHub-shaped host pages — a repository landing page, a blob file view (also
+ *      in a layout the viewer cannot place itself in), a
  *      pull-request "Files changed" view and a single-commit diff view — from
  *      `fixtures/host-dom/`.
  *   3. The data those pages make the extension fetch: the raw `.bpmn`/`.dmn`
@@ -47,6 +48,7 @@ const COMMIT = {
 const REPO_HOME = `/${PR.owner}/${PR.repo}`
 const RENAMED_REPO_SEGMENT = `/${PR.owner}/renamed/`
 const REPO_SEGMENT = `/${PR.owner}/${PR.repo}/`
+const UNKNOWN_LAYOUT_REPO_SEGMENT = `/${PR.owner}/relayout/`
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -159,7 +161,10 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
       return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, 'repo-home.html')))
     }
     if (path.includes('/blob/')) {
-      return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, 'blob.html')))
+      const page = path.startsWith(UNKNOWN_LAYOUT_REPO_SEGMENT)
+        ? 'blob-unknown-layout.html'
+        : 'blob.html'
+      return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, page)))
     }
     if (path.includes('/pull/')) {
       return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, 'pr.html')))

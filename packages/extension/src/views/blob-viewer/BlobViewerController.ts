@@ -105,8 +105,13 @@ export class BlobViewerController {
 
   private showPlacementNotice(): void {
     const notation = this.currentNotation()
+    const { location } = this.page
     if (notation)
-      void this.placementNotice.show(this.page.location.pathname, notation.descriptor.label)
+      void this.placementNotice.show(
+        location.pathname,
+        notation.descriptor.label,
+        this.blobPage.rawUrl(location),
+      )
   }
 
   private currentNotation(): Notation | null {

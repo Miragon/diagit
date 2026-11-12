@@ -5,11 +5,10 @@ import { detectHostTheme } from '../utils/hostTheme'
 import { lucideIcon } from '../utils/lucideIcon'
 import toastCss from './toast.css?inline'
 
-export interface ToastAction {
+export type ToastAction = {
   label: string
   variant: 'primary' | 'secondary'
-  url: string
-}
+} & ({ url: string } | { onClick: () => void })
 
 export interface ToastOptions {
   tone: 'info' | 'danger'
@@ -70,13 +69,14 @@ export class Toast implements PanelHandle {
     this.root.remove()
   }
 
-  private actionButton({ label, variant, url }: ToastAction): HTMLButtonElement {
+  private actionButton(action: ToastAction): HTMLButtonElement {
     return h('button', {
-      class: `btn btn-small ${VARIANT_CLASS[variant]}`,
+      class: `btn btn-small ${VARIANT_CLASS[action.variant]}`,
       type: 'button',
-      text: label,
+      text: action.label,
       onClick: () => {
-        window.open(url, '_blank', 'noopener')
+        if ('url' in action) window.open(action.url, '_blank', 'noopener')
+        else action.onClick()
         this.options.onClose()
       },
     })

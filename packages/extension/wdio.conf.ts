@@ -38,6 +38,11 @@ const selected = (process.env.WDIO_BROWSERS ?? 'chrome,edge,firefox')
 // (`npm run build`), not `e2e:build`.
 const live = Boolean(process.env.WDIO_LIVE)
 
+// Firefox lets WebDriver BiDi read an extension tab (moz-extension://, the
+// standalone viewer opened from the placement notice) only with system access.
+// geckodriver refuses this variable as a capability, so Firefox inherits it.
+if (selected.includes('firefox') && !live) process.env.MOZ_REMOTE_ALLOW_SYSTEM_ACCESS = '1'
+
 const chromiumArgs = (): string[] => [
   ...(process.env.WDIO_HEADED ? [] : ['--headless=new']),
   '--no-sandbox',

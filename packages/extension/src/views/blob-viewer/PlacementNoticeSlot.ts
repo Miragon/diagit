@@ -1,7 +1,9 @@
 import { CircleAlert } from 'lucide'
+import { browser } from 'wxt/browser'
 import { PLACEMENT_NOTICE_TAG } from '../../platform/injectedElements'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
-import { Toast } from '../../platform/ui/Toast'
+import { BackgroundClient } from '../../platform/messaging/BackgroundClient'
+import { Toast, type ToastAction } from '../../platform/ui/Toast'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 
 export class PlacementNoticeSlot {
@@ -14,7 +16,7 @@ export class PlacementNoticeSlot {
     private readonly reportContext: ReportContext,
   ) {}
 
-  async show(path: string, label: string): Promise<void> {
+  async show(path: string, label: string, rawUrl: string): Promise<void> {
     if (this.shownPath === path || this.dismissedPath === path) return
     this.shownPath = path
     const notice = await Toast.mountOn(this.page, PLACEMENT_NOTICE_TAG, {
@@ -23,6 +25,7 @@ export class PlacementNoticeSlot {
       title: `${label} view could not be added`,
       message: `Diagit cannot find where to show this ${label} model. The page layout has probably changed.`,
       actions: [
+        ...this.openInViewer(rawUrl),
         {
           label: 'Report this problem',
           variant: 'secondary',
@@ -48,5 +51,16 @@ export class PlacementNoticeSlot {
   private dismiss(path: string): void {
     this.dismissedPath = path
     this.remove()
+  }
+
+  private openInViewer(rawUrl: string): ToastAction[] {
+    if (browser.extension.inIncognitoContext) return []
+    return [
+      {
+        label: 'Open in Diagit',
+        variant: 'primary',
+        onClick: () => void new BackgroundClient().openViewer(rawUrl),
+      },
+    ]
   }
 }

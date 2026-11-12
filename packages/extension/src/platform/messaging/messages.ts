@@ -12,7 +12,13 @@ export interface OpenOptionsRequest {
   type: 'openOptions'
 }
 
-export type BackgroundRequest = FetchTextRequest | InjectViewScriptRequest | OpenOptionsRequest
+export interface OpenViewerRequest {
+  type: 'openViewer'
+  url: string
+}
+
+export type BackgroundRequest =
+  FetchTextRequest | InjectViewScriptRequest | OpenOptionsRequest | OpenViewerRequest
 
 export type FetchTextResponse =
   | { ok: true; text: string }
