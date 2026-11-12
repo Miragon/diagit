@@ -123,7 +123,6 @@ export class DiffController {
         err.message,
       ),
     }
-    const fileName = file.path.slice(file.path.lastIndexOf('/') + 1)
     const panel = await Notice.mountOn(
       this.page,
       {
@@ -131,7 +130,7 @@ export class DiffController {
         anchor: file.anchor,
         append: file.append,
         css: viewerCss,
-        fileLabel: fileLabel(fileName, label),
+        fileLabel: fileLabel(file.path, label),
       },
       failure,
     )

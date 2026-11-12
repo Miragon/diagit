@@ -111,10 +111,7 @@ export class StandaloneViewerPage implements Zoomable {
   }
 
   resetZoom(): void {
-    const level = this.viewer?.zoomLevel()
-    if (level) {
-      this.viewer?.zoomBy(1 / level)
-    }
+    ZoomControls.resetZoomOf(this.viewer)
   }
 
   fit(): void {

@@ -8,6 +8,11 @@ export interface Zoomable {
   fit(): void
 }
 
+interface ZoomedViewer {
+  zoomBy(factor: number): void
+  zoomLevel(): number | null
+}
+
 const ZOOM_STEP = 1.2
 const RESET_ZOOM = 'Reset zoom'
 
@@ -38,6 +43,13 @@ export class ZoomControls {
       }),
     ])
     this.showLevel(null)
+  }
+
+  static resetZoomOf(viewer: ZoomedViewer | null): void {
+    const level = viewer?.zoomLevel()
+    if (viewer && level) {
+      viewer.zoomBy(1 / level)
+    }
   }
 
   showLevel(level: number | null): void {

@@ -109,10 +109,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   resetZoom(): void {
     for (const viewer of this.visibleViewers()) {
-      const level = viewer?.zoomLevel()
-      if (level) {
-        viewer?.zoomBy(1 / level)
-      }
+      ZoomControls.resetZoomOf(viewer)
     }
   }
 

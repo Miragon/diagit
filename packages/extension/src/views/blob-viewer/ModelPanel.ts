@@ -13,7 +13,7 @@ const CODE_STILL_SHOWN = 'The code below still shows the file.'
 
 export interface ModelPanelOptions {
   notation: Notation
-  fileName: string
+  filePath: string
   loadXml: () => Promise<string>
   reportContext: ReportContext
   onRendered?: () => void
@@ -36,7 +36,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   constructor(private readonly options: ModelPanelOptions) {
     this.wrap = h('div', { class: 'diagit-wrap diagit-file-panel' }, [
-      h('div', { class: 'diagit-toolbar' }, [fileLabel(options.fileName, this.label)]),
+      h('div', { class: 'diagit-toolbar' }, [fileLabel(options.filePath, this.label)]),
       this.canvas,
       this.zoomControls.element,
     ])
@@ -54,10 +54,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
   }
 
   resetZoom(): void {
-    const level = this.viewer?.zoomLevel()
-    if (level) {
-      this.viewer?.zoomBy(1 / level)
-    }
+    ZoomControls.resetZoomOf(this.viewer)
   }
 
   fit(): void {

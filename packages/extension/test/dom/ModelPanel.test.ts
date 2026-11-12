@@ -35,7 +35,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
-        fileName: 'order.bpmn',
+        filePath: 'flows/order.bpmn',
         loadXml: async () => {
           throw new Error('HTTP 500 for https://github.com/o/r/raw/main/order.bpmn')
         },
@@ -65,7 +65,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
-        fileName: 'order.bpmn',
+        filePath: 'flows/order.bpmn',
         loadXml: async () => {
           attempts += 1
           if (attempts === 1) {
@@ -93,7 +93,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
-        fileName: 'order.bpmn',
+        filePath: 'flows/order.bpmn',
         loadXml: async () => {
           throw new Error('offline')
         },
@@ -113,7 +113,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
-        fileName: 'order.bpmn',
+        filePath: 'flows/order.bpmn',
         loadXml: async () => '<bpmn/>',
         reportContext: FAKE_REPORT_CONTEXT,
       }),
@@ -127,7 +127,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
-        fileName: 'order.bpmn',
+        filePath: 'flows/order.bpmn',
         loadXml: async () => '<bpmn/>',
         reportContext: FAKE_REPORT_CONTEXT,
       }),
@@ -151,7 +151,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation,
-        fileName: 'decision.dmn',
+        filePath: 'decision.dmn',
         loadXml: async () => '<dmn/>',
         reportContext: FAKE_REPORT_CONTEXT,
       }),
@@ -169,7 +169,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new UnreadableNotation(),
-        fileName: 'order.bpmn',
+        filePath: 'flows/order.bpmn',
         loadXml: async () => 'not a model',
         reportContext: FAKE_REPORT_CONTEXT,
       }),
