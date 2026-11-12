@@ -144,3 +144,21 @@ describe('HostPage.mountPanel', () => {
     expect(anchor.querySelector('diagit-test-panel')).toBeNull()
   })
 })
+
+describe('HostPage.mountPanel inside a right-to-left host element', () => {
+  it('keeps the panel left-to-right', async () => {
+    const fileName = document.body.appendChild(document.createElement('h3'))
+    fileName.style.direction = 'rtl'
+    const anchor = fileName.appendChild(document.createElement('code'))
+
+    const panel = await page.mountPanel({
+      name: 'diagit-test-panel',
+      anchor,
+      append: 'after',
+      css: '',
+      render: () => ({ destroy: vi.fn() }),
+    })
+
+    expect(getComputedStyle(panel.shadowHost).direction).toBe('ltr')
+  })
+})

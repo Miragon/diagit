@@ -8,6 +8,7 @@ export const githubSelectors = {
     fileRootLegacy: '.file[data-tagsearch-path], .js-file',
     diffHeaderWrapper: '[data-diff-header-wrapper]',
     modernRootClimb: 'div[id^="diff-"]',
+    fileRegion: 'div[role="region"][aria-labelledby]:has(a[href^="#diff-"])',
     pathAttrs: ['data-tagsearch-path', 'data-path'],
     legacyPathEl: '.file-info a, .file-header [title]',
     modernHeading: '[data-diff-header-wrapper] h3',

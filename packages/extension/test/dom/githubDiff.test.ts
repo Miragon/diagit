@@ -279,3 +279,109 @@ describe('GitHub pull-request diff — failed metadata', () => {
     expect(http.requests).toEqual([])
   })
 })
+
+describe('GitHub commit diff on the file-tree layout', () => {
+  const commitLocation = { ...location, pathname: '/o/r/commit/ccccccc' } as Location
+
+  const commitMetadata = {
+    [`${api}/commits/ccccccc`]: {
+      sha: 'ccccccc',
+      parents: [{ sha: 'ppppppp' }],
+      files: [{ filename: 'flows/order.bpmn', status: 'modified' }],
+    },
+  }
+
+  const fileHeader = `
+    <div class="diffHeaderWrapper__EHUZul">
+      <div class="diff-file-header__CV6GPS">
+        <div class="file-path-section__ZYYNNI">
+          <h3 id="heading-_r_h_"><a href="#diff-1"><code>‎flows/order.bpmn‎</code></a></h3>
+        </div>
+      </div>
+    </div>`
+
+  const expandedRegion = `
+    <div role="region" aria-labelledby="heading-_r_h_">
+      ${fileHeader}
+      <div class="border"><table data-diff-anchor="diff-1"></table></div>
+    </div>`
+
+  const collapsedRegion = `
+    <div role="region" aria-labelledby="heading-_r_h_">
+      ${fileHeader}
+    </div>`
+
+  function commitDiff(http: FakeHttpClient) {
+    const tokens = new GithubTokenStore(new SettingsStore(() => new MemoryStorageArea()))
+    return new GithubHost(http, tokens).commitDiff
+  }
+
+  it('anchors the panel above the code of a file region', async () => {
+    const http = new FakeHttpClient().respondWith(commitMetadata)
+    const doc = withFileBoxes(expandedRegion)
+
+    const blocks = await commitDiff(http).collect(commitLocation, doc)
+
+    expect(blocks.map((block) => block.path)).toEqual(['flows/order.bpmn'])
+    expect(blocks[0]!.anchor).toBe(doc.querySelector('.border'))
+    expect(blocks[0]!.fileRoot).toBe(doc.querySelector('[role="region"]'))
+  })
+
+  it('reads a file region as collapsed once its code is removed', async () => {
+    const http = new FakeHttpClient().respondWith(commitMetadata)
+    const doc = withFileBoxes(expandedRegion)
+    const [block] = await commitDiff(http).collect(commitLocation, doc)
+
+    doc.querySelector('.border')!.remove()
+
+    expect(block!.isCollapsed()).toBe(true)
+  })
+
+  it('ignores a region that is not a file of the diff', async () => {
+    const http = new FakeHttpClient().respondWith(commitMetadata)
+    const doc = withFileBoxes(`
+      <div role="region" aria-labelledby="notes"><h2 id="notes">flows/order.bpmn</h2>
+        <table data-diff-anchor></table>
+      </div>`)
+
+    expect(await commitDiff(http).collect(commitLocation, doc)).toEqual([])
+  })
+
+  it('does not treat a collapsed file region as unrecognised', async () => {
+    const http = new FakeHttpClient().respondWith(commitMetadata)
+
+    const files = await commitDiff(http).unrecognizedFiles(
+      commitLocation,
+      withFileBoxes(collapsedRegion),
+    )
+
+    expect(files).toEqual([])
+  })
+})
+
+describe('GitHub pull-request diff with file regions around the React header', () => {
+  const reactHeader = `
+    <div data-diff-header-wrapper><h3 id="heading-1">flows/order.bpmn</h3></div>`
+  const code = '<div class="code"><table data-diff-anchor></table></div>'
+
+  it.each([
+    [
+      'is the file root',
+      `<div id="diff-1" role="region" aria-labelledby="heading-1">${reactHeader}${code}</div>`,
+    ],
+    [
+      'sits inside the file root',
+      `<div id="diff-1" aria-labelledby="heading-1"><div role="region" aria-labelledby="heading-1">${reactHeader}${code}</div></div>`,
+    ],
+    [
+      'wraps the file root',
+      `<div role="region" aria-labelledby="heading-1"><div id="diff-1" aria-labelledby="heading-1">${reactHeader}${code}</div></div>`,
+    ],
+  ])('mounts one panel when the region %s', async (_, html) => {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+
+    const blocks = await pullRequestDiff(http).collect(location, withFileBoxes(html))
+
+    expect(blocks.map((block) => block.fileRoot.id)).toEqual(['diff-1'])
+  })
+})

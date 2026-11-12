@@ -14,24 +14,46 @@
         width: 100%;
         min-height: 120px;
       }
-      .diff-body {
-        padding: 12px;
+      .diff-file-header__CV6GPS {
+        display: flex;
+      }
+      .file-name-truncate__1IBLuh {
+        direction: rtl;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     </style>
   </head>
   <body>
-    <!-- A GitHub commit page shares the "Files changed" diff markup, trimmed to
-         the adapter's stable hooks: a `div[id^="diff-"]` whose `aria-labelledby`
-         heading holds the file path, a `[data-diff-header-wrapper]`, and a
+    <!-- GitHub's commit page with the file tree, trimmed to the adapter's hooks: a
+         `div[role="region"]` whose `aria-labelledby` heading holds the file path (no
+         `div[id^="diff-"]` root, no `[data-diff-header-wrapper]`), and a
          `table[data-diff-anchor]` code table. The commit adapter loads the
          parent(base)/commit(head) SHAs + the file list from `/api/v3`. -->
-    <div id="files">
-      <div id="diff-order-bpmn" aria-labelledby="diff-order-bpmn-heading">
-        <div data-diff-header-wrapper>
-          <h3 id="diff-order-bpmn-heading">flows/order.bpmn</h3>
+    <div id="diff-content-parent">
+      <div role="region" aria-labelledby="heading-_r_h_" class="position-relative">
+        <div class="diffHeaderWrapper__EHUZul">
+          <div class="diff-file-header__CV6GPS">
+            <div class="d-flex flex-shrink-0">
+              <button type="button" aria-labelledby="_r_i_">v</button>
+              <span id="_r_i_" popover="auto">Collapse file</span>
+            </div>
+            <div class="d-flex px-1 flex-items-center overflow-hidden file-path-section__ZYYNNI">
+              <h3 id="heading-_r_h_" class="file-name__8GKEHg file-name-truncate__1IBLuh">
+                <a class="Link--primary" href="#diff-0c0ffee"
+                  ><code>&lrm;flows/order.bpmn&lrm;</code></a
+                >
+              </h3>
+            </div>
+          </div>
         </div>
-        <div class="diff-body">
-          <table data-diff-anchor>
+        <div class="border position-relative rounded-bottom-2">
+          <table
+            aria-label="Diff for: flows/order.bpmn"
+            data-diff-anchor="diff-0c0ffee"
+            role="grid"
+          >
             <tbody>
               <tr>
                 <td>&lt;bpmn:definitions/&gt;</td>
