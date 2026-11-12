@@ -53,8 +53,13 @@ async function enterAndLeaveFullScreen(
   )
   await expect(button).toHaveAttribute('aria-pressed', 'true')
   await expect(button).toHaveAttribute('title', 'Exit full screen')
-  const inFullScreen = await fullScreenStateOf(hostTag, panelSelector)
-  expect(inFullScreen.panelHeight).toBe(inFullScreen.viewportHeight)
+  await browser.waitUntil(
+    async () => {
+      const inFullScreen = await fullScreenStateOf(hostTag, panelSelector)
+      return inFullScreen.panelHeight === inFullScreen.viewportHeight
+    },
+    { timeout: 5_000, timeoutMsg: 'the panel never filled the screen' },
+  )
 
   await browser.execute(() => document.exitFullscreen())
   await browser.waitUntil(
@@ -93,6 +98,10 @@ describe('full screen', () => {
 
     await expect(path).toBeDisplayed()
     await browser.execute(() => document.exitFullscreen())
+    await browser.waitUntil(() => browser.execute(() => document.fullscreenElement === null), {
+      timeout: 10_000,
+      timeoutMsg: 'the page never left full screen',
+    })
   })
 
   it('opens the file panel of a blob page in full screen', async () => {
