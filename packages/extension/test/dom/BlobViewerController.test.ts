@@ -57,6 +57,29 @@ describe('BlobViewerController', () => {
     await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
   })
 
+  it('moves the clearance under the host sticky header from the file to the panel', async () => {
+    document.body.innerHTML = `
+      <style>.below-sticky-header { margin-top: 44px; }</style>
+      <section id="file" class="below-sticky-header"><div class="code"></div></section>`
+    new BlobViewerController(
+      pageAt('/o/r/blob/main/order.bpmn'),
+      blobPage,
+      FAKE_REPORT_CONTEXT,
+      new FakeNotationLookup(),
+    ).start()
+
+    const file = document.getElementById('file')!
+    await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
+    const panelContainer = file.previousElementSibling!.shadowRoot!.querySelector('div')!
+    expect(panelContainer.style.paddingTop).toBe('44px')
+    expect(getComputedStyle(file).marginTop).toBe('0px')
+
+    context.invalidate()
+
+    expect(document.querySelector(HOST_TAG)).toBeNull()
+    expect(getComputedStyle(file).marginTop).toBe('44px')
+  })
+
   it('themes the panel with the Miragon tokens', async () => {
     document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
 

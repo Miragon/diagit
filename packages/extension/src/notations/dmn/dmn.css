@@ -4,12 +4,9 @@
 
 /* The DRD "definitions name / id" box is an HTML overlay (not SVG), so the
    drdRenderer colours don't reach it and dmn-js' hard-coded light palette makes
-   it look out of place in dark mode. Nudge it clear of the corner (dmn-js pins
-   it at top/left: 20px, where it clips under the host's file header) and theme
-   it from the same role aliases as the chrome. */
+   it look out of place in dark mode. Theme it from the same role aliases as the
+   chrome. */
 .dmn-definitions {
-  top: 55px;
-  left: 25px;
   background-color: var(--bg);
   border-color: var(--border);
   color: var(--fg);
@@ -43,11 +40,4 @@
   --view-drd-button-border-color: var(--border);
   --view-drd-button-hover-background-color: var(--btn-hover);
   padding-left: 10px;
-}
-
-/* The "View DRD" back-button sits at the top of the decision-table view, where
-   the host's sticky Code/Blame header covers it — push it down to clear it (as
-   with the definitions box in the DRD view). */
-.dmn-decision-table-container .view-drd {
-  margin-top: 44px;
 }
