@@ -53,10 +53,20 @@ const chromiumArgs = (): string[] => [
   '--window-size=1400,1000',
 ]
 
+// The e2e container (`e2e/container`) drives the distribution's Chromium and Firefox ESR,
+// because Chrome and Edge have no Linux build for arm64.
+const chromeBinary = process.env.WDIO_CHROME_BINARY
+const chromedriverBinary = process.env.WDIO_CHROMEDRIVER_BINARY
+const firefoxBinary = process.env.WDIO_FIREFOX_BINARY
+
 const CAPABILITIES: Record<string, WebdriverIO.Capabilities> = {
   chrome: {
     browserName: 'chrome',
-    'goog:chromeOptions': { args: chromiumArgs() },
+    'goog:chromeOptions': {
+      args: chromiumArgs(),
+      ...(chromeBinary ? { binary: chromeBinary } : {}),
+    },
+    ...(chromedriverBinary ? { 'wdio:chromedriverOptions': { binary: chromedriverBinary } } : {}),
   },
   edge: {
     browserName: 'MicrosoftEdge',
@@ -66,6 +76,7 @@ const CAPABILITIES: Record<string, WebdriverIO.Capabilities> = {
     browserName: 'firefox',
     'moz:firefoxOptions': {
       args: process.env.WDIO_HEADED ? [] : ['-headless'],
+      ...(firefoxBinary ? { binary: firefoxBinary } : {}),
       // MV3 host permissions are opt-in in Firefox; pre-grant them so the
       // background worker may fetch the fixture files from localhost.
       prefs: { 'extensions.originControls.grantByDefault': true },

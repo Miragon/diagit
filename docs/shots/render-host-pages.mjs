@@ -56,6 +56,7 @@ await new Promise((done) => server.listen(port, done))
 
 const context = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'diagit-')), {
   channel: 'chromium',
+  headless: true,
   viewport: { width: 1200, height: 900 },
   deviceScaleFactor: 2,
   args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
