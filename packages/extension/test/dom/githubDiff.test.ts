@@ -331,6 +331,7 @@ describe('GitHub commit diff on the file-tree layout', () => {
     const http = new FakeHttpClient().respondWith(commitMetadata)
     const doc = withFileBoxes(expandedRegion)
     const [block] = await commitDiff(http).collect(commitLocation, doc)
+    expect(block!.isCollapsed()).toBe(false)
 
     doc.querySelector('.border')!.remove()
 
