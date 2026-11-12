@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FetchError } from '../../src/platform/messaging/HttpClient'
 import { StandaloneViewerPage } from '../../src/views/standalone-viewer/StandaloneViewerPage'
 import { FakeDiffableViewer } from '../fakes/FakeDiffableViewer'
+import { FakeFullScreen } from '../fakes/FakeFullScreen'
 import { FakeLinkedModels } from '../fakes/FakeLinkedModels'
 import { FakeNotation } from '../fakes/FakeNotation'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
@@ -53,6 +54,7 @@ function textOf(app: HTMLElement, selector: string): string {
 }
 
 afterEach(() => {
+  FakeFullScreen.uninstall()
   document.body.innerHTML = ''
 })
 
@@ -204,6 +206,25 @@ describe('StandaloneViewerPage', () => {
     await vi.waitFor(() => expect(app.querySelector('.canvas .fake-diagram')).not.toBeNull())
     expect(app.querySelector('.diagit-notice')).toBeNull()
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-error')).toBe(false)
+  })
+})
+
+describe('StandaloneViewerPage in full screen', () => {
+  it('puts the viewer panel in full screen once a file is open', async () => {
+    FakeFullScreen.install()
+    const viewer = new FakeDiffableViewer()
+    const { app } = mountPage(notationRendering(viewer))
+    const zoom = app.querySelector<HTMLElement>('.diagit-zoom')!
+    expect(zoom.hidden).toBe(true)
+
+    openFile(app, new File(['<bpmn/>'], 'order.bpmn'))
+    await vi.waitFor(() => expect(zoom.hidden).toBe(false))
+    const fitsAfterOpen = viewer.fits
+    app.querySelector<HTMLButtonElement>('[aria-label="Full screen"]')!.click()
+    await Promise.resolve()
+
+    expect(document.fullscreenElement).toBe(app.querySelector('section.diagit-wrap'))
+    expect(viewer.fits).toBe(fitsAfterOpen + 1)
   })
 })
 
