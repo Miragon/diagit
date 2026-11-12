@@ -31,8 +31,8 @@ describe('GitHub commit diff (content script)', () => {
     await host.waitForExist({ timeout: 20_000 })
 
     await browser.execute(() => {
-      const body = document.querySelector('#diff-order-bpmn .diff-body')
-      body?.replaceWith(body.cloneNode(true))
+      const code = document.querySelector('[role="region"] .border')
+      code?.replaceWith(code.cloneNode(true))
     })
 
     await browser.pause(1_000)

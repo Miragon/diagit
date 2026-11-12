@@ -39,7 +39,10 @@ export class GithubDiffScanner {
     const modern = [...doc.querySelectorAll<HTMLElement>(githubSelectors.diff.diffHeaderWrapper)]
       .map((header) => header.closest<HTMLElement>(githubSelectors.diff.modernRootClimb))
       .filter((el): el is HTMLElement => el !== null)
-    return [...legacy, ...modern]
+    const regions = [...doc.querySelectorAll<HTMLElement>(githubSelectors.diff.fileRegion)].filter(
+      (region) => !modern.some((root) => root.contains(region) || region.contains(root)),
+    )
+    return [...legacy, ...modern, ...regions]
   }
 
   private filePathOf(root: HTMLElement): string | null {
