@@ -96,7 +96,7 @@
 .diagit-zoom {
   position: absolute;
   right: var(--cd-shell-rand);
-  bottom: calc(var(--cd-shell-rand) + 28px);
+  bottom: var(--cd-shell-rand);
   z-index: 5;
   display: inline-flex;
   align-items: center;
@@ -111,6 +111,15 @@
   );
   backdrop-filter: blur(var(--cd-kachel-glas-blur));
   box-shadow: var(--cd-shadow-1);
+}
+
+:has(.bjs-powered-by) > .diagit-zoom {
+  --bpmn-io-logo-inset: 15px;
+  --bpmn-io-logo-width: 53px;
+  --bpmn-io-logo-height: 21px;
+  right: calc(var(--bpmn-io-logo-inset) + var(--bpmn-io-logo-width) + var(--cd-shell-rand));
+  bottom: calc(var(--bpmn-io-logo-inset) + var(--bpmn-io-logo-height) / 2);
+  transform: translateY(50%);
 }
 
 .diagit-zoom[hidden] {
