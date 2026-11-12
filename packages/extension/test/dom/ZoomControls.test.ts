@@ -59,6 +59,7 @@ describe('ZoomControls', () => {
 
   describe('full screen', () => {
     afterEach(() => {
+      vi.restoreAllMocks()
       FakeFullScreen.uninstall()
       document.body.replaceChildren()
     })
@@ -128,6 +129,19 @@ describe('ZoomControls', () => {
 
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
       expect(target.fit).toHaveBeenCalledTimes(2)
+    })
+
+    it('brings the page back to where it was scrolled when full screen ends', async () => {
+      const { fullScreenButton } = fullScreenControls()
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      vi.spyOn(window, 'scrollY', 'get').mockReturnValue(840)
+      fullScreenButton().click()
+      await Promise.resolve()
+      expect(scrollTo).not.toHaveBeenCalled()
+
+      FakeFullScreen.exit()
+
+      expect(scrollTo).toHaveBeenCalledWith({ top: 840, behavior: 'instant' })
     })
 
     it('keeps only the full screen button while there is no zoomable canvas', () => {
