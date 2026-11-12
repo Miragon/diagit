@@ -27,10 +27,7 @@
   --canvas-bg: var(--cd-ui-plot);
   --radius: var(--cd-radius-md);
 
-  /* Additive: our container sits in the normal flow above the code, so it just
-     needs a little breathing room from the file header and the code below. */
   position: relative;
-  margin: 12px 0;
   color: var(--fg);
   background: var(--bg);
   font-family: var(--diagit-font);
@@ -151,8 +148,7 @@
      handles large models, drag-to-pan + the zoom controls handle the rest. */
   height: 600px;
   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-bottom: 1px solid var(--border);
   background: var(--canvas-bg);
   overflow: hidden;
 }
@@ -162,6 +158,14 @@
 .diagit-diff-area.is-active {
   outline: 2px solid var(--selected);
   outline-offset: -2px;
+}
+
+.diagit-file-panel .diagit-canvas:has(> .diagit-notice) {
+  height: auto;
+}
+
+.diagit-file-panel .diagit-canvas > .diagit-notice[data-layout='pane'] {
+  position: static;
 }
 
 .diagit-placeholder {

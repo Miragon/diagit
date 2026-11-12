@@ -3,6 +3,7 @@ import type { Notation, DiagramViewer } from '../../notations/Notation'
 import type { PanelHandle } from '../../platform/page/HostPage'
 import { h } from '../../platform/utils/dom'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
+import { fileLabel } from '../../platform/utils/fileLabel'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
@@ -12,6 +13,7 @@ const CODE_STILL_SHOWN = 'The code below still shows the file.'
 
 export interface ModelPanelOptions {
   notation: Notation
+  fileName: string
   loadXml: () => Promise<string>
   reportContext: ReportContext
   onRendered?: () => void
@@ -24,17 +26,20 @@ export class ModelPanel implements PanelHandle, Zoomable {
   })
   private readonly canvas = h('div', { class: 'diagit-canvas' }, [this.placeholder])
   private readonly zoomControls = new ZoomControls(this)
-  private readonly wrap = h('div', { class: 'diagit-wrap' }, [
-    this.canvas,
-    this.zoomControls.element,
-  ])
+  private readonly wrap: HTMLElement
   private viewer: DiagramViewer | null = null
   private stopTrackingZoom: (() => void) | null = null
   private destroyed = false
   private resizeObserver: ResizeObserver | null = null
   private detachFocusZoom: (() => void) | null = null
 
-  constructor(private readonly options: ModelPanelOptions) {}
+  constructor(private readonly options: ModelPanelOptions) {
+    this.wrap = h('div', { class: 'diagit-wrap diagit-file-panel' }, [
+      h('div', { class: 'diagit-toolbar' }, [fileLabel(options.fileName, this.label)]),
+      this.canvas,
+      this.zoomControls.element,
+    ])
+  }
 
   mount(container: HTMLElement): this {
     container.append(this.wrap)

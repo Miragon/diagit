@@ -55,6 +55,8 @@ describe('BlobViewerController', () => {
 
     const file = document.getElementById('file')!
     await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
+    const toolbar = file.previousElementSibling!.shadowRoot!.querySelector('.diagit-toolbar')!
+    expect(toolbar.querySelector('.file-name')!.textContent).toBe('order.bpmn')
   })
 
   it('moves the clearance under the host sticky header from the file to the panel', async () => {

@@ -93,6 +93,8 @@ export class BlobViewerController {
       this.mountedPath = path
       const stickyHeaderClearance = this.moveStickyHeaderClearance(anchor)
       const loadXml = this.blobPage.fileLoader(location)
+      const filePath = this.blobPage.filePath(location)
+      const fileName = filePath.slice(filePath.lastIndexOf('/') + 1)
       this.panel = await this.page.mountPanel({
         name: HOST_TAG,
         anchor,
@@ -102,6 +104,7 @@ export class BlobViewerController {
           container.style.paddingTop = stickyHeaderClearance
           return new ModelPanel({
             notation,
+            fileName,
             loadXml,
             reportContext: this.reportContext,
             onRendered: () => void this.diagramViews.save(path),

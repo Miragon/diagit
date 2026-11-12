@@ -34,6 +34,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
+        fileName: 'order.bpmn',
         loadXml: async () => {
           throw new Error('HTTP 500 for https://github.com/o/r/raw/main/order.bpmn')
         },
@@ -62,6 +63,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
+        fileName: 'order.bpmn',
         loadXml: async () => {
           attempts += 1
           if (attempts === 1) {
@@ -85,10 +87,25 @@ describe('ModelPanel', () => {
     expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
   })
 
+  it('names the file and its notation in the toolbar', () => {
+    const container = mountPanel(
+      new ModelPanel({
+        notation: new FakeNotation(),
+        fileName: 'order.bpmn',
+        loadXml: async () => '<bpmn/>',
+        reportContext: FAKE_REPORT_CONTEXT,
+      }),
+    )
+
+    expect(textOf(container, '.diagit-toolbar .file-name')).toBe('order.bpmn')
+    expect(textOf(container, '.diagit-toolbar .kind')).toBe('BPMN')
+  })
+
   it('reads out the zoom level of the rendered diagram', async () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new FakeNotation(),
+        fileName: 'order.bpmn',
         loadXml: async () => '<bpmn/>',
         reportContext: FAKE_REPORT_CONTEXT,
       }),
@@ -108,6 +125,7 @@ describe('ModelPanel', () => {
     const container = mountPanel(
       new ModelPanel({
         notation: new UnreadableNotation(),
+        fileName: 'order.bpmn',
         loadXml: async () => 'not a model',
         reportContext: FAKE_REPORT_CONTEXT,
       }),
