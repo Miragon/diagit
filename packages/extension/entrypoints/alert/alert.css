@@ -43,3 +43,7 @@ body {
 .dialog-foot .btn {
   min-width: 80px;
 }
+
+.dialog:focus {
+  outline: none;
+}

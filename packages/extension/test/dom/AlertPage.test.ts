@@ -37,9 +37,35 @@ describe('AlertPage', () => {
     expect(app.querySelector('.dialog-head h1')!.textContent).toBe('Diagit')
   })
 
-  it('does not focus the OK button on load', () => {
+  it('focuses the dialog instead of the OK button on load', () => {
     const app = mountWithQuery('?message=Failed')
+    expect(document.activeElement).toBe(app.querySelector('.dialog'))
     expect(document.activeElement).not.toBe(app.querySelector('button'))
+  })
+
+  it('is an alert dialog named by its title and described by the message', () => {
+    const app = mountWithQuery('?message=Failed')
+    const dialog = app.querySelector<HTMLElement>('.dialog')!
+
+    expect(dialog.getAttribute('role')).toBe('alertdialog')
+    expect(dialog.tabIndex).toBe(-1)
+    expect(document.getElementById(dialog.getAttribute('aria-labelledby')!)!.textContent).toBe(
+      'Diagit',
+    )
+    expect(document.getElementById(dialog.getAttribute('aria-describedby')!)!.textContent).toBe(
+      'Failed',
+    )
+  })
+
+  it('leaves Enter on the OK button to the button, so the window closes once', () => {
+    const closeWindow = vi.fn()
+    const app = mountWithQuery('?message=Failed', closeWindow)
+    const ok = app.querySelector('button')!
+
+    ok.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    ok.click()
+
+    expect(closeWindow).toHaveBeenCalledOnce()
   })
 
   it.each(['Enter', 'Escape'])('closes the window on %s', (key) => {
