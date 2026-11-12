@@ -245,7 +245,7 @@
 }
 
 @container (max-width: 420px) {
-  .diagit-diff-failure-label {
+  .diagit-notice-action-label {
     display: none;
   }
 }

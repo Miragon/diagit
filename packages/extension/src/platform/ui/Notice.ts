@@ -9,7 +9,7 @@ import { detectHostTheme } from '../utils/hostTheme'
 import { lucideIcon } from '../utils/lucideIcon'
 
 export type NoticeTone = 'danger' | 'warning' | 'info' | 'success'
-export type NoticeLayout = 'block' | 'pane' | 'row'
+export type NoticeLayout = 'block' | 'pane' | 'row' | 'bar'
 
 export type NoticeAction = { label: string; icon?: IconNode } & (
   { url: string } | { opensOptions: true } | { onClick: () => void }
@@ -18,7 +18,8 @@ export type NoticeAction = { label: string; icon?: IconNode } & (
 export interface NoticeDetails {
   tone: NoticeTone
   title: string
-  body: string
+  meta?: string
+  body?: string
   action?: NoticeAction
   reportUrl?: string
   followsUserAction?: boolean
@@ -95,8 +96,8 @@ export class Notice implements PanelHandle {
       },
       [
         lucideIcon(Notice.toneIcon(details.tone), 'diagit-notice-icon'),
-        h('div', { class: 'diagit-notice-title', text: details.title }),
-        h('div', { class: 'diagit-notice-body', text: details.body }),
+        h('div', { class: 'diagit-notice-title' }, [details.title, ...this.meta(details)]),
+        ...(details.body ? [h('div', { class: 'diagit-notice-body', text: details.body })] : []),
         ...this.actionRow(details),
       ],
     )
@@ -118,6 +119,10 @@ export class Notice implements PanelHandle {
     return this
   }
 
+  private meta({ meta }: NoticeDetails): (string | HTMLElement)[] {
+    return meta ? [' ', h('span', { class: 'diagit-notice-meta', text: meta })] : []
+  }
+
   private actionRow({ action, reportUrl }: NoticeDetails): HTMLElement[] {
     if (!action && !reportUrl) {
       return []
@@ -133,21 +138,41 @@ export class Notice implements PanelHandle {
   private actionControl(action: NoticeAction): HTMLElement {
     const variant = this.layout === 'pane' ? 'btn-primary' : 'btn-secondary'
     const className = `${this.buttonClass} ${variant}`
-    const content = [...(action.icon ? [lucideIcon(action.icon)] : []), action.label]
+    const content = this.controlContent(action.icon, action.label)
     if ('url' in action) {
-      return externalLink(action.url, { class: className }, content)
+      return this.named(externalLink(action.url, { class: className }, content), action.label)
     }
     const onClick =
       'onClick' in action ? action.onClick : () => void new BackgroundClient().openOptions()
-    return h('button', { class: className, type: 'button', onClick }, content)
+    return this.named(
+      h('button', { class: className, type: 'button', onClick }, content),
+      action.label,
+    )
   }
 
   private reportLink(reportUrl: string): HTMLAnchorElement {
-    return externalLink(
+    const text = this.layout === 'bar' ? 'Report' : 'Report problem'
+    const link = externalLink(
       reportUrl,
       { class: `${this.buttonClass} btn-secondary diagit-notice-report` },
-      [lucideIcon(Flag), 'Report problem'],
+      this.controlContent(Flag, text),
     )
+    return this.named(link, 'Report problem')
+  }
+
+  private controlContent(icon: IconNode | undefined, label: string): Node[] {
+    const text =
+      this.layout === 'bar'
+        ? h('span', { class: 'diagit-notice-action-label', text: label })
+        : document.createTextNode(label)
+    return [...(icon ? [lucideIcon(icon)] : []), text]
+  }
+
+  private named<Control extends HTMLElement>(control: Control, name: string): Control {
+    if (this.layout === 'bar') {
+      control.setAttribute('aria-label', name)
+    }
+    return control
   }
 
   private get buttonClass(): string {

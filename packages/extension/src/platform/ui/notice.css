@@ -158,3 +158,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.diagit-notice[data-layout='bar'] .diagit-notice-actions {
+  flex: none;
+  flex-wrap: nowrap;
+  margin-top: 0;
+}

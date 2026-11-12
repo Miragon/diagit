@@ -58,6 +58,36 @@ describe('Notice', () => {
     expect(report!.textContent).toBe('Report problem')
   })
 
+  it('renders a bar with the title, its meta and compact named buttons, but no body', () => {
+    const onClick = vi.fn()
+    const notice = new Notice(
+      {
+        tone: 'danger',
+        title: 'Old version could not be loaded',
+        meta: '· HTTP 404',
+        action: { label: 'Reload', onClick },
+        reportUrl: 'https://github.com/Miragon/diagit/issues/new',
+      },
+      'bar',
+    )
+
+    expect(notice.element.dataset.layout).toBe('bar')
+    expect(notice.element.querySelector('.diagit-notice-title')!.textContent).toBe(
+      'Old version could not be loaded · HTTP 404',
+    )
+    expect(notice.element.querySelector('.diagit-notice-meta')!.textContent).toBe('· HTTP 404')
+    expect(notice.element.querySelector('.diagit-notice-body')).toBeNull()
+    const [reload, report] = notice.element.querySelectorAll<HTMLElement>(
+      '.diagit-notice-actions .btn',
+    )
+    expect(reload!.className).toBe('btn btn-small btn-secondary')
+    expect(reload!.getAttribute('aria-label')).toBe('Reload')
+    expect(report!.getAttribute('aria-label')).toBe('Report problem')
+    expect(report!.querySelector('.diagit-notice-action-label')!.textContent).toBe('Report')
+    reload!.click()
+    expect(onClick).toHaveBeenCalledOnce()
+  })
+
   it('links a url action to a new tab', () => {
     const link = new Notice(withAction).element.querySelector('.diagit-notice-actions a.btn')!
 

@@ -412,9 +412,7 @@ describe('DiffPanel', () => {
     )
     expect(failureIn(plainPane(container)).hasAttribute('title')).toBe(false)
     expect(reportedConsole(plainPane(container))).toContain('HTTP 403 for raw file')
-    expect(
-      failureIn(plainPane(container)).querySelector('[aria-label="Reload page"]'),
-    ).not.toBeNull()
+    expect(failureIn(plainPane(container)).querySelector('[aria-label="Reload"]')).not.toBeNull()
     expect(plainPane(container).textContent).toContain('No diagram for this version')
     expect(plainPane(container).textContent).not.toContain('file deleted')
     buttonNamed(container, 'Diff').click()
@@ -502,7 +500,7 @@ describe('DiffPanel', () => {
     await vi.waitFor(() => expect(newPane.textContent).toContain('New version could not be read'))
     expect(failureIn(newPane).textContent).not.toContain('no diagram found')
     expect(reportedConsole(newPane)).not.toContain('no diagram found')
-    expect(failureIn(newPane).querySelector('[aria-label="Reload page"]')).toBeNull()
+    expect(failureIn(newPane).querySelector('[aria-label="Reload"]')).toBeNull()
     expect(container.textContent).not.toContain('render error')
   })
 
