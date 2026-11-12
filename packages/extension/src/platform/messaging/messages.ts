@@ -15,4 +15,5 @@ export interface OpenOptionsRequest {
 export type BackgroundRequest = FetchTextRequest | InjectViewScriptRequest | OpenOptionsRequest
 
 export type FetchTextResponse =
-  { ok: true; text: string } | { ok: false; error: string; status?: number }
+  | { ok: true; text: string }
+  | { ok: false; error: string; status?: number; rateLimitResetsAt?: number }

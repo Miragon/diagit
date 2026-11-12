@@ -2,6 +2,7 @@ import { FetchError } from '../../platform/messaging/HttpClient'
 import type { ErrorNoticeAction } from '../../platform/ui/ErrorNotice'
 import type { ErrorHelp } from '../DiffSource'
 import type { AuthPolicy } from '../GitHost'
+import { rateLimitHint } from '../utils/rateLimitHint'
 import { GITHUB_APP_INSTALL_URL } from './GithubDeviceFlow'
 import type { GithubRoutes } from './GithubRoutes'
 import type { GithubTokenRefresher } from './GithubTokenRefresher'
@@ -11,8 +12,8 @@ const GITHUB_API_HOST = 'api.github.com'
 const BEARER_PREFIX = 'Bearer '
 
 const EXPIRED_CONNECTION_HINT = 'Your GitHub connection looks expired or revoked.'
-const FORBIDDEN_HINT =
-  'GitHub returned 403: the anonymous rate limit is exhausted, or the app is not authorised for this organisation (SSO).'
+const FORBIDDEN_HINT = 'GitHub returned 403. Your organisation may require SSO authorisation.'
+const RAISE_RATE_LIMIT_HINT = 'Connect GitHub to raise the limit.'
 const UNREACHABLE_REPOSITORY_HINT =
   'This looks like a private repository the page login cannot reach through the API.'
 const PRIVATE_REPOSITORY_HINT =
@@ -64,8 +65,16 @@ export class GithubApiAuth implements AuthPolicy {
 
   async errorHelp(location: Location, err: unknown): Promise<ErrorHelp> {
     const status = err instanceof FetchError ? err.status : undefined
-    if (!this.targets(this.routes.apiBase(location))) return { hint: this.enterpriseHint(status) }
+    const rateLimitNotice = rateLimitHint('GitHub', err)
+    if (!this.targets(this.routes.apiBase(location))) {
+      return { hint: rateLimitNotice ?? this.enterpriseHint(status) }
+    }
     const connected = await this.store.token().then(Boolean, () => false)
+    if (rateLimitNotice) {
+      return connected
+        ? { hint: rateLimitNotice }
+        : { hint: `${rateLimitNotice} ${RAISE_RATE_LIMIT_HINT}`, action: CONNECT_GITHUB }
+    }
     switch (status) {
       case 401:
         return { hint: EXPIRED_CONNECTION_HINT, action: CONNECT_GITHUB }
