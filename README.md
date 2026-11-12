@@ -20,7 +20,7 @@ Models kept in Git are text files. On GitHub or GitLab you see their source, and
 - **Files from your disk.** A viewer page in the extension opens local models; nothing leaves your machine. [Open a file from your disk](https://miragon.github.io/diagit/notations#open-a-file-from-your-disk)
 - **A visual diff for BPMN.** Added, removed, changed and moved elements are marked, in GitHub commits too. [Review a model change](https://miragon.github.io/diagit/review-changes)
 
-![On a GitHub pull request, the changed .bpmn file switches from the plain diagram to a before/after diff, then jumps to the added task "Review result" and back to all changes](assets/demo.gif)
+![On a GitHub pull request, the changed .bpmn file switches from the plain diagram to a before/after diff, then jumps to the added task "Review result", back to all changes and opens the diff in full screen](assets/demo.gif)
 
 ## Supported notations
 
