@@ -66,7 +66,12 @@ export default tseslint.config(
   {
     files: ['.miragon/**/*.mjs'],
     languageOptions: {
-      globals: { document: 'readonly', scrollBy: 'readonly', innerHeight: 'readonly' },
+      globals: {
+        document: 'readonly',
+        scrollBy: 'readonly',
+        innerHeight: 'readonly',
+        MutationObserver: 'readonly',
+      },
     },
   },
   {
