@@ -20,14 +20,14 @@ const EXPIRED_HINT =
 const NOT_CONNECTED_HINT = 'Connect GitHub to see diagrams in private repositories.'
 const PLACE = 'on the options page'
 
-const FAILURE_COPY: Record<
-  Exclude<DeviceFlowFailure, 'cancelled'>,
-  Pick<NoticeDetails, 'tone' | 'title' | 'body'> & { reported: boolean }
-> = {
+type FailureCopy = Pick<NoticeDetails, 'tone' | 'title' | 'body'> & { reported: boolean }
+type ConnectStep = 'start' | 'finish'
+
+const FAILURE_COPY: Record<Exclude<DeviceFlowFailure, 'cancelled' | 'failed'>, FailureCopy> = {
   expired: {
     tone: 'warning',
     title: 'The code expired before you confirmed it',
-    body: 'Connect again and enter the new code on GitHub within 15 minutes.',
+    body: 'Connect again and enter the new code on GitHub before it expires.',
     reported: true,
   },
   denied: {
@@ -36,9 +36,18 @@ const FAILURE_COPY: Record<
     body: 'Connect again and approve Diagit on GitHub.',
     reported: false,
   },
-  failed: {
+}
+
+const FAILED_COPY: Record<ConnectStep, FailureCopy> = {
+  start: {
     tone: 'danger',
     title: 'GitHub authorisation could not start',
+    body: 'Try again in a moment.',
+    reported: true,
+  },
+  finish: {
+    tone: 'danger',
+    title: 'GitHub could not be connected',
     body: 'Try again in a moment.',
     reported: true,
   },
@@ -130,7 +139,7 @@ export class GithubAccessSection {
     try {
       code = await this.deviceFlow.requestDeviceCode()
     } catch (err) {
-      return this.render(this.failureNotice(err))
+      return this.render(this.failureNotice(err, 'start'))
     }
 
     this.showUserCode(code)
@@ -143,7 +152,7 @@ export class GithubAccessSection {
       this.setStatus('Connected.')
     } catch (err) {
       this.setStatus('')
-      return this.render(this.failureNotice(err))
+      return this.render(this.failureNotice(err, 'finish'))
     }
     await this.render()
   }
@@ -190,12 +199,12 @@ export class GithubAccessSection {
     }, COPIED_FEEDBACK_MS)
   }
 
-  private failureNotice(err: unknown): NoticeDetails | undefined {
+  private failureNotice(err: unknown, step: ConnectStep): NoticeDetails | undefined {
     const reason = err instanceof DeviceFlowError ? err.reason : 'failed'
     if (reason === 'cancelled') {
       return undefined
     }
-    const { reported, ...copy } = FAILURE_COPY[reason]
+    const { reported, ...copy } = reason === 'failed' ? FAILED_COPY[step] : FAILURE_COPY[reason]
     const action = { label: 'Connect GitHub', icon: Link, onClick: () => void this.connect() }
     if (!reported) {
       return { ...copy, action, followsUserAction: true }

@@ -99,4 +99,26 @@ describe('GithubAccessSection', () => {
     )
     expect(card.querySelector('.status')!.textContent).toBe('')
   })
+
+  it('says GitHub could not be connected when it fails after the code was shown', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          device_code: 'dc',
+          user_code: 'ABCD-1234',
+          verification_uri: 'https://github.com/login/device',
+          interval: 0,
+        }),
+      )
+      .mockResolvedValueOnce({ ok: false, status: 502 } as Response)
+    const card = await mountedSection(emptyStore(), fetch)
+
+    connectButton()!.click()
+
+    await vi.waitFor(() => expect(card.querySelector('.diagit-notice')).not.toBeNull())
+    expect(card.querySelector('.diagit-notice-title')!.textContent).toBe(
+      'GitHub could not be connected',
+    )
+  })
 })
