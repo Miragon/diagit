@@ -23,3 +23,8 @@ function redactUrl(url: string): string {
   const origin = normalizeOrigin(url)
   return origin && PUBLIC_HOST_ORIGINS.has(origin) ? origin : '<url>'
 }
+
+export function unreadableModelReason(err: unknown): string {
+  const kind = err instanceof Error ? err.name : 'Error'
+  return `${kind} while parsing the model (details withheld, they quote the model)`
+}

@@ -143,7 +143,9 @@ describe('StandaloneViewerPage', () => {
     expect(textOf(app, '.diagit-notice-report')).toBe('Report problem')
     const report = app.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
     expect(new URL(report.href).searchParams.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
-    expect(new URL(report.href).searchParams.get('console')).toBe('unparsable content')
+    expect(new URL(report.href).searchParams.get('console')).toBe(
+      'Error while parsing the model (details withheld, they quote the model)',
+    )
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-error')).toBe(true)
     expect(textOf(app, '.diagit-toolbar .file-name')).toBe('order.bpmn')
   })

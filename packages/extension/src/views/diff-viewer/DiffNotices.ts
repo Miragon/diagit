@@ -1,6 +1,7 @@
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import type { NoticeDetails } from '../../platform/ui/Notice'
 import { FetchError } from '../../platform/messaging/HttpClient'
+import { unreadableModelReason } from '../../platform/utils/errorMessage'
 
 export type DiffSide = 'old' | 'new'
 
@@ -44,7 +45,7 @@ export class DiffNotices {
         `${this.label} file not rendered ${PLACE}`,
         `Diagit showed "${title}" ${PLACE}.`,
         this.reportContext,
-        err,
+        unreadableModelReason(err),
       ),
     }
   }

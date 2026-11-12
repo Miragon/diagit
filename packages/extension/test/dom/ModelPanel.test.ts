@@ -141,6 +141,6 @@ describe('ModelPanel', () => {
     expect(report.textContent).toBe('Report problem')
     expect(report.href).toContain('https://github.com/Miragon/diagit/issues/new')
     expect(new URL(report.href).searchParams.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)
-    expect(reportedConsole(container)).toBe('unparsable content')
+    expect(reportedConsole(container)).not.toContain('unparsable content')
   })
 })

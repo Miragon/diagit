@@ -481,7 +481,7 @@ describe('DiffPanel', () => {
 
     await vi.waitFor(() => expect(newPane.textContent).toContain('New version could not be read'))
     expect(failureIn(newPane).textContent).not.toContain('no diagram found')
-    expect(reportedConsole(newPane)).toBe('no diagram found')
+    expect(reportedConsole(newPane)).not.toContain('no diagram found')
     expect(failureIn(newPane).querySelector('[aria-label="Reload page"]')).toBeNull()
     expect(container.textContent).not.toContain('render error')
   })

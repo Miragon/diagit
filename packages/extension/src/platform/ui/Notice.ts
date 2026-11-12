@@ -3,6 +3,7 @@ import type { HostPage, PanelHandle, ShadowPanel, ShadowPanelOptions } from '../
 import { diagitRepository, type ReportContext } from '../DiagitRepository'
 import { BackgroundClient } from '../messaging/BackgroundClient'
 import { h } from '../utils/dom'
+import { unreadableModelReason } from '../utils/errorMessage'
 import { externalLink } from '../utils/externalLink'
 import { detectHostTheme } from '../utils/hostTheme'
 import { lucideIcon } from '../utils/lucideIcon'
@@ -72,7 +73,7 @@ export class Notice implements PanelHandle {
         `${label} file not rendered ${place}`,
         `Diagit showed "${title}" ${place}.`,
         reportContext,
-        err,
+        unreadableModelReason(err),
       ),
     }
   }
