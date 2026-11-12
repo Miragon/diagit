@@ -22,6 +22,10 @@ export class ChangeNavigator {
     return this.ids.length > 0
   }
 
+  get position(): number | null {
+    return this.index < 0 ? null : this.index + 1
+  }
+
   next(): void {
     this.go(1)
   }
@@ -38,7 +42,8 @@ export class ChangeNavigator {
 
   private go(direction: number): void {
     if (!this.hasChanges) return
-    this.index = (this.index + direction + this.ids.length) % this.ids.length
+    const from = this.index < 0 && direction < 0 ? 0 : this.index
+    this.index = (from + direction + this.ids.length) % this.ids.length
     this.focus(this.ids[this.index]!)
   }
 

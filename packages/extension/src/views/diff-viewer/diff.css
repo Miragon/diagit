@@ -19,10 +19,12 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  container: diagit-diff-root / inline-size;
 }
 
 /* Divider between the toolbar and the diagram, inside the shared container. */
 .diagit-diff-root .diagit-toolbar {
+  flex-wrap: wrap;
   border-bottom: 1px solid var(--border);
 }
 
@@ -68,13 +70,29 @@
   color: var(--fg-muted);
 }
 
-/* Legend and change navigator: a permanent island over the canvas, so glass. */
-.diagit-diff-overlay {
+.diagit-diff-changes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-right: auto;
+  font-size: 13px;
+}
+
+@container diagit-diff-root (max-width: 900px) {
+  .diagit-diff-changes {
+    order: 1;
+    flex-basis: 100%;
+  }
+}
+
+/* Which version a pane shows: a permanent island over the canvas, so glass. */
+.diagit-diff-side {
   position: absolute;
   top: var(--cd-shell-rand);
   left: var(--cd-shell-rand);
   z-index: 10;
-  padding: 8px 10px;
+  padding: 4px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: color-mix(
@@ -84,13 +102,16 @@
   );
   backdrop-filter: blur(8px);
   box-shadow: var(--cd-shadow-1);
+  color: var(--fg);
   font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
 }
 
 .diagit-diff-legend {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 8px;
   color: var(--fg);
 }
 
@@ -108,7 +129,16 @@
 
 .diagit-diff-nav {
   display: flex;
+  align-items: center;
   gap: 6px;
+}
+
+.diagit-diff-position {
+  min-width: 11ch;
+  margin-left: 4px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* Marker colours per change category, light mode. */
@@ -206,7 +236,7 @@
   container-type: inline-size;
 }
 
-.diagit-diff-pane:has(.diagit-diff-failure) .diagit-diff-overlay {
+.diagit-diff-pane:has(.diagit-diff-failure) .diagit-diff-side {
   display: none;
 }
 

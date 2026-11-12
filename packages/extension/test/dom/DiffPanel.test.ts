@@ -15,8 +15,13 @@ const diffPanes = (container: HTMLElement) => [
     .querySelectorAll<HTMLElement>('.diagit-diff-pane'),
 ]
 const failureIn = (pane: Element) => pane.querySelector<HTMLElement>('[role="alert"]')!
-const tabNamed = (container: HTMLElement, name: string) =>
-  [...container.querySelectorAll('button')].find((button) => button.textContent === name)!
+const buttonsNamed = (container: HTMLElement, name: string) =>
+  [...container.querySelectorAll('button')].filter((button) => button.textContent === name)
+const buttonNamed = (container: HTMLElement, name: string) => buttonsNamed(container, name)[0]!
+const position = (container: HTMLElement) =>
+  container.querySelector('.diagit-diff-position')?.textContent
+const changeControls = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('.diagit-diff-changes')!
 
 let panel: DiffPanel | null = null
 
@@ -88,13 +93,91 @@ describe('DiffPanel', () => {
     ])
   })
 
+  it('shows one legend and one change navigator for both panes', async () => {
+    const container = mount(
+      new FakeDiffer({ added: ['A'], removed: ['R'], changed: [], moved: [] }, ['A', 'R']),
+      async () => '<old/>',
+      async () => '<new/>',
+    )
+
+    await vi.waitFor(() => expect(container.textContent).toContain('Added: 1'))
+
+    expect(container.querySelectorAll('.diagit-diff-legend')).toHaveLength(1)
+    expect(buttonsNamed(container, 'Next')).toHaveLength(1)
+    expect(buttonsNamed(container, 'Prev')).toHaveLength(1)
+    expect(buttonsNamed(container, 'All')).toHaveLength(1)
+  })
+
+  it('tells the position of the selected change while stepping through them', async () => {
+    const container = mount(
+      new FakeDiffer({ added: ['A'], removed: ['R'], changed: ['C'], moved: [] }, ['A', 'R', 'C']),
+      async () => '<old/>',
+      async () => '<new/>',
+    )
+    await vi.waitFor(() => expect(position(container)).toBe('3 changes'))
+
+    buttonNamed(container, 'Next').click()
+    expect(position(container)).toBe('1 of 3')
+    buttonNamed(container, 'Next').click()
+    expect(position(container)).toBe('2 of 3')
+    buttonNamed(container, 'Prev').click()
+    expect(position(container)).toBe('1 of 3')
+    buttonNamed(container, 'All').click()
+    expect(position(container)).toBe('3 changes')
+    buttonNamed(container, 'Prev').click()
+    expect(position(container)).toBe('3 of 3')
+  })
+
+  it('counts a single change in the singular', async () => {
+    const container = mount(
+      new FakeDiffer({ added: ['A'], removed: [], changed: [], moved: [] }, ['A']),
+      async () => '<old/>',
+      async () => '<new/>',
+    )
+
+    await vi.waitFor(() => expect(position(container)).toBe('1 change'))
+  })
+
   it('disables change navigation when nothing changed', async () => {
     const container = mount(new FakeDiffer(), async () => '<same/>')
 
-    await vi.waitFor(() => {
-      const next = [...container.querySelectorAll('button')].find((b) => b.textContent === 'Next')
-      expect(next?.disabled).toBe(true)
-    })
+    await vi.waitFor(() => expect(buttonNamed(container, 'Next').disabled).toBe(true))
+    expect(buttonNamed(container, 'Prev').disabled).toBe(true)
+    expect(position(container)).toBe('No changes')
+  })
+
+  it('shows no legend and no navigator for an added file', async () => {
+    const container = mount(
+      new FakeDiffer(),
+      async () => null,
+      async () => '<new/>',
+    )
+    await vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
+
+    buttonNamed(container, 'Diff').click()
+
+    expect(changeControls(container).textContent).toBe('')
+  })
+
+  it('labels the panes Before and After', () => {
+    const container = mount(new FakeDiffer(), async () => '<old/>')
+
+    const [oldPane, newPane] = diffPanes(container)
+    expect(oldPane!.querySelector('.diagit-diff-side')!.textContent).toBe('Before')
+    expect(newPane!.querySelector('.diagit-diff-side')!.textContent).toBe('After')
+  })
+
+  it('shows the legend and the navigator on Diff only', async () => {
+    const container = mount(
+      new FakeDiffer(),
+      async () => '<old/>',
+      async () => '<new/>',
+    )
+    await vi.waitFor(() => expect(container.textContent).toContain('Added: 0'))
+
+    expect(changeControls(container).style.display).toBe('')
+    buttonNamed(container, 'Plain').click()
+    expect(changeControls(container).style.display).toBe('none')
   })
 
   it('tells which version failed to download instead of calling the file deleted', async () => {
@@ -148,6 +231,7 @@ describe('DiffPanel', () => {
     const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
 
     await vi.waitFor(() => expect(container.textContent).toContain('Changes could not be computed'))
+    expect(container.querySelectorAll('.diagit-diff-legend')).toHaveLength(1)
     expect(container.textContent).not.toContain('Added: 0')
   })
 
@@ -193,10 +277,10 @@ describe('DiffPanel', () => {
 
   it('shows the notice on the Plain tab when it is opened after the Diff tab', async () => {
     const container = mount(new FakeDiffer(), async () => '<old/>', downloadFailed)
-    tabNamed(container, 'Diff').click()
+    buttonNamed(container, 'Diff').click()
     await vi.waitFor(() => expect(container.textContent).toContain('Changes could not be computed'))
 
-    tabNamed(container, 'Plain').click()
+    buttonNamed(container, 'Plain').click()
 
     await vi.waitFor(() =>
       expect(plainPane(container).textContent).toContain('New version could not be loaded'),
@@ -207,7 +291,7 @@ describe('DiffPanel', () => {
     const activeTab = (container: HTMLElement) =>
       container.querySelector('.diagit-tab.is-active')?.textContent
     const untilLoaded = (container: HTMLElement) =>
-      vi.waitFor(() => expect(container.textContent).toContain('Added: 0'))
+      vi.waitFor(() => expect(plainPane(container).textContent).not.toContain(LOADING_LABEL))
 
     it('opens on Diff when the file has an old and a new version', async () => {
       const differ = new FakeDiffer()
@@ -258,7 +342,7 @@ describe('DiffPanel', () => {
         async () => '<old/>',
         async () => '<new/>',
       )
-      tabNamed(container, 'Plain').click()
+      buttonNamed(container, 'Plain').click()
 
       await untilLoaded(container)
 

@@ -3,7 +3,7 @@
 See what changed in a `.bpmn` file as two diagrams side by side, with every added, removed, changed and moved element marked, instead of reading the XML diff.
 
 <figure class="shot">
-  <img src="/shots/pr-diff.png" alt="Diagit's Diff view: the base version of order.bpmn on the left, the head version on the right, with a legend that counts added, removed, changed and moved elements" />
+  <img src="/shots/pr-diff.png" alt="Diagit's Diff view of order.bpmn: the Before version on the left, the After version on the right, and a toolbar with a legend that counts added, removed, changed and moved elements, the Prev, Next and All buttons and the number of changes" />
   <figcaption>order.bpmn in a pull request, Diff view</figcaption>
 </figure>
 
@@ -21,7 +21,7 @@ The text diff below stays where it is. Diagit only adds to the page.
 
 ## Plain and Diff
 
-**Diff** shows the version before the change on the left and after it on the right. **Plain** shows the model as it is after the change. The panel opens on **Diff** when the file has both versions, and on **Plain** when the file was added or deleted.
+**Diff** shows the version before the change on the left, labelled **Before**, and after it on the right, labelled **After**. **Plain** shows the model as it is after the change. The panel opens on **Diff** when the file has both versions, and on **Plain** when the file was added or deleted.
 
 ## Read the colours
 
@@ -34,7 +34,7 @@ Diagit compares the two versions element by element, by id:
 | Blue   | Changed | Same id, but its content changed: name, type, flows, conditions or properties, including `zeebe:*` extensions. |
 | Yellow | Moved   | Same id and content, only its position, size, label or line changed.                                           |
 
-The legend above each side counts the elements in every category.
+The legend in the toolbar counts the elements in every category.
 
 ::: tip An element with a new id
 Diagit matches elements by id. When a change gives an element a new id, it shows as removed on the left and added on the right.
@@ -42,7 +42,7 @@ Diagit matches elements by id. When a change gives an element a new id, it shows
 
 ## Step through the changes
 
-**Next** and **Prev** select one change after the other and zoom both sides to it. **All** clears the selection and fits both diagrams again. The **−**, **Fit** and **+** buttons zoom by hand.
+**Next** and **Prev** in the toolbar select one change after the other and zoom both sides to it. Next to them Diagit shows which change is selected, for example "2 of 7", or how many changes there are when none is selected. **All** clears the selection and fits both diagrams again. The **−**, **Fit** and **+** buttons zoom by hand.
 
 ## Limits
 

@@ -27,6 +27,32 @@ describe('ChangeNavigator', () => {
     expect(newViewer.markers).toEqual([])
   })
 
+  it('tells the position of the selected change, and none after "All"', () => {
+    const navigator = new ChangeNavigator(['A', 'B'], [])
+    expect(navigator.position).toBeNull()
+
+    navigator.next()
+    navigator.next()
+    expect(navigator.position).toBe(2)
+
+    navigator.next()
+    expect(navigator.position).toBe(1)
+
+    navigator.previous()
+    expect(navigator.position).toBe(2)
+
+    navigator.showAll()
+    expect(navigator.position).toBeNull()
+  })
+
+  it('starts at the last change when stepping back with nothing selected', () => {
+    const navigator = new ChangeNavigator(['A', 'B', 'C'], [])
+
+    navigator.previous()
+
+    expect(navigator.position).toBe(3)
+  })
+
   it('wraps around backwards and fits every viewer on "All"', () => {
     const viewer = new FakeDiffableViewer(['A', 'B'])
     const navigator = new ChangeNavigator(['A', 'B'], [viewer, null])
