@@ -66,6 +66,18 @@ describe('StandaloneViewerPage', () => {
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(false)
   })
 
+  it('leaves the empty state once a file is chosen, also while it still loads', async () => {
+    const linkedModels = new FakeLinkedModels(() => new Promise(() => undefined))
+    const { app, page } = mountPage(new FakeNotation(), linkedModels)
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-file')).toBe(false)
+
+    void page.openLink(READABLE_FILE)
+
+    await vi.waitFor(() => expect(linkedModels.fetched).toEqual([READABLE_FILE]))
+    expect(app.querySelector<HTMLElement>('.diagit-toolbar')!.hidden).toBe(false)
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-file')).toBe(true)
+  })
+
   it('opens the file picker from the empty state and from the toolbar', () => {
     const { app } = mountPage(new FakeNotation())
     const input = app.querySelector<HTMLInputElement>('input[type=file]')!

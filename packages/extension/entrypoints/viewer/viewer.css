@@ -63,7 +63,7 @@ body {
 }
 
 .diagit-wrap:not(.has-diagram) .diagit-zoom,
-:is(.has-diagram, .has-error) .empty-state {
+.has-file .empty-state {
   display: none;
 }
 

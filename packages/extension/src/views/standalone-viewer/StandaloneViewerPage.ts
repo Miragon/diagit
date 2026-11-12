@@ -197,6 +197,7 @@ export class StandaloneViewerPage implements Zoomable {
   private showFile(fileName: string, notationLabel: string): void {
     this.fileLabelSlot.replaceChildren(fileLabel(fileName, notationLabel))
     this.toolbar.hidden = false
+    this.panel.classList.add('has-file')
   }
 
   private showDiagram(): void {
