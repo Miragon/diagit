@@ -83,7 +83,7 @@
   border-radius: var(--cd-radius-md);
 }
 
-.diagit-notice[data-layout='block']::before {
+.diagit-notice:is([data-layout='block'], [data-layout='toast'])::before {
   content: '';
   position: absolute;
   top: 0;

@@ -44,15 +44,19 @@ export class Toast implements PanelHandle {
   }
 
   constructor(private readonly options: ToastOptions) {
-    this.root = h('div', { class: 'diagit-notice diagit-toast', 'data-tone': options.tone }, [
-      lucideIcon(Notice.toneIcon(options.tone), 'diagit-notice-icon'),
-      h('p', { class: 'diagit-notice-title', text: options.title }),
-      this.announcement,
-      h('div', { class: 'diagit-notice-actions' }, [
-        ...options.actions.map((action) => this.actionButton(action)),
-      ]),
-      this.closeButton(),
-    ])
+    this.root = h(
+      'div',
+      { class: 'diagit-notice diagit-toast', 'data-tone': options.tone, 'data-layout': 'toast' },
+      [
+        lucideIcon(Notice.toneIcon(options.tone), 'diagit-notice-icon'),
+        h('p', { class: 'diagit-notice-title', text: options.title }),
+        this.announcement,
+        h('div', { class: 'diagit-notice-actions' }, [
+          ...options.actions.map((action) => this.actionButton(action)),
+        ]),
+        this.closeButton(),
+      ],
+    )
   }
 
   mount(container: HTMLElement): this {
