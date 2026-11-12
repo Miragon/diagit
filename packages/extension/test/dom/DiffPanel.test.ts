@@ -311,6 +311,19 @@ describe('DiffPanel', () => {
       expect(document.fullscreenElement).not.toBeNull()
     })
 
+    it('keeps the full screen button when Plain cannot be rendered', async () => {
+      const { container, differ, enter } = await fullScreenDiff()
+      await enter()
+      vi.spyOn(differ, 'createViewer').mockRejectedValue(new Error('unparsable'))
+
+      buttonNamed(container, 'Plain').click()
+      await vi.waitFor(() => expect(failureIn(plainPane(container))).not.toBeNull())
+
+      expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+      expect(buttonLabelled(container, 'Full screen').hidden).toBe(false)
+      expect(container.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(true)
+    })
+
     it('keeps the theme from the host page', async () => {
       const { root, enter } = await fullScreenDiff()
       const theme = root.dataset.cdTheme

@@ -160,7 +160,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
         : this.plainCanvas.viewer
     if (!viewer) {
       this.stopTrackingZoom = null
-      this.zoomControls.hide()
+      this.zoomControls.showLevel(null)
       return
     }
     const showLevel = () => this.zoomControls.showLevel(viewer.zoomLevel())
