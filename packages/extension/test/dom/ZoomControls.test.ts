@@ -93,8 +93,8 @@ describe('ZoomControls', () => {
       expect(fullScreenButton().title).toBe('Full screen')
     })
 
-    it('puts the panel in full screen, presses the button and fits once', async () => {
-      const { target, panel, fullScreenButton } = fullScreenControls()
+    it('puts the panel in full screen and presses the button', async () => {
+      const { panel, fullScreenButton } = fullScreenControls()
 
       fullScreenButton().click()
       await FakeFullScreen.settled()
@@ -103,7 +103,6 @@ describe('ZoomControls', () => {
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('true')
       expect(fullScreenButton().title).toBe('Exit full screen')
       expect(fullScreenButton().getAttribute('aria-label')).toBe('Full screen')
-      expect(target.fit).toHaveBeenCalledOnce()
     })
 
     it('recognises full screen of a panel inside a shadow root', async () => {
@@ -129,8 +128,8 @@ describe('ZoomControls', () => {
       expect(button('Full screen').getAttribute('aria-pressed')).toBe('false')
     })
 
-    it('leaves full screen through the button and fits again', async () => {
-      const { target, fullScreenButton } = fullScreenControls()
+    it('leaves full screen through the button', async () => {
+      const { fullScreenButton } = fullScreenControls()
       fullScreenButton().click()
       await FakeFullScreen.settled()
 
@@ -140,18 +139,16 @@ describe('ZoomControls', () => {
       expect(document.fullscreenElement).toBeNull()
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
       expect(fullScreenButton().title).toBe('Full screen')
-      expect(target.fit).toHaveBeenCalledTimes(2)
     })
 
     it('follows the browser when Esc leaves full screen', async () => {
-      const { target, fullScreenButton } = fullScreenControls()
+      const { fullScreenButton } = fullScreenControls()
       fullScreenButton().click()
       await FakeFullScreen.settled()
 
       await FakeFullScreen.exit()
 
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
-      expect(target.fit).toHaveBeenCalledTimes(2)
     })
 
     it('brings the page back to where it was scrolled when full screen ends', async () => {
@@ -190,7 +187,7 @@ describe('ZoomControls', () => {
     })
 
     it('stays unpressed when the browser refuses full screen', async () => {
-      const { target, fullScreenButton } = fullScreenControls()
+      const { fullScreenButton } = fullScreenControls()
       FakeFullScreen.refuse()
 
       fullScreenButton().click()
@@ -198,7 +195,6 @@ describe('ZoomControls', () => {
       await Promise.resolve()
 
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
-      expect(target.fit).not.toHaveBeenCalled()
     })
   })
 })

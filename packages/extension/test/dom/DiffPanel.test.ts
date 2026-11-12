@@ -279,18 +279,14 @@ describe('DiffPanel', () => {
       return { container, differ, root, enter }
     }
 
-    it('keeps Diff open and fits both versions on entering and on leaving', async () => {
-      const { container, differ, root, enter } = await fullScreenDiff()
-      const [oldViewer, newViewer] = differ.viewers
-      const fitsBefore = [oldViewer!.fits, newViewer!.fits]
+    it('keeps Diff open on entering and on leaving', async () => {
+      const { container, root, enter } = await fullScreenDiff()
 
       await enter()
       expect(document.fullscreenElement).toBe(root)
       expect(buttonNamed(container, 'Diff').getAttribute('aria-pressed')).toBe('true')
-      expect([oldViewer!.fits, newViewer!.fits]).toEqual(fitsBefore.map((fits) => fits + 1))
 
       await FakeFullScreen.exit()
-      expect([oldViewer!.fits, newViewer!.fits]).toEqual(fitsBefore.map((fits) => fits + 2))
       expect(buttonNamed(container, 'Diff').getAttribute('aria-pressed')).toBe('true')
     })
 

@@ -24,7 +24,7 @@ export class ZoomControls {
   private fullScreenButton: HTMLButtonElement | null = null
   private pageScrollBeforeFullScreen = 0
 
-  constructor(private readonly target: Zoomable) {
+  constructor(target: Zoomable) {
     this.levelButton = h('button', {
       class: 'btn btn-ghost diagit-zoom-level',
       type: 'button',
@@ -78,7 +78,6 @@ export class ZoomControls {
       if (!active) {
         window.scrollTo({ top: this.pageScrollBeforeFullScreen, behavior: 'instant' })
       }
-      this.target.fit()
     })
     this.showFullScreen(false)
   }

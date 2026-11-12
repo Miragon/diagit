@@ -219,12 +219,10 @@ describe('StandaloneViewerPage in full screen', () => {
 
     openFile(app, new File(['<bpmn/>'], 'order.bpmn'))
     await vi.waitFor(() => expect(zoom.hidden).toBe(false))
-    const fitsAfterOpen = viewer.fits
     app.querySelector<HTMLButtonElement>('[aria-label="Full screen"]')!.click()
     await FakeFullScreen.settled()
 
     expect(document.fullscreenElement).toBe(app.querySelector('section.diagit-wrap'))
-    expect(viewer.fits).toBe(fitsAfterOpen + 1)
   })
 })
 

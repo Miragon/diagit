@@ -220,19 +220,6 @@ describe('ModelPanel', () => {
       expect(wrap.dataset.cdTheme).toBe(theme)
     })
 
-    it('fits the diagram on entering and on leaving full screen', async () => {
-      const { container, viewer, button } = fullScreenPanel()
-      await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
-      const fitsAfterRender = viewer.fits
-
-      button().click()
-      await FakeFullScreen.settled()
-      expect(viewer.fits).toBe(fitsAfterRender + 1)
-
-      await FakeFullScreen.exit()
-      expect(viewer.fits).toBe(fitsAfterRender + 2)
-    })
-
     it('keeps only the full screen button on a decision table', async () => {
       const viewer = new FakeDiffableViewer()
       viewer.level = null
