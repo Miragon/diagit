@@ -30,9 +30,10 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private readonly oldPane = new DiffPane('old')
   private readonly newPane = new DiffPane('new')
   private readonly plainCanvas = new ViewerCanvas<DiffableViewer>()
-  private readonly plainTab = this.tab('Plain')
-  private readonly diffTab = this.tab('Diff')
+  private readonly plainButton = this.viewButton('Plain')
+  private readonly diffButton = this.viewButton('Diff')
   private readonly changeControls = new ChangeControls()
+  private readonly zoomControls = new ZoomControls(this)
   private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, [
     this.oldPane.element,
     this.newPane.element,
@@ -43,12 +44,15 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private readonly diagramArea = h('div', { class: 'diagit-diff-area' }, [
     this.diffGrid,
     this.plainGrid,
+    this.zoomControls.element,
   ])
   private readonly root = h('div', { class: 'diagit-wrap diagit-diff-root' }, [
     h('div', { class: 'diagit-toolbar' }, [
-      h('div', { class: 'diagit-tabs' }, [this.plainTab, this.diffTab]),
+      h('div', { class: 'diagit-segmented', role: 'group', 'aria-label': 'View' }, [
+        this.plainButton,
+        this.diffButton,
+      ]),
       this.changeControls.element,
-      new ZoomControls(this).element,
     ]),
     this.diagramArea,
   ])
@@ -63,6 +67,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private resizeObserver: ResizeObserver | null = null
   private viewportObserver: IntersectionObserver | null = null
   private detachFocusZoom: (() => void) | null = null
+  private stopTrackingZoom: (() => void) | null = null
 
   private readonly notices: DiffNotices
 
@@ -73,8 +78,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
   mount(container: HTMLElement): this {
     container.append(this.root)
     this.root.dataset.cdTheme = detectHostTheme(this.root)
-    this.plainTab.addEventListener('click', () => this.pick('plain'))
-    this.diffTab.addEventListener('click', () => this.pick('diff'))
+    this.plainButton.addEventListener('click', () => this.pick('plain'))
+    this.diffButton.addEventListener('click', () => this.pick('diff'))
     this.show('plain')
     this.resizeObserver = new ResizeObserver(() => this.fit())
     this.resizeObserver.observe(this.diagramArea)
@@ -102,8 +107,16 @@ export class DiffPanel implements PanelHandle, Zoomable {
     }
   }
 
+  resetZoom(): void {
+    for (const viewer of this.visibleViewers()) {
+      ZoomControls.resetZoomOf(viewer)
+    }
+  }
+
   destroy(): void {
     this.destroyed = true
+    this.stopTrackingZoom?.()
+    this.stopTrackingZoom = null
     this.detachFocusZoom?.()
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
@@ -124,14 +137,26 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.diffGrid.style.display = isDiff ? '' : 'none'
     this.plainGrid.style.display = isDiff ? 'none' : ''
     this.changeControls.element.style.display = isDiff ? '' : 'none'
-    this.diffTab.classList.toggle('is-active', isDiff)
-    this.plainTab.classList.toggle('is-active', !isDiff)
+    this.diffButton.setAttribute('aria-pressed', String(isDiff))
+    this.plainButton.setAttribute('aria-pressed', String(!isDiff))
     if (isDiff) {
       void this.ensureDiffRendered()
     } else {
       void this.ensurePlainRendered()
     }
     this.fit()
+    this.trackZoomLevel()
+  }
+
+  private trackZoomLevel(): void {
+    this.stopTrackingZoom?.()
+    const viewer =
+      this.modelView === 'diff'
+        ? (this.newPane.viewer ?? this.oldPane.viewer)
+        : this.plainCanvas.viewer
+    const showLevel = () => this.zoomControls.showLevel(viewer?.zoomLevel() ?? null)
+    this.stopTrackingZoom = viewer?.onViewChange(showLevel) ?? null
+    showLevel()
   }
 
   private visibleViewers(): (DiffableViewer | null)[] {
@@ -191,6 +216,9 @@ export class DiffPanel implements PanelHandle, Zoomable {
     if (this.oldPane.viewer || this.newPane.viewer) {
       this.options.onRendered?.()
     }
+    if (this.modelView === 'diff') {
+      this.trackZoomLevel()
+    }
 
     const diff = await this.computeDiff(base, head)
     if (this.destroyed) {
@@ -239,7 +267,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       (canvas, xml) => differ.createViewer(canvas, xml),
       this.head.value,
       'No current model (file deleted).',
-      this.notices,
+      (err) => this.notices.notRendered('new', err),
     )
     if (this.destroyed) {
       this.plainCanvas.destroy()
@@ -251,6 +279,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     }
     if (this.modelView === 'plain') {
       viewer?.fit()
+      this.trackZoomLevel()
     }
   }
 
@@ -277,7 +306,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.plainCanvas.destroy()
   }
 
-  private tab(text: string): HTMLButtonElement {
-    return h('button', { class: 'diagit-tab', type: 'button', text })
+  private viewButton(text: string): HTMLButtonElement {
+    return h('button', { type: 'button', text })
   }
 }

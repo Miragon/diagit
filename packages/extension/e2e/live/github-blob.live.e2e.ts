@@ -21,4 +21,21 @@ describe('LIVE: GitHub blob viewer on real github.com', () => {
     await host.waitForExist({ timeout: 45_000 })
     await expect(host.shadow$('.djs-element')).toBeExisting()
   })
+
+  it('keeps the panel clear of the sticky Code/Blame header', async () => {
+    await browser.url(BLOB_URL)
+    const host = $(HOST_TAG)
+    await host.waitForExist({ timeout: 45_000 })
+    await expect(host.shadow$('.djs-element')).toBeExisting()
+
+    const { headerBottom, panelTop } = await browser.execute((hostTag) => {
+      const header = document.querySelector('.react-blob-view-header-sticky > *')
+      const panel = document.querySelector(hostTag)?.shadowRoot?.querySelector('.diagit-wrap')
+      return {
+        headerBottom: header?.getBoundingClientRect().bottom ?? Number.NaN,
+        panelTop: panel?.getBoundingClientRect().top ?? Number.NaN,
+      }
+    }, HOST_TAG)
+    expect(panelTop).toBeGreaterThanOrEqual(headerBottom)
+  })
 })

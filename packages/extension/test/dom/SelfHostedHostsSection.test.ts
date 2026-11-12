@@ -8,45 +8,44 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-async function mountedWith(instances: SelfHostedHost[]): Promise<HTMLTableElement> {
+async function mountedWith(instances: SelfHostedHost[]): Promise<HTMLElement> {
   const access = { list: () => Promise.resolve(instances) }
   new SelfHostedHostsSection(access as never).mount(document.body)
-  await vi.waitFor(() => expect(document.querySelector('tbody tr')).not.toBeNull())
-  return document.querySelector('table')!
+  await vi.waitFor(() => expect(document.querySelector('.card-row')).not.toBeNull())
+  return document.querySelector<HTMLElement>('section.card')!
 }
 
-function cellTexts(table: HTMLTableElement, selector: string): string[][] {
-  return [...table.querySelectorAll(selector)].map((row) =>
-    [...row.children].map((cell) => cell.textContent ?? ''),
-  )
+function rowTexts(card: HTMLElement): string[] {
+  return [...card.querySelectorAll('.card-row')].map((row) => row.textContent ?? '')
 }
 
 describe('SelfHostedHostsSection', () => {
-  it('lists each instance as a table row', async () => {
-    const table = await mountedWith([
+  it('lists each instance as a card row', async () => {
+    const card = await mountedWith([
       { origin: 'https://gitlab.example.com' },
       { origin: 'https://git.example.org' },
     ])
 
-    expect(cellTexts(table, 'thead tr')).toEqual([['Instance', '2 instances']])
-    expect(cellTexts(table, 'tbody tr')).toEqual([
-      ['https://gitlab.example.com', 'Remove'],
-      ['https://git.example.org', 'Remove'],
+    expect(card.querySelector('.card-head .count')!.textContent).toBe('2 instances')
+    expect(rowTexts(card)).toEqual([
+      'https://gitlab.example.comRemove',
+      'https://git.example.orgRemove',
     ])
   })
 
-  it('shows the empty state inside the table', async () => {
-    const table = await mountedWith([])
+  it('shows the empty state as a card row', async () => {
+    const card = await mountedWith([])
 
-    expect(cellTexts(table, 'thead tr')).toEqual([['Instance', '0 instances']])
-    expect(cellTexts(table, 'tbody tr')).toEqual([['No self-hosted instances added yet.']])
+    expect(card.querySelector('.count')!.textContent).toBe('0 instances')
+    expect(rowTexts(card)).toEqual(['No self-hosted instances added yet.'])
   })
 
-  it('places the add form in the footer row on the same columns', async () => {
-    const table = await mountedWith([{ origin: 'https://gitlab.example.com' }])
-    const footerCells = [...table.querySelectorAll('tfoot td')]
+  it('places the add form in the card footer', async () => {
+    const card = await mountedWith([{ origin: 'https://gitlab.example.com' }])
+    const footer = card.querySelector('.card-foot')!
 
-    expect(table.querySelector('thead th:last-child')?.textContent).toBe('1 instance')
-    expect(footerCells.map((cell) => cell.firstElementChild?.tagName)).toEqual(['INPUT', 'BUTTON'])
+    expect(card.querySelector('.count')!.textContent).toBe('1 instance')
+    expect([...footer.children].map((child) => child.tagName)).toEqual(['INPUT', 'BUTTON'])
+    expect(footer.querySelector('button')!.textContent).toBe('Add instance')
   })
 })

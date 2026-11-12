@@ -1,19 +1,49 @@
-#alert {
+body {
+  background: var(--cd-ui-flaeche-hoch);
+}
+
+.dialog-head {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
-  padding: 16px;
+  padding: 20px 24px 4px;
+}
+
+.dialog-icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
+.dialog-head h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 24px;
 }
 
 .message {
   margin: 0;
-  font-size: 14px;
+  padding: 0 24px 20px 60px;
+  color: var(--cd-ui-text-leise);
+  font-size: 13px;
   line-height: 1.5;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-.btn {
-  align-self: center;
+.dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--cd-shell-luecke);
+  padding: 12px 16px;
+  border-top: 1px solid var(--cd-ui-linie);
+}
+
+.dialog-foot .btn {
   min-width: 80px;
+}
+
+.dialog:focus {
+  outline: none;
 }

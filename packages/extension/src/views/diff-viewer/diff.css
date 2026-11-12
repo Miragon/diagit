@@ -1,7 +1,7 @@
 /*
  * Styles for the injected merge-request diff. Scoped to the shadow root. Bundled
  * together with viewer.css, so it inherits its aliases (--fg, --bg, --border,
- * --btn-bg, --btn-hover, --canvas-bg) and the shared toolbar/tab
+ * --btn-bg, --btn-hover, --canvas-bg) and the shared toolbar
  * components defined there. Only diff-specific layout + marker colours live here.
  *
  * Change markers use the Miragon status colours: added = success, removed =
@@ -11,25 +11,19 @@
  * and the status role (the -hell values) carries the change on a wider stroke.
  */
 
-/* One self-contained box: the toolbar (Plain/Diff tabs) and the diagram share a
-   single border, instead of naked tabs floating above a separate diagram card.
-   `overflow: hidden` keeps the corners crisp over the canvas. */
 .diagit-wrap.diagit-diff-root {
   margin: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
   container: diagit-diff-root / inline-size;
 }
 
-/* Divider between the toolbar and the diagram, inside the shared container. */
 .diagit-diff-root .diagit-toolbar {
   flex-wrap: wrap;
-  border-bottom: 1px solid var(--border);
 }
 
-/* The diagram fills the container; the frame is the root border above, so the
-   grid itself carries no border of its own. */
+.diagit-diff-area {
+  position: relative;
+}
+
 .diagit-diff-grid {
   display: flex;
   overflow: hidden;
@@ -41,12 +35,10 @@
   flex: 1 1 0;
   min-width: 0;
   height: 520px;
-  border-right: 1px dashed var(--border);
 }
 
-.diagit-diff-pane:last-child,
-.diagit-diff-single {
-  border-right: none;
+.diagit-diff-pane + .diagit-diff-pane {
+  border-left: 1px solid var(--border);
 }
 
 .diagit-diff-canvas {
@@ -72,10 +64,11 @@
 
 .diagit-diff-changes {
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 16px;
-  margin-right: auto;
+  gap: 4px 16px;
+  min-width: 0;
   font-size: 13px;
 }
 
@@ -83,115 +76,118 @@
   .diagit-diff-changes {
     order: 1;
     flex-basis: 100%;
+    padding-bottom: 4px;
   }
-}
-
-/* Which version a pane shows: a permanent island over the canvas, so glass. */
-.diagit-diff-side {
-  position: absolute;
-  top: var(--cd-shell-rand);
-  left: var(--cd-shell-rand);
-  z-index: 10;
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: color-mix(
-    in srgb,
-    var(--cd-ui-flaeche-hoch) var(--cd-ui-chrome-deckkraft),
-    transparent
-  );
-  backdrop-filter: blur(8px);
-  box-shadow: var(--cd-shadow-1);
-  color: var(--fg);
-  font-size: 13px;
-  font-weight: 600;
-  pointer-events: none;
 }
 
 .diagit-diff-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  align-items: center;
+  gap: 4px 12px;
   color: var(--fg);
 }
 
-.diagit-diff-legend .k::before {
-  content: '';
-  display: inline-block;
-  width: 11px;
-  height: 11px;
-  border-radius: 2px;
-  margin-right: 5px;
-  vertical-align: -1px;
-  border: 1px solid var(--marker-stroke);
-  background: var(--marker-fill);
-}
-
-.diagit-diff-nav {
-  display: flex;
+.diagit-legend-chip {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-.diagit-diff-position {
-  min-width: 11ch;
-  margin-left: 4px;
-  color: var(--fg-muted);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
+.diagit-swatch {
+  flex: none;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--cd-schwarz);
+  border-radius: 3px;
+}
+
+.diagit-swatch[data-change='added'] {
+  background: var(--cd-ui-success);
+}
+
+.diagit-swatch[data-change='removed'] {
+  background: var(--cd-ui-danger);
+}
+
+.diagit-swatch[data-change='changed'] {
+  background: var(--cd-ui-info);
+}
+
+.diagit-swatch[data-change='moved'] {
+  background: var(--cd-ui-warning);
+}
+
+.diagit-wrap[data-cd-theme='dark'] .diagit-swatch {
+  border-color: var(--cd-ui-linie);
+}
+
+.diagit-diff-total {
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.diagit-legend-chip ~ .diagit-diff-total {
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+
+.diagit-diff-position:empty {
+  padding: 0;
+}
+
+.diagit-diff-nav-separator {
+  color: var(--border);
+}
+
+.diagit-diff-position:empty + .diagit-diff-nav-separator {
+  display: none;
+}
+
 /* Marker colours per change category, light mode. */
-.diagit-diff-added,
-.diagit-diff-legend .k-add {
+.diagit-diff-added {
   --marker-stroke: var(--cd-schwarz);
   --marker-fill: var(--cd-success-soft);
 }
 
-.diagit-diff-removed,
-.diagit-diff-legend .k-rem {
+.diagit-diff-removed {
   --marker-stroke: var(--cd-danger);
   --marker-fill: var(--cd-danger-soft);
 }
 
-.diagit-diff-changed,
-.diagit-diff-legend .k-chg {
+.diagit-diff-changed {
   --marker-stroke: var(--cd-info);
   --marker-fill: var(--cd-info-soft);
 }
 
-.diagit-diff-moved,
-.diagit-diff-legend .k-mov {
+.diagit-diff-moved {
   --marker-stroke: var(--cd-schwarz);
   --marker-fill: var(--cd-warning-soft);
 }
 
 /* Dark mode: the status roles on the stroke, no tinted surfaces. */
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-added,
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-add {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-added {
   --marker-stroke: var(--cd-ui-success);
 }
 
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-removed,
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-rem {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-removed {
   --marker-stroke: var(--cd-ui-danger);
 }
 
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-changed,
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-chg {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-changed {
   --marker-stroke: var(--cd-ui-info);
 }
 
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-moved,
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k-mov {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-moved {
   --marker-stroke: var(--cd-ui-warning);
 }
 
 .diagit-wrap[data-cd-theme='dark'] .diagit-diff-added,
 .diagit-wrap[data-cd-theme='dark'] .diagit-diff-removed,
 .diagit-wrap[data-cd-theme='dark'] .diagit-diff-changed,
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-moved,
-.diagit-wrap[data-cd-theme='dark'] .diagit-diff-legend .k {
+.diagit-wrap[data-cd-theme='dark'] .diagit-diff-moved {
   --marker-fill: var(--canvas-bg);
   --marker-stroke-width: 3px;
 }
@@ -236,61 +232,20 @@
   container-type: inline-size;
 }
 
-.diagit-diff-pane:has(.diagit-diff-failure) .diagit-diff-side {
+.diagit-diff-pane:has(.diagit-notice[data-layout='bar']) .diagit-pane-label {
   display: none;
 }
 
-.diagit-diff-failure {
+.diagit-diff-canvas > .diagit-notice[data-layout='bar'] {
   position: absolute;
   top: 0;
   right: 0;
   left: 0;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px 6px 16px;
-  border-bottom: 1px solid var(--cd-ui-linie);
-  border-left: 4px solid var(--cd-ui-danger);
-  background: var(--cd-ui-danger-flaeche);
-  color: var(--cd-ui-text);
-  font-size: 13px;
-}
-
-.diagit-diff-failure svg {
-  flex: none;
-  width: 16px;
-  height: 16px;
-}
-
-.diagit-diff-failure-icon {
-  color: var(--cd-ui-danger);
-}
-
-.diagit-diff-failure-title {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.diagit-diff-failure-detail {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.diagit-diff-failure-action:hover {
-  background: var(--cd-ui-hover);
 }
 
 @container (max-width: 420px) {
-  .diagit-diff-failure-label {
+  .diagit-notice-action-label {
     display: none;
   }
 }

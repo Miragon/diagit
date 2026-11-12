@@ -28,6 +28,7 @@ export class ExcalidrawViewer implements DiagramViewer {
   private x = 0
   private y = 0
   private readonly listeners = new AbortController()
+  private readonly viewChangeListeners = new Set<() => void>()
 
   private constructor(
     private readonly canvas: HTMLElement,
@@ -58,6 +59,15 @@ export class ExcalidrawViewer implements DiagramViewer {
 
   zoomBy(factor: number): void {
     this.zoomAround(factor, this.canvas.clientWidth / 2, this.canvas.clientHeight / 2)
+  }
+
+  zoomLevel(): number {
+    return this.scale
+  }
+
+  onViewChange(listener: () => void): () => void {
+    this.viewChangeListeners.add(listener)
+    return () => this.viewChangeListeners.delete(listener)
   }
 
   setInteractive(active: boolean): void {
@@ -116,5 +126,6 @@ export class ExcalidrawViewer implements DiagramViewer {
 
   private applyTransform(): void {
     this.image.style.transform = `translate(${this.x}px, ${this.y}px) scale(${this.scale})`
+    this.viewChangeListeners.forEach((listener) => listener())
   }
 }

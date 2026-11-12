@@ -17,9 +17,9 @@ describe('Star prompt', () => {
     await openDiagramPage(PAGES_BEFORE_PROMPT)
     const prompt = $('diagit-star-prompt')
     await prompt.waitForExist({ timeout: 10_000 })
-    await expect(prompt.shadow$('.btn-primary')).toHaveText('Star on GitHub')
+    await expect(prompt.shadow$('.btn-secondary')).toHaveText('Star on GitHub')
 
-    await prompt.shadow$('.btn-icon').click()
+    await prompt.shadow$('[aria-label="Close"]').click()
     await expect($('diagit-star-prompt')).not.toBeExisting()
 
     for (let page = PAGES_BEFORE_PROMPT + 1; page <= 2 * PAGES_BEFORE_PROMPT + 1; page++) {

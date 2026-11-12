@@ -222,7 +222,7 @@ describe('GitHub pull-request diff — failed metadata', () => {
     expect(metadataRequests(http)).toBe(2)
   })
 
-  it('carries every changed file and a status-specific hint', async () => {
+  it('carries every changed file and a status-specific cause', async () => {
     const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 404 for x', 404))
 
     const err = await pullRequestDiff(http)
@@ -234,7 +234,7 @@ describe('GitHub pull-request diff — failed metadata', () => {
 
     expect(err).toBeInstanceOf(DiffDataError)
     expect(err.files.map((file) => file.path)).toEqual(['flows/order.bpmn'])
-    expect(err.help.hint).toMatch(/private repository/i)
+    expect(err.help.title).toBe('This repository looks private')
   })
 
   it('lists a changed diagram file the scanner did not recognise', async () => {

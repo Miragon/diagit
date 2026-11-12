@@ -1,4 +1,5 @@
 import { fitWithPadding, type FitCanvas } from '../platform/utils/fitWithPadding'
+import { onViewboxChange, type EventBus } from '../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../platform/utils/zoomScroll'
 import type { DiagramViewer } from './Notation'
 
@@ -54,6 +55,14 @@ export class DiagramJsViewer implements DiagramViewer {
 
   zoomBy(factor: number): void {
     this.canvas.zoom(this.canvas.zoom() * factor)
+  }
+
+  zoomLevel(): number {
+    return this.canvas.zoom()
+  }
+
+  onViewChange(listener: () => void): () => void {
+    return onViewboxChange(this.diagram.get<EventBus>('eventBus'), listener)
   }
 
   setInteractive(active: boolean): void {

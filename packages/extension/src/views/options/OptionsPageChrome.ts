@@ -8,6 +8,7 @@ import { lucideIcon } from '../../platform/utils/lucideIcon'
 const DOCS_URL = 'https://miragon.github.io/diagit/'
 const PRIVACY_URL = `${DOCS_URL}privacy.html`
 const APP_ICON_PATH = '/icon/icon.svg'
+const FOOTER_LINK = 'btn btn-ghost btn-small'
 
 export class OptionsPageChrome {
   constructor(
@@ -19,6 +20,7 @@ export class OptionsPageChrome {
     return h('header', { class: 'page-header' }, [
       h('img', { class: 'app-icon', src: APP_ICON_PATH, alt: '' }),
       h('h1', { text: 'Diagit' }),
+      h('span', { class: 'page-subtitle', text: 'Options' }),
       h('span', { class: 'version', text: `v${this.version}` }),
     ])
   }
@@ -28,22 +30,24 @@ export class OptionsPageChrome {
     const rate = reviewUrl
       ? [this.externalLink('Rate Diagit', reviewUrl, 'btn btn-secondary', ThumbsUp)]
       : []
-    return h('aside', { class: 'card support' }, [
-      h('div', { class: 'support-text' }, [
-        h('strong', { text: 'Like Diagit?' }),
-        h('span', { class: 'hint', text: 'A star or a rating helps other teams find it.' }),
+    return h('aside', { class: 'card' }, [
+      h('div', { class: 'card-head support' }, [
+        h('div', { class: 'support-text' }, [
+          h('h2', { text: 'Like Diagit?' }),
+          h('p', { class: 'lede', text: 'A star or a rating helps other teams find it.' }),
+        ]),
+        this.externalLink('Star on GitHub', diagitRepository.url, 'btn btn-secondary', Star),
+        ...rate,
       ]),
-      this.externalLink('Star on GitHub', diagitRepository.url, 'btn btn-secondary', Star),
-      ...rate,
     ])
   }
 
   footer(): HTMLElement {
     return h('footer', { class: 'page-footer' }, [
-      this.externalLink('Docs', DOCS_URL),
-      this.externalLink('Suggest a feature', diagitRepository.featureRequestUrl()),
-      this.externalLink('Privacy', PRIVACY_URL),
-      this.externalLink('Source code', diagitRepository.url),
+      this.externalLink('Docs', DOCS_URL, FOOTER_LINK),
+      this.externalLink('Suggest a feature', diagitRepository.featureRequestUrl(), FOOTER_LINK),
+      this.externalLink('Privacy', PRIVACY_URL, FOOTER_LINK),
+      this.externalLink('Source code', diagitRepository.url, FOOTER_LINK),
       h('span', { class: 'made-by', text: 'Made by Miragon' }),
     ])
   }

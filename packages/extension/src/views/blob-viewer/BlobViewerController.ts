@@ -91,20 +91,24 @@ export class BlobViewerController {
     try {
       const path = location.pathname
       this.mountedPath = path
-      this.dropStickyHeaderGap(anchor)
+      const stickyHeaderClearance = this.moveStickyHeaderClearance(anchor)
       const loadXml = this.blobPage.fileLoader(location)
+      const filePath = this.blobPage.filePath(location)
       this.panel = await this.page.mountPanel({
         name: HOST_TAG,
         anchor,
         append: 'before',
         css: notation.css,
-        render: (container) =>
-          new ModelPanel({
+        render: (container) => {
+          container.style.paddingTop = stickyHeaderClearance
+          return new ModelPanel({
             notation,
+            filePath,
             loadXml,
             reportContext: this.reportContext,
             onRendered: () => void this.diagramViews.save(path),
-          }).mount(container),
+          }).mount(container)
+        },
       })
       const navigatedAwayWhileMounting = path !== this.page.location.pathname
       if (navigatedAwayWhileMounting) {
@@ -136,12 +140,14 @@ export class BlobViewerController {
     return this.blobPage.isBlob(location) ? this.notations.detect(location.pathname) : null
   }
 
-  private dropStickyHeaderGap(anchor: HTMLElement): void {
+  private moveStickyHeaderClearance(anchor: HTMLElement): string {
+    const clearance = getComputedStyle(anchor).marginTop
     const previousMarginTop = anchor.style.marginTop
     anchor.style.marginTop = '0'
     this.restoreAnchor = () => {
       anchor.style.marginTop = previousMarginTop
     }
+    return clearance
   }
 
   private isCurrent(): boolean {

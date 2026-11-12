@@ -42,6 +42,22 @@ describe('ExcalidrawViewer', () => {
     expect(image.style.transform).toContain('scale(0.25)')
   })
 
+  it('reads its scale as zoom level and tells a listener until it unsubscribes', async () => {
+    const canvas = canvasOfSize(600, 400)
+    await renderImageOfSize(canvas, 200, 100)
+    const viewer = await ExcalidrawViewer.create(canvas, SCENE)
+    const listener = vi.fn()
+
+    const unsubscribe = viewer.onViewChange(listener)
+    viewer.zoomBy(2)
+    expect(viewer.zoomLevel()).toBe(2)
+    unsubscribe()
+    viewer.zoomBy(0.5)
+
+    expect(listener).toHaveBeenCalledOnce()
+    expect(viewer.zoomLevel()).toBe(1)
+  })
+
   it('pans with the main button', async () => {
     const canvas = canvasOfSize(600, 400)
     const image = await renderImageOfSize(canvas, 200, 100)

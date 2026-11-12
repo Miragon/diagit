@@ -55,6 +55,31 @@ describe('BlobViewerController', () => {
 
     const file = document.getElementById('file')!
     await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
+    const toolbar = file.previousElementSibling!.shadowRoot!.querySelector('.diagit-toolbar')!
+    expect(toolbar.querySelector('.file-name')!.textContent).toBe('order.bpmn')
+  })
+
+  it('moves the clearance under the host sticky header from the file to the panel', async () => {
+    document.body.innerHTML = `
+      <style>.below-sticky-header { margin-top: 44px; }</style>
+      <section id="file" class="below-sticky-header"><div class="code"></div></section>`
+    new BlobViewerController(
+      pageAt('/o/r/blob/main/order.bpmn'),
+      blobPage,
+      FAKE_REPORT_CONTEXT,
+      new FakeNotationLookup(),
+    ).start()
+
+    const file = document.getElementById('file')!
+    await vi.waitFor(() => expect(file.previousElementSibling?.localName).toBe(HOST_TAG))
+    const panelContainer = file.previousElementSibling!.shadowRoot!.querySelector('div')!
+    expect(panelContainer.style.paddingTop).toBe('44px')
+    expect(getComputedStyle(file).marginTop).toBe('0px')
+
+    context.invalidate()
+
+    expect(document.querySelector(HOST_TAG)).toBeNull()
+    expect(getComputedStyle(file).marginTop).toBe('44px')
   })
 
   it('themes the panel with the Miragon tokens', async () => {
@@ -128,10 +153,15 @@ describe('BlobViewerController', () => {
       await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
 
       expect(noticeText()).toContain('view could not be added')
-      expect(noticeText()).toContain('Report this problem')
+      expect(noticeText()).toContain('Report problem')
+      expect(
+        document
+          .querySelector(PLACEMENT_NOTICE_TAG)!
+          .shadowRoot!.querySelector<HTMLElement>('.diagit-toast')!.dataset.tone,
+      ).toBe('warning')
       const openTab = vi.spyOn(window, 'open').mockReturnValue(null)
       const reportButton = noticeButtons().find(
-        (button) => button.textContent === 'Report this problem',
+        (button) => button.textContent === 'Report problem',
       )!
       reportButton.click()
       const fields = new URL(String(openTab.mock.calls[0]![0])).searchParams
@@ -164,7 +194,8 @@ describe('BlobViewerController', () => {
       vi.mocked(browser.extension).inIncognitoContext = false
 
       expect(noticeButtons().map((button) => button.textContent)).not.toContain('Open in Diagit')
-      expect(noticeText()).toContain('Report this problem')
+      expect(noticeText()).toContain('Report problem')
+      expect(noticeText()).not.toContain('Open the file in Diagit')
     })
 
     it('stays quiet on a file that is not a diagram', async () => {

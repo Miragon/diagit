@@ -1,10 +1,12 @@
 import DmnNavigatedViewer from 'dmn-js/lib/NavigatedViewer'
 import { detectHostTheme, diagramColors } from '../../platform/utils/hostTheme'
 import { fitWithPadding, type FitCanvas } from '../../platform/utils/fitWithPadding'
+import { onViewboxChange, type EventBus } from '../../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import type { DiagramViewer } from '../Notation'
 
 const DMN_FIT_PADDING = 64
+const VIEWS_CHANGED = 'views.changed'
 
 export class DmnViewer implements DiagramViewer {
   static async create(canvas: HTMLElement, xml: string): Promise<DmnViewer> {
@@ -45,6 +47,24 @@ export class DmnViewer implements DiagramViewer {
     canvas?.zoom(canvas.zoom() * factor)
   }
 
+  zoomLevel(): number | null {
+    return this.activeCanvas()?.zoom() ?? null
+  }
+
+  onViewChange(listener: () => void): () => void {
+    let stopFollowingViewbox = this.onActiveViewboxChange(listener)
+    const followActiveView = () => {
+      stopFollowingViewbox()
+      stopFollowingViewbox = this.onActiveViewboxChange(listener)
+      listener()
+    }
+    this.viewer.on(VIEWS_CHANGED, followActiveView)
+    return () => {
+      stopFollowingViewbox()
+      this.viewer.off(VIEWS_CHANGED, followActiveView)
+    }
+  }
+
   setInteractive(active: boolean): void {
     toggleZoomScroll(this.viewer.getActiveViewer(), active)
   }
@@ -56,6 +76,19 @@ export class DmnViewer implements DiagramViewer {
   private activeCanvas(): FitCanvas | undefined {
     try {
       return this.viewer.getActiveViewer()?.get<FitCanvas>('canvas')
+    } catch {
+      return undefined
+    }
+  }
+
+  private onActiveViewboxChange(listener: () => void): () => void {
+    const eventBus = this.activeEventBus()
+    return eventBus ? onViewboxChange(eventBus, listener) : () => {}
+  }
+
+  private activeEventBus(): EventBus | undefined {
+    try {
+      return this.viewer.getActiveViewer()?.get<EventBus>('eventBus')
     } catch {
       return undefined
     }

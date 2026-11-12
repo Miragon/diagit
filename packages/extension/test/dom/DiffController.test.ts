@@ -179,7 +179,9 @@ describe('DiffController', () => {
         throw new DiffDataError(
           'HTTP 404',
           {
-            hint: 'Connect the app.',
+            tone: 'warning',
+            title: 'Diagit GitHub App is not installed here',
+            body: 'Connect the app.',
             action: { label: 'Install', url: 'https://github.com/apps/x' },
           },
           [
@@ -200,15 +202,54 @@ describe('DiffController', () => {
     await vi.waitFor(() => expect(code.previousElementSibling?.localName).toBe(DIFF_ERROR_TAG))
     const notice = code.previousElementSibling!.shadowRoot!
     await vi.waitFor(() =>
-      expect(notice.querySelector('.diagit-error-title')?.textContent).toBe(
-        'BPMN diff could not be loaded',
+      expect(notice.querySelector('.diagit-notice-title')?.textContent).toBe(
+        'Diagit GitHub App is not installed here',
       ),
     )
-    expect(notice.querySelector('.diagit-error-hint')?.textContent).toBe('Connect the app.')
-    expect(notice.querySelector('.diagit-error-detail')?.textContent).toBe('HTTP 404')
-    expect(notice.querySelector('.diagit-error-actions a')?.getAttribute('href')).toBe(
+    expect(notice.querySelector('.diagit-toolbar .diagit-file-label')?.textContent).toBe(
+      'order.bpmnBPMN',
+    )
+    expect(notice.querySelector<HTMLElement>('.diagit-notice')!.dataset.layout).toBe('pane')
+    expect(notice.querySelector('.diagit-notice-body')?.textContent).toBe('Connect the app.')
+    expect(notice.querySelector('.diagit-notice-actions a')?.getAttribute('href')).toBe(
       'https://github.com/apps/x',
     )
+    const report = notice.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
+    expect(new URL(report.href).searchParams.get('console')).toBe('HTTP 404')
+    expect(decodeURIComponent(report.href)).not.toContain('flows/order.bpmn')
+  })
+
+  it('names the diagram kind when the host gives no cause for the failure', async () => {
+    const fileRoot = renderFileBox()
+    const code = fileRoot.querySelector<HTMLElement>('.code')!
+    start({
+      pageKey: () => 'octo/flows!1',
+      unrecognizedFiles: async () => [],
+      collect: async () => {
+        throw new DiffDataError(
+          'HTTP 500',
+          { tone: 'danger', body: 'Reload the page to try again.' },
+          [
+            {
+              path: 'flows/order.bpmn',
+              anchor: code,
+              append: 'before',
+              fileRoot,
+              isCollapsed: () => false,
+            },
+          ],
+        )
+      },
+    })
+
+    await vi.waitFor(() => expect(code.previousElementSibling?.localName).toBe(DIFF_ERROR_TAG))
+    const notice = code.previousElementSibling!.shadowRoot!
+    await vi.waitFor(() =>
+      expect(notice.querySelector('.diagit-notice-title')?.textContent).toBe(
+        'BPMN diff data could not be loaded',
+      ),
+    )
+    expect(notice.querySelector<HTMLElement>('.diagit-notice')!.dataset.tone).toBe('danger')
   })
 
   describe('a changed diagram file whose diff view Diagit does not recognise', () => {
@@ -259,7 +300,7 @@ describe('DiffController', () => {
       await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).not.toBeNull())
       const report = document
         .querySelector(DIFF_ERROR_TAG)!
-        .shadowRoot!.querySelector<HTMLAnchorElement>('.diagit-error-report')!
+        .shadowRoot!.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
       const fields = new URL(report.href).searchParams
       expect(fields.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
       expect(fields.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)

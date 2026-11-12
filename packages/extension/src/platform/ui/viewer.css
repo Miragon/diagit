@@ -27,10 +27,7 @@
   --canvas-bg: var(--cd-ui-plot);
   --radius: var(--cd-radius-md);
 
-  /* Additive: our container sits in the normal flow above the code, so it just
-     needs a little breathing room from the file header and the code below. */
   position: relative;
-  margin: 12px 0;
   color: var(--fg);
   background: var(--bg);
   font-family: var(--diagit-font);
@@ -40,61 +37,71 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: 16px;
+  box-sizing: border-box;
+  min-height: var(--cd-shell-zeile);
+  padding: 4px 8px 4px var(--cd-shell-rand);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 
-/* Model / Code segmented switch. The selected tab is hover plus a 2px bar in
-   the interaction role, never a blue fill. */
-.diagit-tabs {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.diagit-tab {
-  cursor: pointer;
-  border: none;
-  background: var(--btn-bg);
-  color: var(--fg);
-  font-family: var(--diagit-font);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;
-  padding: 8px 12px;
-}
-
-.diagit-tab + .diagit-tab {
-  border-left: 1px solid var(--border);
-}
-
-.diagit-tab:hover {
-  background: var(--btn-hover);
-}
-
-.diagit-tab.is-active {
-  background: var(--btn-hover);
-  box-shadow: inset 0 -2px 0 var(--selected);
-}
-
-.diagit-tab:focus-visible {
-  outline: 2px solid var(--cd-ui-fokus);
-  outline-offset: -2px;
-}
-
-/* Zoom island in the canvas' bottom-left corner: never covered by the host's
-   sticky file header, and clear of the bpmn.io / dmn.io watermark that the
-   viewer libraries render in the bottom-right. Glass with shadow-1. */
-.diagit-controls {
-  position: absolute;
-  left: var(--cd-shell-rand);
-  bottom: var(--cd-shell-rand);
-  z-index: 5;
+.diagit-file-label {
   display: flex;
   align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.diagit-file-label svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--fg-muted);
+}
+
+.diagit-file-label .file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagit-file-label .kind {
+  font-weight: 400;
+  color: var(--fg-muted);
+}
+
+.diagit-toolbar-end {
+  margin-left: auto;
+}
+
+.diagit-pane-label {
+  position: absolute;
+  top: var(--cd-shell-rand);
+  left: var(--cd-shell-rand);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--cd-radius-sm);
+  background: var(--cd-ui-abschnitt);
+  color: var(--fg-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.diagit-zoom {
+  position: absolute;
+  right: var(--cd-shell-rand);
+  bottom: var(--cd-shell-rand);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
   gap: 2px;
-  padding: 3px;
+  padding: 4px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: color-mix(
@@ -102,18 +109,40 @@
     var(--cd-ui-flaeche-hoch) var(--cd-ui-chrome-deckkraft),
     transparent
   );
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--cd-kachel-glas-blur));
   box-shadow: var(--cd-shadow-1);
 }
 
-.diagit-toolbar .diagit-controls {
-  position: static;
+:has(.bjs-powered-by) > .diagit-zoom {
+  --bpmn-io-logo-inset: 15px;
+  --bpmn-io-logo-width: 53px;
+  --bpmn-io-logo-height: 21px;
+  right: calc(var(--bpmn-io-logo-inset) + var(--bpmn-io-logo-width) + var(--cd-shell-rand));
+  bottom: calc(var(--bpmn-io-logo-inset) + var(--bpmn-io-logo-height) / 2);
+  transform: translateY(50%);
 }
 
-.diagit-controls-divider {
+.diagit-zoom[hidden] {
+  display: none;
+}
+
+.diagit-zoom-level {
+  min-width: 48px;
+  padding: 0 6px;
+  border-radius: var(--cd-radius-sm);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.diagit-zoom-fit {
+  padding: 0 10px;
+  border-radius: var(--cd-radius-sm);
+}
+
+.diagit-zoom-divider {
   width: 1px;
-  align-self: stretch;
-  margin: 4px 2px;
+  height: 20px;
+  margin: 0 4px;
   background: var(--border);
 }
 
@@ -123,8 +152,7 @@
      handles large models, drag-to-pan + the zoom controls handle the rest. */
   height: 600px;
   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-bottom: 1px solid var(--border);
   background: var(--canvas-bg);
   overflow: hidden;
 }
@@ -134,6 +162,14 @@
 .diagit-diff-area.is-active {
   outline: 2px solid var(--selected);
   outline-offset: -2px;
+}
+
+.diagit-file-panel .diagit-canvas:has(> .diagit-notice) {
+  height: auto;
+}
+
+.diagit-file-panel .diagit-canvas > .diagit-notice[data-layout='pane'] {
+  position: static;
 }
 
 .diagit-placeholder {

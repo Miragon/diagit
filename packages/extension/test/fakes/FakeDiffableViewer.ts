@@ -5,6 +5,8 @@ export class FakeDiffableViewer implements DiffableViewer {
   readonly focused: string[] = []
   fits = 0
   destroyed = false
+  level: number | null = 1
+  private readonly viewChangeListeners = new Set<() => void>()
 
   constructor(private readonly knownIds: string[] = []) {}
 
@@ -31,7 +33,21 @@ export class FakeDiffableViewer implements DiffableViewer {
     this.fits += 1
   }
 
-  zoomBy(): void {}
+  zoomBy(factor: number): void {
+    if (this.level !== null) {
+      this.level *= factor
+    }
+    this.viewChangeListeners.forEach((listener) => listener())
+  }
+
+  zoomLevel(): number | null {
+    return this.level
+  }
+
+  onViewChange(listener: () => void): () => void {
+    this.viewChangeListeners.add(listener)
+    return () => this.viewChangeListeners.delete(listener)
+  }
 
   setInteractive(): void {}
 

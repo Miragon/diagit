@@ -70,7 +70,7 @@ export class GithubDeviceFlow {
         case 'expired_token':
           throw this.expired()
         case 'access_denied':
-          throw new DeviceFlowError('Authorisation was denied.')
+          throw new DeviceFlowError('Authorisation was denied.', 'denied')
         default:
           throw new DeviceFlowError(
             this.readString(data, 'error_description') ||
@@ -155,12 +155,15 @@ export class GithubDeviceFlow {
   }
 
   private expired(): DeviceFlowError {
-    return new DeviceFlowError('The code expired before it was authorised. Please try again.')
+    return new DeviceFlowError(
+      'The code expired before it was authorised. Please try again.',
+      'expired',
+    )
   }
 
   private delay(ms: number, signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
-      const cancelled = () => new DeviceFlowError('Connecting was cancelled.')
+      const cancelled = () => new DeviceFlowError('Connecting was cancelled.', 'cancelled')
       if (signal?.aborted) {
         return reject(cancelled())
       }

@@ -2,6 +2,7 @@ import NavigatedViewer from 'bpmn-js/lib/NavigatedViewer'
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json' with { type: 'json' }
 import { detectHostTheme, diagramColors } from '../../platform/utils/hostTheme'
 import { fitWithPadding } from '../../platform/utils/fitWithPadding'
+import { onViewboxChange } from '../../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import type { DiffableViewer } from '../Notation'
 import { TransactionBoundaryOverlays } from './transaction-boundaries/TransactionBoundaryOverlays'
@@ -41,6 +42,14 @@ export class BpmnViewer implements DiffableViewer {
 
   zoomBy(factor: number): void {
     this.canvas.zoom(this.canvas.zoom() * factor)
+  }
+
+  zoomLevel(): number {
+    return this.canvas.zoom()
+  }
+
+  onViewChange(listener: () => void): () => void {
+    return onViewboxChange(this.viewer.get('eventBus'), listener)
   }
 
   setInteractive(active: boolean): void {

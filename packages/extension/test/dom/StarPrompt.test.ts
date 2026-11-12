@@ -100,11 +100,15 @@ describe('StarPrompt', () => {
     expect(toast()).toBeNull()
   })
 
-  it('thanks the user and announces it once mounted', async () => {
+  it('thanks the user and announces why a star helps once mounted', async () => {
     await promptAfterFivePages()
 
+    expect(toast()!.querySelector('.diagit-notice-title')!.textContent).toBe(
+      'Thanks for using Diagit',
+    )
+    expect(toast()!.querySelector<HTMLElement>('.diagit-toast')!.dataset.tone).toBe('info')
     const status = toast()!.querySelector('[role="status"]')!
-    await vi.waitFor(() => expect(status.textContent).toBe('Thanks for using Diagit.'))
+    await vi.waitFor(() => expect(status.textContent).toBe('A star helps other teams find it.'))
   })
 
   it('offers the GitHub star first and the store rating second', async () => {
@@ -112,6 +116,8 @@ describe('StarPrompt', () => {
 
     const labels = [...toast()!.querySelectorAll('button')].map(labelOf)
     expect(labels).toEqual(['Star on GitHub', 'Rate Diagit', 'Close'])
+    expect(button('Star on GitHub')!.classList).toContain('btn-secondary')
+    expect(button('Rate Diagit')!.classList).toContain('btn-secondary')
   })
 
   it('opens the GitHub repository from the star button', async () => {

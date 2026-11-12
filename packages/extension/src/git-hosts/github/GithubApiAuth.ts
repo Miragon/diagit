@@ -1,8 +1,9 @@
+import { ExternalLink, Link } from 'lucide'
 import { FetchError } from '../../platform/messaging/HttpClient'
-import type { ErrorNoticeAction } from '../../platform/ui/ErrorNotice'
+import type { NoticeAction } from '../../platform/ui/Notice'
 import type { ErrorHelp } from '../DiffSource'
 import type { AuthPolicy } from '../GitHost'
-import { rateLimitHint } from '../utils/rateLimitHint'
+import { rateLimitHelp } from '../utils/rateLimitHelp'
 import { GITHUB_APP_INSTALL_URL } from './GithubDeviceFlow'
 import type { GithubRoutes } from './GithubRoutes'
 import type { GithubTokenRefresher } from './GithubTokenRefresher'
@@ -11,22 +12,17 @@ import type { GithubTokenStore } from './GithubTokenStore'
 const GITHUB_API_HOST = 'api.github.com'
 const BEARER_PREFIX = 'Bearer '
 
-const EXPIRED_CONNECTION_HINT = 'Your GitHub connection looks expired or revoked.'
-const FORBIDDEN_HINT = 'GitHub returned 403. Your organisation may require SSO authorisation.'
-const RAISE_RATE_LIMIT_HINT = 'Connect GitHub to raise the limit.'
-const UNREACHABLE_REPOSITORY_HINT =
-  'This looks like a private repository the page login cannot reach through the API.'
-const PRIVATE_REPOSITORY_HINT =
-  'This looks like a private repository. Diagit can read it once you connect GitHub. If you connected GitHub before, the connection may have expired.'
-const APP_NOT_INSTALLED_HINT = 'The Diagit GitHub App is not installed on this repository.'
-const APP_FORBIDDEN_HINT =
-  'GitHub returned 403: the Diagit GitHub App is not installed on this repository or not authorised for its organisation (SSO).'
-const METADATA_HINT = 'Could not load the diff metadata.'
-const API_METADATA_HINT = 'Could not load the diff metadata from api.github.com.'
+const LOGIN_EXPIRED = 'GitHub login expired'
+const ACCESS_DENIED = 'GitHub denied access'
+const LOOKS_PRIVATE = 'This repository looks private'
+const SSO_REQUIRED = 'Your organisation may require SSO.'
+const RAISE_RATE_LIMIT = 'Connect GitHub to raise the limit.'
+const RELOAD_TO_RETRY = 'Reload the page to try again.'
 
-const CONNECT_GITHUB: ErrorNoticeAction = { label: 'Connect GitHub', opensOptions: true }
-const INSTALL_APP: ErrorNoticeAction = {
+const CONNECT_GITHUB: NoticeAction = { label: 'Connect GitHub', icon: Link, opensOptions: true }
+const INSTALL_APP: NoticeAction = {
   label: 'Install on this repository',
+  icon: ExternalLink,
   url: GITHUB_APP_INSTALL_URL,
 }
 
@@ -69,42 +65,84 @@ export class GithubApiAuth implements AuthPolicy {
 
   async errorHelp(location: Location, err: unknown): Promise<ErrorHelp> {
     const status = err instanceof FetchError ? err.status : undefined
-    const rateLimitNotice = rateLimitHint('GitHub', err)
+    const rateLimit = rateLimitHelp('GitHub', err)
     if (!this.targets(this.routes.apiBase(location))) {
-      return { hint: rateLimitNotice ?? this.enterpriseHint(status) }
+      return rateLimit ? { tone: 'warning', ...rateLimit } : this.enterpriseHelp(location, status)
     }
     const connected = await this.store.token().then(Boolean, () => false)
-    if (rateLimitNotice) {
+    if (rateLimit) {
       return connected
-        ? { hint: rateLimitNotice }
-        : { hint: `${rateLimitNotice} ${RAISE_RATE_LIMIT_HINT}`, action: CONNECT_GITHUB }
+        ? { tone: 'warning', ...rateLimit }
+        : {
+            tone: 'warning',
+            title: rateLimit.title,
+            body: `${rateLimit.body} ${RAISE_RATE_LIMIT}`,
+            action: CONNECT_GITHUB,
+          }
     }
     switch (status) {
       case 401:
-        return { hint: EXPIRED_CONNECTION_HINT, action: CONNECT_GITHUB }
+        return {
+          tone: 'warning',
+          title: LOGIN_EXPIRED,
+          body: 'Connect GitHub again to see diagrams in private repositories.',
+          action: CONNECT_GITHUB,
+        }
       case 403:
         return connected
-          ? { hint: APP_FORBIDDEN_HINT, action: INSTALL_APP }
-          : { hint: FORBIDDEN_HINT, action: CONNECT_GITHUB }
+          ? {
+              tone: 'warning',
+              title: 'Diagit GitHub App has no access here',
+              body: 'Install it on this repository or authorise it for the organisation (SSO).',
+              action: INSTALL_APP,
+            }
+          : {
+              tone: 'warning',
+              title: ACCESS_DENIED,
+              body: `${SSO_REQUIRED} Connect GitHub to continue.`,
+              action: CONNECT_GITHUB,
+            }
       case 404:
         return connected
-          ? { hint: APP_NOT_INSTALLED_HINT, action: INSTALL_APP }
-          : { hint: PRIVATE_REPOSITORY_HINT, action: CONNECT_GITHUB }
+          ? {
+              tone: 'warning',
+              title: 'Diagit GitHub App is not installed here',
+              body: 'Install it on this repository to see its diagrams.',
+              action: INSTALL_APP,
+            }
+          : {
+              tone: 'warning',
+              title: LOOKS_PRIVATE,
+              body: 'Connect GitHub so Diagit can read it. If you connected before, the connection may have expired.',
+              action: CONNECT_GITHUB,
+            }
       default:
-        return { hint: API_METADATA_HINT, action: connected ? undefined : CONNECT_GITHUB }
+        return {
+          tone: 'danger',
+          body: RELOAD_TO_RETRY,
+          action: connected ? undefined : CONNECT_GITHUB,
+        }
     }
   }
 
-  private enterpriseHint(status: number | undefined): string {
+  private enterpriseHelp(location: Location, status: number | undefined): ErrorHelp {
     switch (status) {
       case 401:
-        return EXPIRED_CONNECTION_HINT
+        return {
+          tone: 'warning',
+          title: LOGIN_EXPIRED,
+          body: `Sign in to ${location.hostname} again.`,
+        }
       case 403:
-        return FORBIDDEN_HINT
+        return { tone: 'warning', title: ACCESS_DENIED, body: SSO_REQUIRED }
       case 404:
-        return UNREACHABLE_REPOSITORY_HINT
+        return {
+          tone: 'warning',
+          title: LOOKS_PRIVATE,
+          body: 'The page login cannot reach it through the API.',
+        }
       default:
-        return METADATA_HINT
+        return { tone: 'danger', body: RELOAD_TO_RETRY }
     }
   }
 }

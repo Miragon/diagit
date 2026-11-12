@@ -1,7 +1,8 @@
 import type { DiagramDiff } from '../../notations/Notation'
 import type { DiagramDiffer, DiffableViewer } from '../../notations/Notation'
 import { h } from '../../platform/utils/dom'
-import type { DiffNotices, DiffSide, PaneFailure } from './DiffNotices'
+import type { NoticeDetails } from '../../platform/ui/Notice'
+import type { DiffNotices, DiffSide } from './DiffNotices'
 import { MARKER } from './markers'
 import { ViewerCanvas } from './ViewerCanvas'
 
@@ -23,7 +24,7 @@ export class DiffPane {
 
   constructor(readonly side: DiffSide) {
     this.element = h('div', { class: 'diagit-diff-pane' }, [
-      h('span', { class: 'diagit-diff-side', text: SIDE_LABEL[side] }),
+      h('span', { class: 'diagit-pane-label', text: SIDE_LABEL[side] }),
       this.canvas.element,
     ])
   }
@@ -37,11 +38,11 @@ export class DiffPane {
       (canvas, source) => differ.createViewer(canvas, source),
       xml,
       emptyLabel,
-      notices,
+      (err) => notices.notRendered(this.side, err),
     )
   }
 
-  showFailure(failure: PaneFailure): void {
+  showFailure(failure: NoticeDetails): void {
     this.canvas.showFailure(failure)
   }
 

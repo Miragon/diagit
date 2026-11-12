@@ -16,9 +16,11 @@ describe('Redirects of the background fetch', () => {
     const notice = $('diagit-diff-error')
     await notice.waitForExist({ timeout: 20_000 })
 
-    await expect(notice.shadow$('.diagit-error-detail')).toHaveText(
-      expect.stringContaining('Refused the redirect'),
+    await expect(notice.shadow$('.diagit-notice-title')).toHaveText(
+      'BPMN diff data could not be loaded',
     )
+    const report = await notice.shadow$('.diagit-notice-report').getAttribute('href')
+    expect(new URL(report).searchParams.get('console')).toContain('Refused the redirect')
     await expect($('diagit-diff')).not.toBeExisting()
   })
 })

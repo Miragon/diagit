@@ -15,6 +15,8 @@ declare module 'dmn-js/lib/NavigatedViewer' {
     constructor(options?: Record<string, unknown>)
     importXML(xml: string): Promise<ImportResult>
     getActiveViewer(): ActiveViewer | undefined
+    on(event: string, callback: () => void): void
+    off(event: string, callback: () => void): void
     destroy(): void
   }
 }
