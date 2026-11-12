@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.5.0](https://github.com/Miragon/diagit/compare/v0.4.0...v0.5.0) (2026-11-12)
+
+
+### Features
+
+* connect GitHub from the error notice of a private repository ([#179](https://github.com/Miragon/diagit/issues/179)) ([f41644b](https://github.com/Miragon/diagit/commit/f41644b3c770b93761ab91deae700dba426274b4)), closes [#172](https://github.com/Miragon/diagit/issues/172)
+* load and render diff panels only when they are needed ([#195](https://github.com/Miragon/diagit/issues/195)) ([c4b8ef3](https://github.com/Miragon/diagit/commit/c4b8ef31c5a98a59cabbb8f3945bdcfbb1c13c85))
+* move every Diagit surface onto shared notice, toast, button and panel components ([#204](https://github.com/Miragon/diagit/issues/204)) ([c197d9b](https://github.com/Miragon/diagit/commit/c197d9b5685b754030661e665f3bd4fc927e8f69))
+* open the diagram panel in full screen ([#206](https://github.com/Miragon/diagit/issues/206)) ([e543975](https://github.com/Miragon/diagit/commit/e543975cd1aa05fea67c87e7ea051a9918494b0a))
+* open the diff panel on Diff when the file has an old and a new version ([#190](https://github.com/Miragon/diagit/issues/190)) ([b0d80e9](https://github.com/Miragon/diagit/commit/b0d80e959d6b0e1317001c84a49b74c8ae9dbf3d))
+* open the model in the standalone viewer when Diagit cannot place its view ([#193](https://github.com/Miragon/diagit/issues/193)) ([922105c](https://github.com/Miragon/diagit/commit/922105c699d20cc5e68fb50267a22565d108cc90))
+* prefill browser, version and page type in problem report links ([#181](https://github.com/Miragon/diagit/issues/181)) ([fa5af0b](https://github.com/Miragon/diagit/commit/fa5af0b07cea6e9b7976ea06981de56b5685458b))
+* show one change navigator and legend per diff panel ([#194](https://github.com/Miragon/diagit/issues/194)) ([7e0316f](https://github.com/Miragon/diagit/commit/7e0316f3ef5120d275d117affb0d1f0a0cc43149))
+* show the standalone viewer as the Diagit panel ([#201](https://github.com/Miragon/diagit/issues/201)) ([1697da4](https://github.com/Miragon/diagit/commit/1697da4cc075c97a93d3d9cb26fe0ad720cf74a2))
+
+
+### Bug Fixes
+
+* **deps:** Bump the npm-minor-patch group with 16 updates ([#212](https://github.com/Miragon/diagit/issues/212)) ([05ec12a](https://github.com/Miragon/diagit/commit/05ec12a82098b9972cc1ee8aa0b0859a43c89ce7))
+* keep finding GitLab diagrams when one file header is unreadable ([#186](https://github.com/Miragon/diagit/issues/186)) ([4a9b6eb](https://github.com/Miragon/diagit/commit/4a9b6eb3ef71e66ba2aea6a00c18d39097cceaa9))
+* limit the diff panel to the commit or range the pull request view shows ([#183](https://github.com/Miragon/diagit/issues/183)) ([40eae8e](https://github.com/Miragon/diagit/commit/40eae8eab17b5566a31b2d8b420e35b22673a542)), closes [#161](https://github.com/Miragon/diagit/issues/161)
+* load Git LFS models in GitLab merge requests ([#191](https://github.com/Miragon/diagit/issues/191)) ([47366d3](https://github.com/Miragon/diagit/commit/47366d39a6c1b48b459c62417bb1e7863f70635a))
+* release diff panels once the host removes their file ([#188](https://github.com/Miragon/diagit/issues/188)) ([846e454](https://github.com/Miragon/diagit/commit/846e45427e54a4c51c24c2ed51d3704256a93606))
+* reload the pull request data after a minute so a new push shows up ([#184](https://github.com/Miragon/diagit/issues/184)) ([40a6d88](https://github.com/Miragon/diagit/commit/40a6d88d935b0f5373a50908fefd8e4b6fc7a107)), closes [#162](https://github.com/Miragon/diagit/issues/162)
+* render the diff panel on GitHub's new commit page layout ([#199](https://github.com/Miragon/diagit/issues/199)) ([9d37854](https://github.com/Miragon/diagit/commit/9d378548b95f5bdd50cfc89c1310bcce90577228))
+* restore diagrams in open tabs after an extension update ([#189](https://github.com/Miragon/diagit/issues/189)) ([27d92fe](https://github.com/Miragon/diagit/commit/27d92fe3b68c77396de4b973636f6580b31419ce))
+* say when the API rate limit resets instead of guessing between rate limit and SSO ([#192](https://github.com/Miragon/diagit/issues/192)) ([27ffde6](https://github.com/Miragon/diagit/commit/27ffde6f14e8af6aaaea1f7ba6fa62edf4fc87bf))
+* show load, render and diff failures in the diff panel instead of a deleted file ([#182](https://github.com/Miragon/diagit/issues/182)) ([c4ce1b5](https://github.com/Miragon/diagit/commit/c4ce1b55e53c752e3f90954a3c98ceaf9edd3e93))
+* tell the user when the GitHub connection expired ([#178](https://github.com/Miragon/diagit/issues/178)) ([3efc4bd](https://github.com/Miragon/diagit/commit/3efc4bdc5a748f208612d1ba7c06d05060bcdb13))
+
 ## [0.4.0](https://github.com/Miragon/diagit/compare/v0.3.1...v0.4.0) (2026-11-11)
 
 
