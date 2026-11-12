@@ -70,14 +70,49 @@ WDIO_SCREENSHOTS=1   npm run test:e2e -w @diagit/extension  # PNG per test
 ```
 
 `WDIO_HEADED=1` opens a real window (the specs run fast, so drop a `browser.debug()`
-into one to freeze it and look). `WDIO_SCREENSHOTS=1` writes a PNG of each test's
-end state (the rendered diagram above the host DOM) to
-`packages/extension/.output/e2e-screenshots/`, which works headless too and is
-uploadable as a CI artifact.
+into one to freeze it and look). It is for a person debugging at the screen only.
+`WDIO_SCREENSHOTS=1` writes a PNG of each test's end state (the rendered diagram
+above the host DOM) to `packages/extension/.output/e2e-screenshots/`, which works
+headless too and is uploadable as a CI artifact.
 
 > Re-run `e2e:build` after changing extension code: the suite drives the built
 > `.output` extension, not your source directly. CI runs this suite per browser
 > (Chrome & Edge required, Firefox soaking).
+
+### In a container (real display, no window)
+
+Some behaviour needs a real display, such as the Fullscreen API with user activation or
+a headed Firefox. Run the suite headed in a Linux container under Xvfb instead of on
+your screen:
+
+```bash
+npm run test:e2e:container -w @diagit/extension
+```
+
+It builds the image `diagit-browser-checks` (`packages/extension/e2e/container/Containerfile`),
+installs the dependencies into throwaway volumes (one set per run, so worktrees never share them), builds the extension in E2E mode and runs
+the suite on Chromium and Firefox ESR. Edge is not part of it, because Chrome and Edge
+have no Linux build for arm64; CI covers both. `WDIO_BROWSERS` and `WDIO_SCREENSHOTS`
+are passed through. It uses podman; Docker takes the same arguments.
+
+Any other browser script runs the same way, for example a one-off Playwright check:
+
+```bash
+podman run --rm --init -v "$PWD":/work diagit-browser-checks \
+  xvfb-run -a -s "-screen 0 1920x1200x24" node my-check.mjs
+```
+
+Keep `--init`: as the first process of the container, `xvfb-run` otherwise waits
+forever for its display. Fonts and rendering differ from macOS, so store and product
+shots stay with the `product-shots` skill of miragon-brand.
+
+### No visible browser windows
+
+Automated browser runs are headless or run in the container above: the e2e suite,
+the Playwright scripts in `docs/shots/` and every one-off check by a developer or a
+coding agent. A visible window takes the focus away from whoever works on the machine.
+Never use `headless: false` or `WDIO_HEADED` in scripts, CI or agent runs. Manual
+exploratory testing by a person may of course use a visible browser.
 
 ### Drift canary (real github.com)
 

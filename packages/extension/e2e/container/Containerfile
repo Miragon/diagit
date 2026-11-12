@@ -1,0 +1,13 @@
+FROM docker.io/library/node:24-trixie
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends chromium chromium-driver firefox-esr xvfb xauth fonts-liberation \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV WDIO_CHROME_BINARY=/usr/bin/chromium \
+    WDIO_CHROMEDRIVER_BINARY=/usr/bin/chromedriver \
+    WDIO_FIREFOX_BINARY=/usr/bin/firefox-esr \
+    WDIO_BROWSERS=chrome,firefox \
+    WDIO_HEADED=1
+
+WORKDIR /work

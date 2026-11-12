@@ -36,3 +36,10 @@ To update to a new miragon-brand release: update the plugin, run
 checksums), run `listing.mjs --check` of the product-shots skill for `.miragon/product-shots.yaml`,
 check the docs kit as the `docs-site` skill describes, then build, test and look at the views in
 light and dark.
+
+## Browser automation
+
+Every automated browser run is headless or runs in the e2e container
+(`npm run test:e2e:container -w @diagit/extension`, recipe in `CONTRIBUTING.md`). Never
+`headless: false` or `WDIO_HEADED`: a visible window takes the focus away from the person at the
+machine.

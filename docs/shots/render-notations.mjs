@@ -27,6 +27,7 @@ const files = {
 mkdirSync(out, { recursive: true })
 const context = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'diagit-')), {
   channel: 'chromium',
+  headless: true,
   viewport: { width: 1200, height: 750 },
   deviceScaleFactor: 2,
   args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
