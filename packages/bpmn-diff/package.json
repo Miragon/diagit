@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "26.6.6",
-    "dependency-cruiser": "18.7.1",
-    "vitest": "5.0.5"
+    "dependency-cruiser": "18.7.2",
+    "vitest": "5.1.0"
   }
 }
