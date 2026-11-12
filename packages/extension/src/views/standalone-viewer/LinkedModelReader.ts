@@ -20,7 +20,9 @@ export class LinkedModelReader implements LinkedModelSource {
 
   async mayRead(url: string): Promise<boolean> {
     const origin = webOrigin(url)
-    if (!origin) return false
+    if (!origin) {
+      return false
+    }
     const { protocol, hostname } = new URL(origin)
     return (
       (await this.grants(originToPattern(origin))) ||
@@ -30,7 +32,9 @@ export class LinkedModelReader implements LinkedModelSource {
 
   async fetchText(url: string): Promise<string> {
     const response = await this.fetcher.fetchText(url, webOrigin(url) ?? '')
-    if (!response.ok) throw new FetchError(response.error, response.status)
+    if (!response.ok) {
+      throw new FetchError(response.error, response.status)
+    }
     return response.text
   }
 

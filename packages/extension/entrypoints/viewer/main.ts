@@ -27,4 +27,6 @@ const page = new StandaloneViewerPage(
   new LinkedModelReader(new FetchProxy(NO_AUTH_POLICIES, new FetchScope())),
 )
 page.mount(app)
-if (linkedModel) void page.openLink(linkedModel)
+if (linkedModel) {
+  void page.openLink(linkedModel)
+}

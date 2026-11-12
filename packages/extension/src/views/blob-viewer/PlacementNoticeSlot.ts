@@ -17,7 +17,9 @@ export class PlacementNoticeSlot {
   ) {}
 
   async show(path: string, label: string, rawUrl: string): Promise<void> {
-    if (this.shownPath === path || this.dismissedPath === path) return
+    if (this.shownPath === path || this.dismissedPath === path) {
+      return
+    }
     this.shownPath = path
     const notice = await Toast.mountOn(this.page, PLACEMENT_NOTICE_TAG, {
       tone: 'danger',
@@ -38,8 +40,11 @@ export class PlacementNoticeSlot {
       ],
       onClose: () => this.dismiss(path),
     })
-    if (this.shownPath === path) this.notice = notice
-    else notice.remove()
+    if (this.shownPath === path) {
+      this.notice = notice
+    } else {
+      notice.remove()
+    }
   }
 
   remove(): void {
@@ -54,7 +59,9 @@ export class PlacementNoticeSlot {
   }
 
   private openInViewer(rawUrl: string): ToastAction[] {
-    if (browser.extension.inIncognitoContext) return []
+    if (browser.extension.inIncognitoContext) {
+      return []
+    }
     return [
       {
         label: 'Open in Diagit',

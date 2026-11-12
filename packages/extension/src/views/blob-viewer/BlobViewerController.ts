@@ -34,7 +34,9 @@ export class BlobViewerController {
 
   start(): void {
     this.page.onChange(RECHECK_DEBOUNCE_MS, () => {
-      if (!this.mounting && this.isOutOfSync()) this.sync()
+      if (!this.mounting && this.isOutOfSync()) {
+        this.sync()
+      }
     })
     this.page.onInvalidated(() => {
       this.stopRetry()
@@ -47,30 +49,42 @@ export class BlobViewerController {
     this.stopRetry()
     let attempts = 0
     void this.render().then((outcome) => {
-      if (outcome === 'settled') return
+      if (outcome === 'settled') {
+        return
+      }
       this.retryTimer = setInterval(() => {
         attempts += 1
         const lastAttempt = attempts >= MOUNT_RETRIES
         void this.render().then((retried) => {
-          if (retried === 'settled' || lastAttempt) this.stopRetry()
-          if (retried !== 'settled' && lastAttempt) this.showPlacementNotice()
+          if (retried === 'settled' || lastAttempt) {
+            this.stopRetry()
+          }
+          if (retried !== 'settled' && lastAttempt) {
+            this.showPlacementNotice()
+          }
         })
       }, RETRY_INTERVAL_MS)
     })
   }
 
   private async render(): Promise<MountOutcome> {
-    if (this.mounting) return 'settled'
+    if (this.mounting) {
+      return 'settled'
+    }
     const { location, document } = this.page
     const notation = this.currentNotation()
     if (!notation) {
       this.teardown()
       return 'settled'
     }
-    if (this.isCurrent()) return 'settled'
+    if (this.isCurrent()) {
+      return 'settled'
+    }
 
     const anchor = this.blobPage.findInsertAnchor(document)
-    if (!anchor) return 'code-not-rendered-yet'
+    if (!anchor) {
+      return 'code-not-rendered-yet'
+    }
 
     this.teardown()
     this.mounting = true
@@ -93,7 +107,9 @@ export class BlobViewerController {
           }).mount(container),
       })
       const navigatedAwayWhileMounting = path !== this.page.location.pathname
-      if (navigatedAwayWhileMounting) this.teardown()
+      if (navigatedAwayWhileMounting) {
+        this.teardown()
+      }
     } catch (err) {
       console.error('[diagit] could not mount the diagram viewer', err)
       this.teardown()
@@ -106,12 +122,13 @@ export class BlobViewerController {
   private showPlacementNotice(): void {
     const notation = this.currentNotation()
     const { location } = this.page
-    if (notation)
+    if (notation) {
       void this.placementNotice.show(
         location.pathname,
         notation.descriptor.label,
         this.blobPage.rawUrl(location),
       )
+    }
   }
 
   private currentNotation(): Notation | null {
@@ -150,7 +167,9 @@ export class BlobViewerController {
   }
 
   private stopRetry(): void {
-    if (this.retryTimer) clearInterval(this.retryTimer)
+    if (this.retryTimer) {
+      clearInterval(this.retryTimer)
+    }
     this.retryTimer = null
   }
 }

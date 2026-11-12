@@ -77,8 +77,12 @@ function send(
 /** Serve a file from the built extension output, or return false if absent. */
 function serveStatic(path: string, res: import('node:http').ServerResponse): boolean {
   const target = normalize(join(outDir, path))
-  if (!target.startsWith(outDir)) return false
-  if (!existsSync(target) || !statSync(target).isFile()) return false
+  if (!target.startsWith(outDir)) {
+    return false
+  }
+  if (!existsSync(target) || !statSync(target).isFile()) {
+    return false
+  }
   send(res, 200, MIME[extname(target)] ?? 'application/octet-stream', readFileSync(target))
   return true
 }
@@ -174,7 +178,9 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
     }
 
     // Everything else: the built extension's own pages/assets (viewer.html, …).
-    if (serveStatic(path === '/' ? '/index.html' : path, res)) return
+    if (serveStatic(path === '/' ? '/index.html' : path, res)) {
+      return
+    }
     send(res, 404, 'text/plain', `not found: ${path}`)
   })
 

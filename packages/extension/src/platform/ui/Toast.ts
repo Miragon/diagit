@@ -75,8 +75,11 @@ export class Toast implements PanelHandle {
       type: 'button',
       text: action.label,
       onClick: () => {
-        if ('url' in action) window.open(action.url, '_blank', 'noopener')
-        else action.onClick()
+        if ('url' in action) {
+          window.open(action.url, '_blank', 'noopener')
+        } else {
+          action.onClick()
+        }
         this.options.onClose()
       },
     })

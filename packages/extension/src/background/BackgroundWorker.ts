@@ -58,7 +58,9 @@ export class BackgroundWorker {
       (perms) => void this.access.revoke(perms.origins ?? []),
     )
     browser.runtime.onInstalled.addListener(({ reason }) => {
-      if (reason !== 'update' || this.browserReinjectsOnUpdate) return
+      if (reason !== 'update' || this.browserReinjectsOnUpdate) {
+        return
+      }
       this.restoreViewsInOpenTabs().catch((err) =>
         console.error('[diagit] could not restore views in open tabs', err),
       )
@@ -73,7 +75,9 @@ export class BackgroundWorker {
     sender: MessageSender,
     sendResponse: (response: unknown) => void,
   ): boolean {
-    if (!HANDLED_REQUESTS.has(message?.type)) return false
+    if (!HANDLED_REQUESTS.has(message?.type)) {
+      return false
+    }
     const page = this.senders.pageOf(sender)
     const response = page ? this.serve(message, page) : this.refuse(message)
     response.then(sendResponse)
@@ -116,12 +120,16 @@ export class BackgroundWorker {
     const origins = [originToPattern(new URL(tab.url).origin)]
     const allowedBeforeClick = browser.permissions.contains({ origins }).catch(() => false)
     const requestWithinUserGesture = browser.permissions.request({ origins }).catch(() => false)
-    if (await allowedBeforeClick) await this.openOptionsPage()
+    if (await allowedBeforeClick) {
+      await this.openOptionsPage()
+    }
     await requestWithinUserGesture
   }
 
   private async openViewer(url: string, page: SenderPage): Promise<boolean> {
-    if (page.incognito || webOrigin(url) !== page.origin) return false
+    if (page.incognito || webOrigin(url) !== page.origin) {
+      return false
+    }
     const viewer = `${browser.runtime.getURL('/viewer.html')}?src=${encodeURIComponent(url)}`
     await browser.tabs.create({ url: viewer })
     return true

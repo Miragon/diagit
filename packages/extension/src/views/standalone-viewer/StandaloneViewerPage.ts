@@ -79,7 +79,9 @@ export class StandaloneViewerPage implements Zoomable {
   async openLink(url: string): Promise<void> {
     const openCountBefore = this.openCount
     const mayRead = await this.linkedModels.mayRead(url)
-    if (openCountBefore !== this.openCount) return
+    if (openCountBefore !== this.openCount) {
+      return
+    }
     if (!mayRead) {
       this.showError({
         title: 'Model could not be opened',
@@ -118,7 +120,9 @@ export class StandaloneViewerPage implements Zoomable {
 
   private openFirst(files: FileList | null | undefined): void {
     const file = files?.[0]
-    if (file) void this.open(file.name, () => file.text())
+    if (file) {
+      void this.open(file.name, () => file.text())
+    }
   }
 
   private async open(fileName: string, readContent: () => Promise<string>): Promise<void> {
@@ -137,18 +141,25 @@ export class StandaloneViewerPage implements Zoomable {
     try {
       xml = await readContent()
     } catch (err) {
-      if (openId === this.openCount)
+      if (openId === this.openCount) {
         this.showError(this.loadFailure(notation.descriptor.label, err))
+      }
       return
     }
-    if (openId !== this.openCount) return
+    if (openId !== this.openCount) {
+      return
+    }
     this.closeDiagram()
     try {
       const viewer = await notation.createViewer(this.canvas, xml)
-      if (openId !== this.openCount) return viewer.destroy()
+      if (openId !== this.openCount) {
+        return viewer.destroy()
+      }
       this.viewer = viewer
     } catch (err) {
-      if (openId !== this.openCount) return
+      if (openId !== this.openCount) {
+        return
+      }
       this.showError(
         ErrorNotice.unreadableModel(
           notation.descriptor.label,
@@ -204,7 +215,9 @@ export class StandaloneViewerPage implements Zoomable {
   }
 
   private loadAssetCss(notation: Notation): void {
-    if (this.loadedAssetCss.has(notation)) return
+    if (this.loadedAssetCss.has(notation)) {
+      return
+    }
     this.loadedAssetCss.add(notation)
     document.head.append(h('style', { text: notation.assetCss }))
   }
