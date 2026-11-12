@@ -42,6 +42,9 @@ describe('GithubDeviceFlow.requestDeviceCode', () => {
   it('throws a DeviceFlowError when GitHub returns no device code', async () => {
     const { flow } = flowAnswering({ error: 'bad', error_description: 'nope' })
     await expect(flow.requestDeviceCode()).rejects.toBeInstanceOf(DeviceFlowError)
+    await expect(flowAnswering({ error: 'bad' }).flow.requestDeviceCode()).rejects.toMatchObject({
+      reason: 'failed',
+    })
   })
 })
 
@@ -86,12 +89,18 @@ describe('GithubDeviceFlow.pollForToken', () => {
 
   it('throws when the code expires', async () => {
     const { flow } = flowAnswering({ error: 'expired_token' })
-    await expect(flow.pollForToken(code)).rejects.toBeInstanceOf(DeviceFlowError)
+    await expect(flow.pollForToken(code)).rejects.toMatchObject({ reason: 'expired' })
   })
 
   it('throws when authorisation is denied', async () => {
     const { flow } = flowAnswering({ error: 'access_denied' })
-    await expect(flow.pollForToken(code)).rejects.toBeInstanceOf(DeviceFlowError)
+    await expect(flow.pollForToken(code)).rejects.toMatchObject({ reason: 'denied' })
+  })
+
+  it('throws a cancellation when the signal aborts', async () => {
+    const { flow } = flowAnswering({ error: 'authorization_pending' })
+    const aborted = AbortSignal.abort()
+    await expect(flow.pollForToken(code, aborted)).rejects.toMatchObject({ reason: 'cancelled' })
   })
 })
 

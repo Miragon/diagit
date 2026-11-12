@@ -8,7 +8,7 @@ import { lucideIcon } from '../../platform/utils/lucideIcon'
 import { normalizeOrigin, originToPattern } from '../../platform/utils/origin'
 
 const INTRO =
-  'gitlab.com and github.com work out of the box. For a self-hosted GitLab or GitHub Enterprise instance, the quickest way is to open a .bpmn file (or a merge request) there and click the extension icon, or right-click the page and choose "Enable Diagit on this domain". You can also add a domain manually below.'
+  'gitlab.com and github.com work without setup. Add your own GitLab or GitHub Enterprise here, or click the Diagit icon on one of its pages.'
 
 type StatusKind = 'error' | 'ok'
 
@@ -20,22 +20,24 @@ export class SelfHostedHostsSection {
     'aria-label': 'Instance URL',
   }) as HTMLInputElement
   private readonly addButton = h('button', {
-    class: 'btn btn-large btn-primary add-instance',
+    class: 'btn btn-large btn-primary',
     type: 'button',
     text: 'Add instance',
   })
   private readonly status = h('p', { class: 'status' })
-  private readonly count = h('th', { scope: 'col', class: 'count' })
-  private readonly rows = h('tbody')
+  private readonly count = h('span', { class: 'count' })
+  private readonly rows = h('div', { class: 'card-rows' })
 
   constructor(private readonly access: HostAccess) {}
 
   mount(app: HTMLElement): void {
     app.append(
-      h('section', { class: 'section' }, [
-        h('h2', { text: 'Self-hosted instances' }),
-        h('p', { class: 'intro', text: INTRO }),
-        h('div', { class: 'card instances-card' }, [this.instanceTable()]),
+      h('section', { class: 'card' }, [
+        h('div', { class: 'card-head' }, [h('h2', { text: 'Self-hosted instances' }), this.count]),
+        h('p', { class: 'card-desc', text: INTRO }),
+        this.rows,
+        h('div', { class: 'card-foot' }, [this.originInput, this.addButton]),
+        this.status,
       ]),
     )
     this.addButton.addEventListener('click', () => void this.add())
@@ -82,26 +84,11 @@ export class SelfHostedHostsSection {
     this.count.textContent = hosts.length === 1 ? '1 instance' : `${hosts.length} instances`
     if (!hosts.length) {
       this.rows.replaceChildren(
-        h('tr', {}, [
-          h('td', { class: 'empty', colspan: '2' }, [
-            lucideIcon(Server),
-            'No self-hosted instances added yet.',
-          ]),
-        ]),
+        h('div', { class: 'card-row card-empty', text: 'No self-hosted instances added yet.' }),
       )
       return
     }
     this.rows.replaceChildren(...hosts.map((host) => this.renderRow(host)))
-  }
-
-  private instanceTable(): HTMLTableElement {
-    return h('table', { class: 'instances' }, [
-      h('thead', {}, [h('tr', {}, [h('th', { scope: 'col', text: 'Instance' }), this.count])]),
-      this.rows,
-      h('tfoot', {}, [
-        h('tr', {}, [h('td', {}, [this.originInput, this.status]), h('td', {}, [this.addButton])]),
-      ]),
-    ])
   }
 
   private renderRow(host: SelfHostedHost): HTMLElement {
@@ -111,7 +98,11 @@ export class SelfHostedHostsSection {
       [lucideIcon(Trash2), 'Remove'],
     )
     remove.addEventListener('click', () => void this.remove(host))
-    return h('tr', {}, [h('td', { text: host.origin }), h('td', {}, [remove])])
+    return h('div', { class: 'card-row' }, [
+      lucideIcon(Server, 'card-row-icon'),
+      h('span', { class: 'card-row-text', text: host.origin }),
+      remove,
+    ])
   }
 
   private setStatus(text: string, kind: StatusKind): void {

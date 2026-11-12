@@ -32,26 +32,27 @@ export class HelpSection {
 
   mount(app: HTMLElement): void {
     app.append(
-      h('section', { class: 'section' }, [
-        h('h2', { text: 'Something not working?' }),
-        h('p', { class: 'intro', text: 'Most problems have one of these causes.' }),
-        h('div', { class: 'card' }, [
-          ...COMMON_FIXES.map((fix) => this.fixLink(fix.icon, fix.text, `${DOCS_URL}${fix.page}`)),
-          h('div', { class: 'row help-actions' }, [
-            this.reportButton(),
-            this.copyButton(),
-            h('span', { class: 'hint', text: 'No URLs, repository names or tokens.' }),
-          ]),
+      h('section', { class: 'card' }, [
+        h('div', { class: 'card-head' }, [h('h2', { text: 'Something not working?' })]),
+        h('p', { class: 'card-desc', text: 'Most problems have one of these causes.' }),
+        ...COMMON_FIXES.map((fix) => this.fixLink(fix.icon, fix.text, `${DOCS_URL}${fix.page}`)),
+        h('div', { class: 'card-foot' }, [
+          this.reportButton(),
+          this.copyButton(),
+          h('span', {
+            class: 'fine-print card-foot-end',
+            text: 'No URLs, repository names or tokens.',
+          }),
         ]),
       ]),
     )
   }
 
   private fixLink(icon: IconNode, text: string, url: string): HTMLElement {
-    return externalLink(url, { class: 'fix-link' }, [
-      h('span', { class: 'fix-icon' }, [lucideIcon(icon)]),
-      h('span', { class: 'fix-text', text }),
-      lucideIcon(ChevronRight),
+    return externalLink(url, { class: 'card-row card-link' }, [
+      lucideIcon(icon, 'card-row-icon'),
+      h('span', { class: 'card-row-text', text }),
+      lucideIcon(ChevronRight, 'card-link-chevron'),
     ])
   }
 
