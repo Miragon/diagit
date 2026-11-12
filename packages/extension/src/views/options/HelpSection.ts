@@ -57,14 +57,14 @@ export class HelpSection {
 
   private reportButton(): HTMLElement {
     const url = this.debugInfo.bugReportUrl()
-    return externalLink(url, { class: 'btn btn-primary' }, [lucideIcon(Bug), 'Report a bug'])
+    return externalLink(url, { class: 'btn btn-secondary' }, [lucideIcon(Bug), 'Report a bug'])
   }
 
   private copyButton(): HTMLButtonElement {
     return h(
       'button',
       {
-        class: 'btn btn-secondary copy-debug-info',
+        class: 'btn btn-ghost copy-debug-info',
         type: 'button',
         onClick: () => void this.copyDebugInfo(),
       },

@@ -3,16 +3,16 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   box-sizing: border-box;
-  height: var(--cd-shell-eintrag);
-  padding: 0 16px;
+  height: var(--cd-shell-ziel);
+  padding: 0 12px;
   border: 1px solid transparent;
   border-radius: var(--cd-radius-md);
   background: transparent;
   color: var(--cd-ui-text);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -38,13 +38,13 @@
 }
 
 .btn-small {
-  height: var(--cd-shell-ziel);
-  padding: 0 12px;
-  font-size: 13px;
+  height: 28px;
+  padding: 0 10px;
 }
 
 .btn-large {
-  height: var(--cd-shell-zeile);
+  height: var(--cd-shell-eintrag);
+  padding: 0 16px;
 }
 
 .btn-primary {
@@ -61,8 +61,7 @@
   transform: translateY(-1px);
 }
 
-.btn-secondary,
-.btn-quiet-danger {
+.btn-secondary {
   border-color: var(--cd-ui-linie);
   background: var(--cd-ui-flaeche-hoch);
 }
@@ -71,6 +70,15 @@
   border-color: var(--cd-ui-interaktion);
   background: var(--cd-ui-hover);
   color: var(--cd-ui-link);
+}
+
+.btn-ghost:hover:not(:disabled),
+.btn-quiet-danger:hover:not(:disabled) {
+  background: var(--cd-ui-hover);
+}
+
+.btn-quiet-danger svg {
+  color: var(--cd-ui-danger);
 }
 
 .btn-quiet-danger:hover:not(:disabled) {
@@ -83,11 +91,70 @@
   height: var(--cd-shell-ziel);
   padding: 0;
   border: none;
+  border-radius: var(--cd-radius-sm);
+}
+
+.btn-icon.btn-small {
+  width: 28px;
+  height: 28px;
 }
 
 .btn-icon:hover:not(:disabled) {
   background: var(--cd-ui-hover);
   color: var(--cd-ui-interaktion);
+}
+
+.diagit-segmented {
+  display: inline-flex;
+  box-sizing: border-box;
+  height: var(--cd-shell-ziel);
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--cd-ui-linie);
+  border-radius: var(--cd-radius-sm);
+  background: var(--cd-ui-flaeche-hoch);
+}
+
+.diagit-segmented button {
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cd-ui-text-leise);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.diagit-segmented button:hover {
+  background: var(--cd-ui-hover);
+}
+
+.diagit-segmented button[aria-pressed='true'] {
+  background: var(--cd-ui-hover);
+  color: var(--cd-ui-link);
+  box-shadow: inset 0 0 0 1px var(--cd-ui-interaktion);
+}
+
+.diagit-segmented button:focus-visible {
+  outline: 2px solid var(--cd-ui-fokus);
+  outline-offset: 1px;
+}
+
+.diagit-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.diagit-btn-group-position {
+  padding: 0 6px;
+  color: var(--cd-ui-text-leise);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .btn:disabled {

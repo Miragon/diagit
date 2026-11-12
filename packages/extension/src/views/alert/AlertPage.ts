@@ -1,7 +1,11 @@
 import { h } from '../../platform/utils/dom'
 
 export class AlertPage {
-  private readonly okButton = h('button', { class: 'btn btn-primary', type: 'button', text: 'OK' })
+  private readonly okButton = h('button', {
+    class: 'btn btn-large btn-primary',
+    type: 'button',
+    text: 'OK',
+  })
 
   constructor(
     private readonly query: URLSearchParams,

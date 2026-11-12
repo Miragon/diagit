@@ -1,4 +1,4 @@
-import { Server } from 'lucide'
+import { Server, Trash2 } from 'lucide'
 import { browser } from 'wxt/browser'
 import type { HostAccess } from '../../git-hosts/self-hosted/HostAccess'
 import type { SelfHostedHost } from '../../git-hosts/self-hosted/SelfHostedHostStore'
@@ -20,7 +20,7 @@ export class SelfHostedHostsSection {
     'aria-label': 'Instance URL',
   }) as HTMLInputElement
   private readonly addButton = h('button', {
-    class: 'btn btn-primary add-instance',
+    class: 'btn btn-large btn-primary add-instance',
     type: 'button',
     text: 'Add instance',
   })
@@ -105,12 +105,11 @@ export class SelfHostedHostsSection {
   }
 
   private renderRow(host: SelfHostedHost): HTMLElement {
-    const remove = h('button', {
-      class: 'btn btn-quiet-danger',
-      type: 'button',
-      text: 'Remove',
-      'aria-label': `Remove ${host.origin}`,
-    })
+    const remove = h(
+      'button',
+      { class: 'btn btn-quiet-danger', type: 'button', 'aria-label': `Remove ${host.origin}` },
+      [lucideIcon(Trash2), 'Remove'],
+    )
     remove.addEventListener('click', () => void this.remove(host))
     return h('tr', {}, [h('td', { text: host.origin }), h('td', {}, [remove])])
   }

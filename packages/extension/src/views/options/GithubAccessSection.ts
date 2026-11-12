@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide'
 import { browser } from 'wxt/browser'
 import { DeviceFlowError } from '../../git-hosts/github/DeviceFlowError'
 import {
@@ -10,6 +11,7 @@ import type { GithubTokenStore } from '../../git-hosts/github/GithubTokenStore'
 import { h } from '../../platform/utils/dom'
 import { errorMessage } from '../../platform/utils/errorMessage'
 import { externalLink } from '../../platform/utils/externalLink'
+import { lucideIcon } from '../../platform/utils/lucideIcon'
 
 const COPIED_FEEDBACK_MS = 1500
 const EXPIRED_HINT =
@@ -57,11 +59,10 @@ export class GithubAccessSection {
       this.tokens.connectionExpired(),
     ])
     if (token) {
-      const disconnect = h('button', {
-        class: 'btn btn-quiet-danger',
-        type: 'button',
-        text: 'Disconnect',
-      })
+      const disconnect = h('button', { class: 'btn btn-quiet-danger', type: 'button' }, [
+        lucideIcon(Trash2),
+        'Disconnect',
+      ])
       disconnect.addEventListener('click', () => void this.disconnect())
       const connectedAs = login ? `Connected as @${login}` : 'Connected'
       this.body.replaceChildren(
@@ -74,7 +75,7 @@ export class GithubAccessSection {
       return
     }
     const connect = h('button', {
-      class: 'btn btn-primary',
+      class: 'btn btn-large btn-primary',
       type: 'button',
       text: 'Connect GitHub',
     })
