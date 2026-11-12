@@ -1,24 +1,29 @@
-import { CircleX, Flag, RotateCw, type IconNode } from 'lucide'
+import { Flag, RotateCw, type IconNode } from 'lucide'
+import { Notice } from '../../platform/ui/Notice'
 import { h } from '../../platform/utils/dom'
 import { externalLink } from '../../platform/utils/externalLink'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
 import type { PaneFailure } from './DiffNotices'
 
-const ACTION_CLASS = 'btn btn-small diagit-diff-failure-action'
+const ACTION_CLASS = 'btn btn-small btn-secondary'
 
 export class PaneFailureBanner {
   readonly element: HTMLElement
 
-  constructor({ title, meta, reportUrl, offersReload }: PaneFailure) {
-    this.element = h('div', { class: 'diagit-diff-failure', role: 'alert' }, [
-      lucideIcon(CircleX, 'diagit-diff-failure-icon'),
-      h('span', { class: 'diagit-diff-failure-title' }, [
-        title,
-        ...(meta ? [' ', h('span', { class: 'diagit-notice-meta', text: meta })] : []),
-      ]),
-      ...(offersReload ? [this.reloadButton()] : []),
-      ...(reportUrl ? [this.reportLink(reportUrl)] : []),
-    ])
+  constructor({ tone, title, meta, reportUrl, offersReload }: PaneFailure) {
+    this.element = h(
+      'div',
+      { class: 'diagit-notice', 'data-tone': tone, 'data-layout': 'bar', role: 'alert' },
+      [
+        lucideIcon(Notice.toneIcon(tone), 'diagit-notice-icon'),
+        h('span', { class: 'diagit-notice-title' }, [
+          title,
+          ...(meta ? [' ', h('span', { class: 'diagit-notice-meta', text: meta })] : []),
+        ]),
+        ...(offersReload ? [this.reloadButton()] : []),
+        ...(reportUrl ? [this.reportLink(reportUrl)] : []),
+      ],
+    )
   }
 
   private reloadButton(): HTMLButtonElement {

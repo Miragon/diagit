@@ -30,8 +30,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private readonly oldPane = new DiffPane('old')
   private readonly newPane = new DiffPane('new')
   private readonly plainCanvas = new ViewerCanvas<DiffableViewer>()
-  private readonly plainTab = this.tab('Plain')
-  private readonly diffTab = this.tab('Diff')
+  private readonly plainButton = this.viewButton('Plain')
+  private readonly diffButton = this.viewButton('Diff')
   private readonly changeControls = new ChangeControls()
   private readonly zoomControls = new ZoomControls(this)
   private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, [
@@ -48,7 +48,10 @@ export class DiffPanel implements PanelHandle, Zoomable {
   ])
   private readonly root = h('div', { class: 'diagit-wrap diagit-diff-root' }, [
     h('div', { class: 'diagit-toolbar' }, [
-      h('div', { class: 'diagit-tabs' }, [this.plainTab, this.diffTab]),
+      h('div', { class: 'diagit-segmented', role: 'group', 'aria-label': 'View' }, [
+        this.plainButton,
+        this.diffButton,
+      ]),
       this.changeControls.element,
     ]),
     this.diagramArea,
@@ -75,8 +78,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
   mount(container: HTMLElement): this {
     container.append(this.root)
     this.root.dataset.cdTheme = detectHostTheme(this.root)
-    this.plainTab.addEventListener('click', () => this.pick('plain'))
-    this.diffTab.addEventListener('click', () => this.pick('diff'))
+    this.plainButton.addEventListener('click', () => this.pick('plain'))
+    this.diffButton.addEventListener('click', () => this.pick('diff'))
     this.show('plain')
     this.resizeObserver = new ResizeObserver(() => this.fit())
     this.resizeObserver.observe(this.diagramArea)
@@ -137,8 +140,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.diffGrid.style.display = isDiff ? '' : 'none'
     this.plainGrid.style.display = isDiff ? 'none' : ''
     this.changeControls.element.style.display = isDiff ? '' : 'none'
-    this.diffTab.classList.toggle('is-active', isDiff)
-    this.plainTab.classList.toggle('is-active', !isDiff)
+    this.diffButton.setAttribute('aria-pressed', String(isDiff))
+    this.plainButton.setAttribute('aria-pressed', String(!isDiff))
     if (isDiff) {
       void this.ensureDiffRendered()
     } else {
@@ -306,7 +309,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.plainCanvas.destroy()
   }
 
-  private tab(text: string): HTMLButtonElement {
-    return h('button', { class: 'diagit-tab', type: 'button', text })
+  private viewButton(text: string): HTMLButtonElement {
+    return h('button', { type: 'button', text })
   }
 }

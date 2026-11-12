@@ -23,7 +23,7 @@ export class DiffPane {
 
   constructor(readonly side: DiffSide) {
     this.element = h('div', { class: 'diagit-diff-pane' }, [
-      h('span', { class: 'diagit-diff-side', text: SIDE_LABEL[side] }),
+      h('span', { class: 'diagit-pane-label', text: SIDE_LABEL[side] }),
       this.canvas.element,
     ])
   }

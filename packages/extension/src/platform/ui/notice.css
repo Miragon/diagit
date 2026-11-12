@@ -135,3 +135,26 @@
   position: absolute;
   inset: 0;
 }
+
+.diagit-notice[data-layout='bar'] {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-shell-luecke);
+  height: var(--cd-shell-zeile);
+  padding: 0 4px 0 20px;
+  border-bottom: 1px solid var(--cd-ui-linie);
+  background: var(--tone-bg);
+  box-shadow: inset 4px 0 0 var(--tone);
+}
+
+.diagit-notice[data-layout='bar'] .diagit-notice-icon {
+  margin-right: 4px;
+}
+
+.diagit-notice[data-layout='bar'] .diagit-notice-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
