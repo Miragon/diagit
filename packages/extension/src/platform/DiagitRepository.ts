@@ -1,3 +1,5 @@
+import { reportableErrorMessage } from './utils/errorMessage'
+
 export interface ReportContext {
   where: string
   environment: string
@@ -14,12 +16,18 @@ class DiagitRepository {
     return this.newIssueUrl('feat.yml')
   }
 
-  problemReportUrl(title: string, description: string, context: ReportContext): string {
+  problemReportUrl(
+    title: string,
+    description: string,
+    context: ReportContext,
+    error?: unknown,
+  ): string {
     return this.newIssueUrl('fix.yml', {
       title: `[Fix]: ${title}`,
       description,
       where: context.where,
       env: context.environment,
+      ...(error === undefined ? {} : { console: reportableErrorMessage(error) }),
     })
   }
 
