@@ -6,6 +6,11 @@ export default async function showDiagram(page) {
   const viewer = page.locator('diagit-viewer').first()
   await viewer.waitFor({ state: 'attached', timeout: 30_000 })
   await page.addStyleTag({ content: QUIET_GITHUB })
+  await page.evaluate(() => {
+    const removeStarPrompt = () => document.querySelector('diagit-star-prompt')?.remove()
+    removeStarPrompt()
+    new MutationObserver(removeStarPrompt).observe(document.body, { childList: true })
+  })
   await page.waitForTimeout(2500)
   await page.evaluate((gap) => {
     const bottom = document.querySelector('diagit-viewer').getBoundingClientRect().bottom
