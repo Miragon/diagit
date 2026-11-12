@@ -17,16 +17,16 @@ describe('ZoomControls', () => {
 
     expect(button('Reset zoom').textContent).toBe('86%')
     expect(button('Reset zoom').getAttribute('aria-label')).toBe('Reset zoom, 86%')
-    expect(button('Reset zoom').disabled).toBe(false)
   })
 
-  it('shows a dash and disables reset while no level is known', () => {
-    const { controls, button } = controlsFor()
+  it('hides itself while there is no zoomable canvas', () => {
+    const { controls } = controlsFor()
 
+    expect(controls.element.hidden).toBe(true)
+    controls.showLevel(1)
+    expect(controls.element.hidden).toBe(false)
     controls.showLevel(null)
-
-    expect(button('Reset zoom').textContent).toBe('–')
-    expect(button('Reset zoom').disabled).toBe(true)
+    expect(controls.element.hidden).toBe(true)
   })
 
   it('resets, fits and zooms the target', () => {

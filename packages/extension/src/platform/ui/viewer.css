@@ -125,11 +125,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.diagit-zoom-level:disabled {
-  border-color: transparent;
-  background: transparent;
-}
-
 .diagit-zoom-fit {
   padding: 0 10px;
   border-radius: var(--cd-radius-sm);

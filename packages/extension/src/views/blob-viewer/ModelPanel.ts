@@ -84,7 +84,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   private async load(): Promise<void> {
     this.canvas.replaceChildren(this.placeholder)
-    this.zoomControls.element.hidden = true
+    this.zoomControls.showLevel(null)
     let xml: string
     try {
       xml = await this.options.loadXml()
@@ -130,7 +130,6 @@ export class ModelPanel implements PanelHandle, Zoomable {
     const showLevel = () => this.zoomControls.showLevel(viewer.zoomLevel())
     this.stopTrackingZoom = viewer.onViewChange(showLevel)
     showLevel()
-    this.zoomControls.element.hidden = false
   }
 
   private get label(): string {
@@ -156,6 +155,6 @@ export class ModelPanel implements PanelHandle, Zoomable {
   private showError(details: NoticeDetails): void {
     const notice = new Notice({ ...details, followsUserAction: this.retried }, 'pane')
     this.canvas.replaceChildren(notice.element)
-    this.zoomControls.element.hidden = true
+    this.zoomControls.showLevel(null)
   }
 }

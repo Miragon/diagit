@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ModelPanel } from '../../src/views/blob-viewer/ModelPanel'
+import { FakeDiffableViewer } from '../fakes/FakeDiffableViewer'
 import { FakeNotation } from '../fakes/FakeNotation'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
@@ -140,6 +141,28 @@ describe('ModelPanel', () => {
     expect(readout.textContent).toBe('120%')
     readout.click()
     expect(readout.textContent).toBe('100%')
+  })
+
+  it('hides the zoom island while the diagram has no zoomable canvas', async () => {
+    const viewer = new FakeDiffableViewer()
+    viewer.level = null
+    const notation = new FakeNotation()
+    vi.spyOn(notation, 'createViewer').mockResolvedValue(viewer)
+    const container = mountPanel(
+      new ModelPanel({
+        notation,
+        fileName: 'decision.dmn',
+        loadXml: async () => '<dmn/>',
+        reportContext: FAKE_REPORT_CONTEXT,
+      }),
+    )
+    const zoom = container.querySelector<HTMLElement>('.diagit-zoom')!
+    await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
+
+    expect(zoom.hidden).toBe(true)
+    viewer.level = 1
+    viewer.zoomBy(1)
+    expect(zoom.hidden).toBe(false)
   })
 
   it('shows a pane notice with a report link when the model cannot be read', async () => {

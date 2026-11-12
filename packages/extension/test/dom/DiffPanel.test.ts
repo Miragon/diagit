@@ -99,6 +99,25 @@ describe('DiffPanel', () => {
       expect(container.querySelector('.diagit-toolbar .diagit-zoom')).toBeNull()
     })
 
+    it('hides while no version is rendered', async () => {
+      const container = mount(new FakeDiffer(), downloadFailed)
+      const zoom = container.querySelector<HTMLElement>('.diagit-zoom')!
+
+      expect(zoom.hidden).toBe(true)
+      await vi.waitFor(() =>
+        expect(plainPane(container).textContent).toContain('New version could not be loaded'),
+      )
+      buttonNamed(container, 'Diff').click()
+      await vi.waitFor(() => expect(diffPanes(container)[0]!.textContent).toContain('could not'))
+      expect(zoom.hidden).toBe(true)
+    })
+
+    it('shows once a version is rendered', async () => {
+      const { container } = await diffShowingBothVersions()
+
+      expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+    })
+
     it('reads out the zoom level of the new version after "Zoom in"', async () => {
       const { container } = await diffShowingBothVersions()
 

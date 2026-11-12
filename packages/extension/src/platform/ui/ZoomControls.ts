@@ -10,7 +10,6 @@ export interface Zoomable {
 
 const ZOOM_STEP = 1.2
 const RESET_ZOOM = 'Reset zoom'
-const UNKNOWN_LEVEL = '–'
 
 export class ZoomControls {
   readonly element: HTMLElement
@@ -21,6 +20,7 @@ export class ZoomControls {
       class: 'btn btn-ghost diagit-zoom-level',
       type: 'button',
       title: RESET_ZOOM,
+      'aria-label': RESET_ZOOM,
       onClick: () => target.resetZoom(),
     })
     this.element = h('div', { class: 'diagit-zoom', role: 'group', 'aria-label': 'Zoom' }, [
@@ -41,11 +41,14 @@ export class ZoomControls {
   }
 
   showLevel(level: number | null): void {
-    const known = level !== null && Number.isFinite(level)
-    const text = known ? `${Math.round(level * 100)}%` : UNKNOWN_LEVEL
+    const zoomable = level !== null && Number.isFinite(level)
+    this.element.hidden = !zoomable
+    if (!zoomable) {
+      return
+    }
+    const text = `${Math.round(level * 100)}%`
     this.levelButton.textContent = text
-    this.levelButton.disabled = !known
-    this.levelButton.setAttribute('aria-label', known ? `${RESET_ZOOM}, ${text}` : RESET_ZOOM)
+    this.levelButton.setAttribute('aria-label', `${RESET_ZOOM}, ${text}`)
   }
 
   private iconButton(label: string, icon: IconNode, onClick: () => void): HTMLButtonElement {
