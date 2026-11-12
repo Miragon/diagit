@@ -23,7 +23,7 @@ Open any [supported file](./notations) in a repository, for example a `.bpmn`, `
   <figcaption>order.bpmn on a file page, drawn by Diagit</figcaption>
 </figure>
 
-Drag to move the diagram, zoom with **−** and **+**, and press **Fit** to see all of it again. The source stays below, unchanged.
+Drag to move the diagram, zoom with **−** and **+**, and press **Fit** to see all of it again. The source stays below, unchanged. The full screen button next to **Fit** shows the diagram on the whole screen. Press it again or Esc to leave.
 
 ## 3. Review a change in a pull request
 

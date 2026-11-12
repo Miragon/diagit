@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ZoomControls } from '../../src/platform/ui/ZoomControls'
+import { FakeFullScreen } from '../fakes/FakeFullScreen'
 
 function controlsFor() {
   const target = { zoomBy: vi.fn(), resetZoom: vi.fn(), fit: vi.fn() }
@@ -54,5 +55,162 @@ describe('ZoomControls', () => {
     )
     expect(labels).toEqual(['Zoom out', 'Reset zoom', 'Zoom in', 'Fit to view'])
     expect(controls.element.querySelector('.diagit-zoom-fit')!.textContent).toBe('Fit')
+  })
+
+  describe('full screen', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+      FakeFullScreen.uninstall()
+      document.body.replaceChildren()
+    })
+
+    function fullScreenControls() {
+      FakeFullScreen.install()
+      const panel = document.createElement('div')
+      document.body.append(panel)
+      const parts = controlsFor()
+      parts.controls.allowFullScreen(panel)
+      panel.append(parts.controls.element)
+      return { ...parts, panel, fullScreenButton: () => parts.button('Full screen') }
+    }
+
+    it('offers no full screen button where the browser does not allow full screen', () => {
+      const { controls } = controlsFor()
+
+      controls.allowFullScreen(document.createElement('div'))
+
+      expect(controls.element.querySelector('.diagit-zoom-full-screen')).toBeNull()
+    })
+
+    it('adds an unpressed full screen button after Fit', () => {
+      const { controls, fullScreenButton } = fullScreenControls()
+
+      const labels = [...controls.element.querySelectorAll('button')].map((button) =>
+        button.getAttribute('aria-label'),
+      )
+      expect(labels).toEqual(['Zoom out', 'Reset zoom', 'Zoom in', 'Fit to view', 'Full screen'])
+      expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
+      expect(fullScreenButton().title).toBe('Full screen')
+    })
+
+    it('puts the panel in full screen and presses the button', async () => {
+      const { panel, fullScreenButton } = fullScreenControls()
+
+      fullScreenButton().click()
+      await FakeFullScreen.settled()
+
+      expect(document.fullscreenElement).toBe(panel)
+      expect(fullScreenButton().getAttribute('aria-pressed')).toBe('true')
+      expect(fullScreenButton().title).toBe('Exit full screen')
+      expect(fullScreenButton().getAttribute('aria-label')).toBe('Full screen')
+    })
+
+    it('recognises full screen of a panel inside a shadow root', async () => {
+      FakeFullScreen.install()
+      const host = document.createElement('div')
+      document.body.append(host)
+      const panel = document.createElement('div')
+      const shadowRoot = host.attachShadow({ mode: 'open' })
+      shadowRoot.append(panel)
+      const { controls, button } = controlsFor()
+      controls.allowFullScreen(panel)
+      panel.append(controls.element)
+
+      button('Full screen').click()
+      await FakeFullScreen.settled()
+
+      expect(shadowRoot.fullscreenElement).toBe(panel)
+      expect(document.fullscreenElement).toBe(host)
+      expect(button('Full screen').getAttribute('aria-pressed')).toBe('true')
+
+      await FakeFullScreen.exit()
+
+      expect(button('Full screen').getAttribute('aria-pressed')).toBe('false')
+    })
+
+    it('leaves full screen through the button', async () => {
+      const { fullScreenButton } = fullScreenControls()
+      fullScreenButton().click()
+      await FakeFullScreen.settled()
+
+      fullScreenButton().click()
+      await FakeFullScreen.settled()
+
+      expect(document.fullscreenElement).toBeNull()
+      expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
+      expect(fullScreenButton().title).toBe('Full screen')
+    })
+
+    it('follows the browser when Esc leaves full screen', async () => {
+      const { fullScreenButton } = fullScreenControls()
+      fullScreenButton().click()
+      await FakeFullScreen.settled()
+
+      await FakeFullScreen.exit()
+
+      expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
+    })
+
+    it('brings the page back to where it was scrolled when full screen ends', async () => {
+      const { fullScreenButton } = fullScreenControls()
+      const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+      vi.spyOn(window, 'scrollY', 'get').mockReturnValue(840)
+      fullScreenButton().click()
+      await FakeFullScreen.settled()
+      expect(scrollTo).not.toHaveBeenCalled()
+
+      await FakeFullScreen.exit()
+
+      expect(scrollTo).toHaveBeenCalledWith({ top: 840, behavior: 'instant' })
+    })
+
+    it('keeps only the full screen button while there is no zoomable canvas', () => {
+      const { controls, fullScreenButton } = fullScreenControls()
+
+      controls.showLevel(null)
+
+      expect(controls.element.hidden).toBe(false)
+      expect(fullScreenButton().hidden).toBe(false)
+      expect(controls.element.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(true)
+      expect(controls.element.querySelector<HTMLElement>('.diagit-zoom-divider')!.hidden).toBe(true)
+      controls.showLevel(1)
+      expect(controls.element.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(false)
+    })
+
+    it('hides the whole island on request', () => {
+      const { controls } = fullScreenControls()
+      controls.showLevel(1)
+
+      controls.hide()
+
+      expect(controls.element.hidden).toBe(true)
+    })
+
+    it('keeps the way out of full screen while there is nothing to show', async () => {
+      const { controls, fullScreenButton } = fullScreenControls()
+      fullScreenButton().click()
+      await FakeFullScreen.settled()
+
+      controls.hide()
+
+      expect(controls.element.hidden).toBe(false)
+      expect(fullScreenButton().hidden).toBe(false)
+      expect(controls.element.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(true)
+
+      await FakeFullScreen.exit()
+
+      expect(controls.element.hidden).toBe(true)
+    })
+
+    it('stays unpressed when the browser refuses full screen', async () => {
+      const { fullScreenButton } = fullScreenControls()
+      FakeFullScreen.refuse()
+
+      fullScreenButton().click()
+      await Promise.resolve()
+      await Promise.resolve()
+
+      expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
+    })
   })
 })

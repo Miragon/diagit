@@ -73,6 +73,7 @@ export class StandaloneViewerPage implements Zoomable {
       this.zoomControls.element,
     ])
     this.panel = h('section', { class: 'diagit-wrap' }, [this.toolbar, this.stage])
+    this.zoomControls.allowFullScreen(this.panel)
   }
 
   mount(app: HTMLElement): void {
@@ -221,7 +222,7 @@ export class StandaloneViewerPage implements Zoomable {
   private closeDiagram(): void {
     this.stopTrackingZoom?.()
     this.stopTrackingZoom = null
-    this.zoomControls.showLevel(null)
+    this.zoomControls.hide()
     this.viewer?.destroy()
     this.viewer = null
     this.canvas.replaceChildren()

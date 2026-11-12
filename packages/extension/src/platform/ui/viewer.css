@@ -67,6 +67,12 @@
   white-space: nowrap;
 }
 
+.diagit-file-path .file-name {
+  font-family: var(--diagit-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .diagit-file-label .kind {
   font-weight: 400;
   color: var(--fg-muted);
@@ -122,8 +128,15 @@
   transform: translateY(50%);
 }
 
-.diagit-zoom[hidden] {
+.diagit-zoom[hidden],
+.diagit-zoom [hidden] {
   display: none;
+}
+
+.diagit-zoom .btn-icon[aria-pressed='true'] {
+  background: var(--btn-hover);
+  color: var(--selected);
+  box-shadow: inset 0 0 0 1px var(--selected);
 }
 
 .diagit-zoom-level {
@@ -155,6 +168,17 @@
   border-bottom: 1px solid var(--border);
   background: var(--canvas-bg);
   overflow: hidden;
+}
+
+.diagit-wrap:fullscreen {
+  display: flex;
+  flex-direction: column;
+}
+
+.diagit-wrap:fullscreen > .diagit-canvas {
+  flex: 1;
+  height: auto;
+  border-bottom: none;
 }
 
 /* Focused pane: wheel zoom is live. */

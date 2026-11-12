@@ -3,6 +3,7 @@ import { DiffPanel } from '../../src/views/diff-viewer/DiffPanel'
 import { MARKER } from '../../src/views/diff-viewer/markers'
 import { FetchError } from '../../src/platform/messaging/HttpClient'
 import { FakeDiffer } from '../fakes/FakeDiffer'
+import { FakeFullScreen } from '../fakes/FakeFullScreen'
 import { FakeIntersectionObserver } from '../fakes/FakeIntersectionObserver'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
@@ -49,6 +50,7 @@ function mountAwayFromViewport(
     loadOld,
     loadNew,
     label: 'BPMN',
+    filePath: 'processes/order.bpmn',
     reportContext: FAKE_REPORT_CONTEXT,
     onRendered,
   }).mount(container)
@@ -66,6 +68,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  FakeFullScreen.uninstall()
   panel?.destroy()
   panel = null
   document.body.innerHTML = ''
@@ -255,6 +258,75 @@ describe('DiffPanel', () => {
       panel!.destroy()
 
       expect(FakeIntersectionObserver.instances[0]!.observed.size).toBe(0)
+    })
+  })
+
+  describe('full screen', () => {
+    async function fullScreenDiff() {
+      FakeFullScreen.install()
+      const differ = new FakeDiffer()
+      const container = mount(
+        differ,
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
+      const root = container.querySelector<HTMLElement>('.diagit-diff-root')!
+      const enter = async () => {
+        buttonLabelled(container, 'Full screen').click()
+        await FakeFullScreen.settled()
+      }
+      return { container, differ, root, enter }
+    }
+
+    it('keeps Diff open on entering and on leaving', async () => {
+      const { container, root, enter } = await fullScreenDiff()
+
+      await enter()
+      expect(document.fullscreenElement).toBe(root)
+      expect(buttonNamed(container, 'Diff').getAttribute('aria-pressed')).toBe('true')
+
+      await FakeFullScreen.exit()
+      expect(buttonNamed(container, 'Diff').getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('names the full file path in the toolbar', async () => {
+      const { container } = await fullScreenDiff()
+
+      const path = container.querySelector('.diagit-toolbar .diagit-file-path .file-name')
+      expect(path?.textContent).toBe('processes/order.bpmn')
+    })
+
+    it('switches to Plain while in full screen and fits it', async () => {
+      const { container, differ, enter } = await fullScreenDiff()
+      await enter()
+
+      buttonNamed(container, 'Plain').click()
+      await vi.waitFor(() => expect(differ.viewers[2]?.fits).toBeGreaterThan(0))
+
+      expect(document.fullscreenElement).not.toBeNull()
+    })
+
+    it('keeps the full screen button when Plain cannot be rendered', async () => {
+      const { container, differ, enter } = await fullScreenDiff()
+      await enter()
+      vi.spyOn(differ, 'createViewer').mockRejectedValue(new Error('unparsable'))
+
+      buttonNamed(container, 'Plain').click()
+      await vi.waitFor(() => expect(failureIn(plainPane(container))).not.toBeNull())
+
+      expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+      expect(buttonLabelled(container, 'Full screen').hidden).toBe(false)
+      expect(container.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(true)
+    })
+
+    it('keeps the theme from the host page', async () => {
+      const { root, enter } = await fullScreenDiff()
+      const theme = root.dataset.cdTheme
+
+      await enter()
+
+      expect(root.dataset.cdTheme).toBe(theme)
     })
   })
 

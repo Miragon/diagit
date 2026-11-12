@@ -147,6 +147,7 @@ export class DiffController {
         new DiffPanel({
           differ,
           label: this.labelFor(block),
+          filePath: block.path,
           reportContext: this.reportContext,
           loadOld: block.loadOld,
           loadNew: block.loadNew,

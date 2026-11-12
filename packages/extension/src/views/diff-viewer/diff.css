@@ -24,6 +24,23 @@
   position: relative;
 }
 
+.diagit-diff-root:fullscreen .diagit-diff-area {
+  flex: 1;
+  min-height: 0;
+}
+
+.diagit-diff-root:fullscreen .diagit-diff-grid {
+  height: 100%;
+}
+
+.diagit-diff-root:fullscreen .diagit-diff-pane {
+  height: auto;
+}
+
+.diagit-diff-root:not(:fullscreen) .diagit-file-path {
+  display: none;
+}
+
 .diagit-diff-grid {
   display: flex;
   overflow: hidden;

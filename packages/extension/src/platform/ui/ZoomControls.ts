@@ -1,4 +1,4 @@
-import { Minus, Plus, type IconNode } from 'lucide'
+import { Maximize, Minimize, Minus, Plus, type IconNode } from 'lucide'
 import { h } from '../utils/dom'
 import { lucideIcon } from '../utils/lucideIcon'
 
@@ -15,10 +15,16 @@ interface ZoomedViewer {
 
 const ZOOM_STEP = 1.2
 const RESET_ZOOM = 'Reset zoom'
+const FULL_SCREEN = 'Full screen'
 
 export class ZoomControls {
   readonly element: HTMLElement
   private readonly levelButton: HTMLButtonElement
+  private readonly zoomParts: HTMLElement[]
+  private fullScreenButton: HTMLButtonElement | null = null
+  private pageScrollBeforeFullScreen = 0
+  private fullScreenPanel: HTMLElement | null = null
+  private hasNothingToShow = false
 
   constructor(target: Zoomable) {
     this.levelButton = h('button', {
@@ -28,7 +34,7 @@ export class ZoomControls {
       'aria-label': RESET_ZOOM,
       onClick: () => target.resetZoom(),
     })
-    this.element = h('div', { class: 'diagit-zoom', role: 'group', 'aria-label': 'Zoom' }, [
+    this.zoomParts = [
       this.iconButton('Zoom out', Minus, () => target.zoomBy(1 / ZOOM_STEP)),
       this.levelButton,
       this.iconButton('Zoom in', Plus, () => target.zoomBy(ZOOM_STEP)),
@@ -41,7 +47,12 @@ export class ZoomControls {
         'aria-label': 'Fit to view',
         onClick: () => target.fit(),
       }),
-    ])
+    ]
+    this.element = h(
+      'div',
+      { class: 'diagit-zoom', role: 'group', 'aria-label': 'Zoom' },
+      this.zoomParts,
+    )
     this.showLevel(null)
   }
 
@@ -52,15 +63,72 @@ export class ZoomControls {
     }
   }
 
+  allowFullScreen(panel: HTMLElement): void {
+    if (!document.fullscreenEnabled) {
+      return
+    }
+    this.fullScreenButton = h('button', {
+      class: 'btn btn-icon diagit-zoom-full-screen',
+      type: 'button',
+      'aria-label': FULL_SCREEN,
+      onClick: () => this.toggleFullScreen(panel),
+    })
+    this.element.append(this.fullScreenButton)
+    this.fullScreenPanel = panel
+    panel.addEventListener('fullscreenchange', () => {
+      const active = ZoomControls.isFullScreen(panel)
+      this.showFullScreen(active)
+      if (!active) {
+        this.element.hidden ||= this.hasNothingToShow
+        window.scrollTo({ top: this.pageScrollBeforeFullScreen, behavior: 'instant' })
+      }
+    })
+    this.showFullScreen(false)
+  }
+
   showLevel(level: number | null): void {
+    this.hasNothingToShow = false
     const zoomable = level !== null && Number.isFinite(level)
-    this.element.hidden = !zoomable
+    for (const part of this.zoomParts) {
+      part.hidden = !zoomable
+    }
+    this.element.hidden = !zoomable && !this.fullScreenButton
     if (!zoomable) {
       return
     }
     const text = `${Math.round(level * 100)}%`
     this.levelButton.textContent = text
     this.levelButton.setAttribute('aria-label', `${RESET_ZOOM}, ${text}`)
+  }
+
+  hide(): void {
+    this.showLevel(null)
+    this.hasNothingToShow = true
+    const panel = this.fullScreenPanel
+    this.element.hidden = !panel || !ZoomControls.isFullScreen(panel)
+  }
+
+  private showFullScreen(active: boolean): void {
+    const button = this.fullScreenButton
+    if (!button) {
+      return
+    }
+    button.replaceChildren(lucideIcon(active ? Minimize : Maximize))
+    button.setAttribute('aria-pressed', String(active))
+    button.title = active ? 'Exit full screen' : FULL_SCREEN
+  }
+
+  private toggleFullScreen(panel: HTMLElement): void {
+    if (ZoomControls.isFullScreen(panel)) {
+      document.exitFullscreen().catch(() => {})
+    } else {
+      this.pageScrollBeforeFullScreen = window.scrollY
+      panel.requestFullscreen().catch(() => {})
+    }
+  }
+
+  private static isFullScreen(panel: HTMLElement): boolean {
+    return (panel.getRootNode() as Document | ShadowRoot).fullscreenElement === panel
   }
 
   private iconButton(label: string, icon: IconNode, onClick: () => void): HTMLButtonElement {
