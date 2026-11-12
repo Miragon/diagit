@@ -1,21 +1,35 @@
 import { h } from '../../platform/utils/dom'
 
-export class AlertPage {
-  private readonly okButton = h('button', {
-    class: 'btn btn-large btn-primary',
-    type: 'button',
-    text: 'OK',
-  })
+const CLOSING_KEYS = ['Enter', 'Escape']
 
+export class AlertPage {
   constructor(
     private readonly query: URLSearchParams,
     private readonly closeWindow: () => void,
   ) {}
 
   mount(app: HTMLElement): void {
-    const message = h('p', { class: 'message', text: this.query.get('message') ?? '' })
-    this.okButton.addEventListener('click', () => this.closeWindow())
-    app.append(message, this.okButton)
-    this.okButton.focus()
+    app.append(
+      h('div', { class: 'dialog' }, [
+        h('div', { class: 'dialog-head' }, [
+          h('img', { class: 'dialog-icon', src: '/icon/icon.svg', alt: '' }),
+          h('h1', { text: 'Diagit' }),
+        ]),
+        h('p', { class: 'message', text: this.query.get('message') ?? '' }),
+        h('div', { class: 'dialog-foot' }, [
+          h('button', {
+            class: 'btn btn-large btn-primary',
+            type: 'button',
+            text: 'OK',
+            onClick: () => this.closeWindow(),
+          }),
+        ]),
+      ]),
+    )
+    app.ownerDocument.addEventListener('keydown', (event) => {
+      if (CLOSING_KEYS.includes(event.key)) {
+        this.closeWindow()
+      }
+    })
   }
 }
