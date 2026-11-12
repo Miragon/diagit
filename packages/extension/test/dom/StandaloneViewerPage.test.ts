@@ -104,6 +104,25 @@ describe('StandaloneViewerPage', () => {
     expect(viewer.fits).toBe(1)
   })
 
+  it('reads out the zoom level of the open diagram and resets it to 100%', async () => {
+    const viewer = new FakeDiffableViewer()
+    viewer.level = 0.5
+    const { app } = mountPage(notationRendering(viewer))
+    openFile(app, new File(['<definitions/>'], 'order.bpmn'))
+    await vi.waitFor(() =>
+      expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(true),
+    )
+    const readout = app.querySelector<HTMLButtonElement>('.diagit-zoom-level')!
+    expect(readout.textContent).toBe('50%')
+
+    app.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!.click()
+    expect(readout.textContent).toBe('60%')
+    readout.click()
+
+    expect(viewer.level).toBeCloseTo(1)
+    expect(readout.textContent).toBe('100%')
+  })
+
   it('keeps only the last file when a second one opens before the first has rendered', async () => {
     const slowViewer = new FakeDiffableViewer()
     const fastViewer = new FakeDiffableViewer()
@@ -254,6 +273,7 @@ describe('StandaloneViewerPage with a linked model', () => {
       }
       return '<bpmn/>'
     })
+    const mayRead = vi.spyOn(linkedModels, 'mayRead')
     const { app, page } = mountPage(new FakeNotation(), linkedModels)
     await page.openLink(READABLE_FILE)
 
@@ -261,6 +281,8 @@ describe('StandaloneViewerPage with a linked model', () => {
 
     await vi.waitFor(() => expect(app.querySelector('.canvas .fake-diagram')).not.toBeNull())
     expect(attempts).toBe(2)
+    expect(mayRead).toHaveBeenCalledTimes(2)
+    expect(mayRead).toHaveBeenLastCalledWith(READABLE_FILE)
   })
 
   it('refuses a file that is no supported model without fetching it', async () => {
