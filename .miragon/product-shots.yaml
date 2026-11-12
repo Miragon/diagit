@@ -1,6 +1,6 @@
 # miragon-brand/product-shots: neu erzeugen mit listing.mjs, Bilder nie von Hand ändern
 # Cover und Galerie der Store-Seiten dieses Repos. Pfade sind relativ zum Repo.
-skillVersion: 1.32.0
+skillVersion: 1.28.0
 products:
   - id: diagit
     target: web
