@@ -158,7 +158,7 @@ describe('StandaloneViewerPage', () => {
     await vi.waitFor(() => expect(app.querySelector('.diagit-notice')).not.toBeNull())
     expect(app.querySelector<HTMLElement>('.diagit-notice')!.dataset.tone).toBe('warning')
     expect(app.querySelector('.diagit-notice')!.getAttribute('role')).toBe('alert')
-    expect(textOf(app, '.diagit-notice-title')).toBe("Diagit can't open notes.txt")
+    expect(textOf(app, '.diagit-notice-title')).toBe("Can't open notes.txt")
     expect(textOf(app, '.diagit-notice-body')).toBe('It opens .bpmn files.')
     expect(app.querySelector('.diagit-notice-actions')).toBeNull()
   })
@@ -258,7 +258,7 @@ describe('StandaloneViewerPage with a linked model', () => {
     await page.openLink('https://github.com/o/r/raw/main/notes.txt')
 
     expect(linkedModels.fetched).toEqual([])
-    expect(textOf(app, '.diagit-notice-title')).toBe("Diagit can't open notes.txt")
+    expect(textOf(app, '.diagit-notice-title')).toBe("Can't open notes.txt")
   })
 
   it('keeps a file dropped while the linked model still downloads', async () => {

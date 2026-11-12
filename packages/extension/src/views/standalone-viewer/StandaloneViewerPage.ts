@@ -155,7 +155,7 @@ export class StandaloneViewerPage implements Zoomable {
     if (!notation) {
       this.showError({
         tone: 'warning',
-        title: `Diagit can't open ${fileName}`,
+        title: `Can't open ${fileName}`,
         body: `It opens ${this.fileExtensions.join(' or ')} files.`,
       })
       return
