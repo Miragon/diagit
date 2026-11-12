@@ -1,12 +1,11 @@
-import { RotateCw, Settings, Upload } from 'lucide'
+import { FolderOpen, RotateCw, Settings } from 'lucide'
 import type { Notation, DiagramViewer, NotationLookup } from '../../notations/Notation'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { h } from '../../platform/utils/dom'
+import { fileLabel } from '../../platform/utils/fileLabel'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
 import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
-
-const NO_FILE = 'No file open'
 
 export interface LinkedModelSource {
   mayRead(url: string): Promise<boolean>
@@ -15,15 +14,21 @@ export interface LinkedModelSource {
 
 export class StandaloneViewerPage implements Zoomable {
   private readonly fileInput: HTMLInputElement
-  private readonly openButton = h('button', {
-    class: 'btn btn-primary',
-    type: 'button',
-    text: 'Open file…',
-  })
-  private readonly fileName = h('span', { class: 'file-name', text: NO_FILE })
-  private readonly notationBadge = h('span', { class: 'notation-badge' })
+  private readonly fileLabelSlot = h('div', { class: 'file' })
+  private readonly toolbar = h('div', { class: 'diagit-toolbar', hidden: '' }, [
+    this.fileLabelSlot,
+    h(
+      'button',
+      {
+        class: 'btn btn-ghost diagit-toolbar-end',
+        type: 'button',
+        onClick: () => this.fileInput.click(),
+      },
+      [lucideIcon(FolderOpen), 'Open another file'],
+    ),
+  ])
   private readonly canvas = h('div', { class: 'canvas' })
-  private readonly dropzone: HTMLElement
+  private readonly emptyState: HTMLElement
   private readonly stage: HTMLElement
   private readonly panel: HTMLElement
   private readonly loadedAssetCss = new Set<Notation>()
@@ -47,22 +52,27 @@ export class StandaloneViewerPage implements Zoomable {
       accept: [...new Set(lastExtensions)].join(','),
       style: 'display:none',
     })
-    this.dropzone = h('div', { class: 'dropzone' }, [
-      lucideIcon(Upload, 'dropzone-icon'),
-      h('strong', { text: 'Drop a diagram here or open a file' }),
-      h('span', { text: notationLabels.join(', ') }),
+    this.emptyState = h('div', { class: 'empty-state' }, [
+      h('img', { class: 'empty-state-icon', src: '/icon/icon.svg', alt: '' }),
+      h('h2', { text: 'Open a diagram' }),
+      h('p', { text: 'Drop a file anywhere on this page.' }),
+      h(
+        'button',
+        {
+          class: 'btn btn-large btn-primary',
+          type: 'button',
+          onClick: () => this.fileInput.click(),
+        },
+        [lucideIcon(FolderOpen), 'Open file…'],
+      ),
+      h('p', { class: 'fine-print', text: this.supportedNotations(notationLabels) }),
     ])
     this.stage = h('div', { class: 'diagit-canvas' }, [
       this.canvas,
-      this.dropzone,
+      this.emptyState,
       this.zoomControls.element,
     ])
-    this.panel = h('section', { class: 'diagit-wrap' }, [
-      h('div', { class: 'diagit-toolbar' }, [
-        h('div', { class: 'file' }, [this.fileName, this.notationBadge]),
-      ]),
-      this.stage,
-    ])
+    this.panel = h('section', { class: 'diagit-wrap' }, [this.toolbar, this.stage])
   }
 
   mount(app: HTMLElement): void {
@@ -70,7 +80,6 @@ export class StandaloneViewerPage implements Zoomable {
       h('img', { class: 'app-icon', src: '/icon/icon.svg', alt: '' }),
       h('h1', { text: 'Diagit' }),
       h('span', { class: 'page-subtitle', text: 'Viewer' }),
-      this.openButton,
       this.fileInput,
     ])
     app.append(header, this.panel)
@@ -86,6 +95,7 @@ export class StandaloneViewerPage implements Zoomable {
     }
     const fileName = this.linkedFileName(url)
     if (!mayRead) {
+      this.showFile(fileName, this.notations.detect(fileName)?.descriptor.label ?? '')
       this.showError(this.notAllowed(fileName, new URL(url).hostname))
       return
     }
@@ -112,7 +122,6 @@ export class StandaloneViewerPage implements Zoomable {
   }
 
   private listen(): void {
-    this.openButton.addEventListener('click', () => this.fileInput.click())
     this.fileInput.addEventListener('change', () => this.openFirst(this.fileInput.files))
     document.addEventListener('dragover', (event) => event.preventDefault())
     document.addEventListener('drop', (event) => {
@@ -142,6 +151,7 @@ export class StandaloneViewerPage implements Zoomable {
   ): Promise<void> {
     const openId = ++this.openCount
     const notation = this.notations.detect(fileName)
+    this.showFile(fileName, notation?.descriptor.label ?? '')
     if (!notation) {
       this.showError({
         tone: 'warning',
@@ -184,13 +194,16 @@ export class StandaloneViewerPage implements Zoomable {
       )
       return
     }
-    this.showDiagram(fileName, notation.descriptor.label)
+    this.showDiagram()
   }
 
-  private showDiagram(fileName: string, notationLabel: string): void {
+  private showFile(fileName: string, notationLabel: string): void {
+    this.fileLabelSlot.replaceChildren(fileLabel(fileName, notationLabel))
+    this.toolbar.hidden = false
+  }
+
+  private showDiagram(): void {
     this.panel.classList.remove('has-error')
-    this.fileName.textContent = fileName
-    this.notationBadge.textContent = notationLabel
     this.panel.classList.add('has-diagram')
     this.viewer?.setInteractive(true)
     this.viewer?.fit()
@@ -214,9 +227,14 @@ export class StandaloneViewerPage implements Zoomable {
     this.viewer?.destroy()
     this.viewer = null
     this.canvas.replaceChildren()
-    this.fileName.textContent = NO_FILE
-    this.notationBadge.textContent = ''
     this.panel.classList.remove('has-diagram')
+  }
+
+  private supportedNotations(labels: string[]): string {
+    if (labels.length > 2) {
+      return `${labels[0]}, ${labels[1]} and ${labels.length - 2} more`
+    }
+    return labels.join(' and ')
   }
 
   private linkedFileName(url: string): string {

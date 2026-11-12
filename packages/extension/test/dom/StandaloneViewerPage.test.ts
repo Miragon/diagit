@@ -44,6 +44,10 @@ function openFile(app: HTMLElement, file: File): void {
   input.dispatchEvent(new Event('change'))
 }
 
+function buttonNamed(app: HTMLElement, name: string): HTMLButtonElement {
+  return [...app.querySelectorAll('button')].find((button) => button.textContent === name)!
+}
+
 function textOf(app: HTMLElement, selector: string): string {
   return app.querySelector(selector)?.textContent ?? ''
 }
@@ -53,12 +57,24 @@ afterEach(() => {
 })
 
 describe('StandaloneViewerPage', () => {
-  it('names the supported notations while no file is open', () => {
+  it('invites to open a file and names the supported notations while no file is open', () => {
     const { app } = mountPage(new FakeNotation())
 
-    expect(textOf(app, '.file-name')).toBe('No file open')
-    expect(textOf(app, '.dropzone')).toContain('BPMN, DMN')
+    expect(textOf(app, '.empty-state h2')).toBe('Open a diagram')
+    expect(textOf(app, '.empty-state .fine-print')).toBe('BPMN and DMN')
+    expect(app.querySelector<HTMLElement>('.diagit-toolbar')!.hidden).toBe(true)
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(false)
+  })
+
+  it('opens the file picker from the empty state and from the toolbar', () => {
+    const { app } = mountPage(new FakeNotation())
+    const input = app.querySelector<HTMLInputElement>('input[type=file]')!
+    const pick = vi.spyOn(input, 'click')
+
+    buttonNamed(app, 'Open file…').click()
+    buttonNamed(app, 'Open another file').click()
+
+    expect(pick).toHaveBeenCalledTimes(2)
   })
 
   it('shows the file name and notation and fits the diagram once it is open', async () => {
@@ -67,9 +83,12 @@ describe('StandaloneViewerPage', () => {
 
     openFile(app, new File(['<definitions/>'], 'order.bpmn'))
 
-    await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('order.bpmn'))
-    expect(textOf(app, '.notation-badge')).toBe('BPMN')
-    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(true)
+    await vi.waitFor(() =>
+      expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(true),
+    )
+    expect(textOf(app, '.file-name')).toBe('order.bpmn')
+    expect(textOf(app, '.diagit-file-label .kind')).toBe('BPMN')
+    expect(app.querySelector<HTMLElement>('.diagit-toolbar')!.hidden).toBe(false)
     expect(viewer.fits).toBe(1)
   })
 
@@ -98,13 +117,15 @@ describe('StandaloneViewerPage', () => {
     const viewer = new FakeDiffableViewer()
     const { app } = mountPage(notationRendering(viewer))
     openFile(app, new File(['<definitions/>'], 'order.bpmn'))
-    await vi.waitFor(() => expect(textOf(app, '.file-name')).toBe('order.bpmn'))
+    await vi.waitFor(() =>
+      expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(true),
+    )
 
     openFile(app, new File(['hello'], 'notes.txt'))
 
     await vi.waitFor(() => expect(app.querySelector('.diagit-notice')).not.toBeNull())
     expect(viewer.destroyed).toBe(true)
-    expect(textOf(app, '.file-name')).toBe('No file open')
+    expect(textOf(app, '.file-name')).toBe('notes.txt')
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(false)
   })
 
@@ -124,6 +145,7 @@ describe('StandaloneViewerPage', () => {
     expect(new URL(report.href).searchParams.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
     expect(new URL(report.href).searchParams.get('console')).toBe('unparsable content')
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-error')).toBe(true)
+    expect(textOf(app, '.diagit-toolbar .file-name')).toBe('order.bpmn')
   })
 
   it('shows a warning without a report link for an unsupported file', async () => {
@@ -163,7 +185,7 @@ describe('StandaloneViewerPage with a linked model', () => {
     expect(app.querySelector('.canvas .fake-diagram')).not.toBeNull()
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(true)
     expect(textOf(app, '.file-name')).toBe('order.bpmn')
-    expect(textOf(app, '.notation-badge')).toBe('BPMN')
+    expect(textOf(app, '.diagit-file-label .kind')).toBe('BPMN')
   })
 
   it('names the linked model by the decoded last segment of its path', async () => {
@@ -190,7 +212,7 @@ describe('StandaloneViewerPage with a linked model', () => {
     const report = app.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
     expect(decodeURIComponent(report.href)).not.toContain('evil.example')
     expect(app.querySelector('.canvas .fake-diagram')).toBeNull()
-    expect(textOf(app, '.file-name')).toBe('No file open')
+    expect(textOf(app, '.file-name')).toBe('order.bpmn')
   })
 
   it('shows the download error with a report link', async () => {
