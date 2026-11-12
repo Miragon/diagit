@@ -11,7 +11,9 @@ export class FakeIntersectionObserver {
 
   static bringNear(): void {
     for (const observer of FakeIntersectionObserver.instances) {
-      for (const element of observer.observed) observer.report(element, true)
+      for (const element of observer.observed) {
+        observer.report(element, true)
+      }
     }
   }
 
