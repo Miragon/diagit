@@ -22,24 +22,31 @@ describe('GitlabMergeRequestPage.errorHelp', () => {
 
     const help = await page.errorHelp(gitlabCom, new FetchError('HTTP 429', 429, resetsAt))
 
-    expect(help.hint).toBe(`GitLab's API rate limit is reached. It resets at ${resetTime}.`)
+    expect(help).toEqual({
+      tone: 'warning',
+      title: 'GitLab rate limit reached',
+      body: `It resets at ${resetTime}.`,
+    })
   })
 
   it('leaves out a reset time that has already passed', async () => {
     const help = await page.errorHelp(gitlabCom, new FetchError('HTTP 429', 429, Date.now() - 1))
 
-    expect(help.hint).toBe("GitLab's API rate limit is reached.")
+    expect(help.body).toBe('Try again later.')
   })
 
   it('says the rate limit is reached for a 429 without a reset time', async () => {
     const help = await page.errorHelp(gitlabCom, new FetchError('HTTP 429', 429))
 
-    expect(help.hint).toBe("GitLab's API rate limit is reached.")
+    expect(help.title).toBe('GitLab rate limit reached')
+    expect(help.body).toBe('Try again later.')
   })
 
   it('asks to check the sign-in for any other failure', async () => {
     const help = await page.errorHelp(gitlabCom, new FetchError('HTTP 403', 403))
 
-    expect(help.hint).toMatch(/Check that you are signed in/)
+    expect(help.tone).toBe('danger')
+    expect(help.title).toBe('Merge request data could not be loaded')
+    expect(help.body).toMatch(/Check that you are signed in/)
   })
 })

@@ -91,7 +91,7 @@ body {
 }
 
 .diagit-wrap:not(.has-diagram) :is(.notation-badge, .diagit-controls),
-.has-diagram .dropzone {
+:is(.has-diagram, .has-error) .dropzone {
   display: none;
 }
 
@@ -130,11 +130,6 @@ body {
 .dropzone-icon {
   width: 28px;
   height: 28px;
-}
-
-.error-slot {
-  width: min(420px, 100%);
-  text-align: left;
 }
 
 .diagit-canvas.dragover {

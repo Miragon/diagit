@@ -276,15 +276,6 @@
   white-space: nowrap;
 }
 
-.diagit-diff-failure-detail {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 .diagit-diff-failure-action:hover {
   background: var(--cd-ui-hover);
 }

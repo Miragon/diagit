@@ -1,7 +1,7 @@
 @import '../theme/cd-tokens.generated.css';
 @import './fonts.css';
 @import './buttons.css';
-@import './errorNotice.css';
+@import './notice.css';
 
 :root {
   direction: ltr;

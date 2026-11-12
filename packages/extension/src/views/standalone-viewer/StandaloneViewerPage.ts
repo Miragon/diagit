@@ -1,10 +1,9 @@
-import { Upload } from 'lucide'
+import { RotateCw, Settings, Upload } from 'lucide'
 import type { Notation, DiagramViewer, NotationLookup } from '../../notations/Notation'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { h } from '../../platform/utils/dom'
-import { errorMessage } from '../../platform/utils/errorMessage'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
-import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
+import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 
 const NO_FILE = 'No file open'
@@ -24,7 +23,6 @@ export class StandaloneViewerPage implements Zoomable {
   private readonly fileName = h('span', { class: 'file-name', text: NO_FILE })
   private readonly notationBadge = h('span', { class: 'notation-badge' })
   private readonly canvas = h('div', { class: 'canvas' })
-  private readonly errorSlot = h('div', { class: 'error-slot' })
   private readonly dropzone: HTMLElement
   private readonly stage: HTMLElement
   private readonly panel: HTMLElement
@@ -51,7 +49,6 @@ export class StandaloneViewerPage implements Zoomable {
       lucideIcon(Upload, 'dropzone-icon'),
       h('strong', { text: 'Drop a diagram here or open a file' }),
       h('span', { text: notationLabels.join(', ') }),
-      this.errorSlot,
     ])
     this.stage = h('div', { class: 'diagit-canvas' }, [this.canvas, this.dropzone])
     this.panel = h('section', { class: 'diagit-wrap' }, [
@@ -82,15 +79,16 @@ export class StandaloneViewerPage implements Zoomable {
     if (openCountBefore !== this.openCount) {
       return
     }
+    const fileName = this.linkedFileName(url)
     if (!mayRead) {
-      this.showError({
-        title: 'Model could not be opened',
-        hint: 'Diagit only opens models from GitHub, GitLab and the domains you allowed.',
-        message: url,
-      })
+      this.showError(this.notAllowed(fileName, new URL(url).hostname))
       return
     }
-    await this.open(this.linkedFileName(url), () => this.linkedModels.fetchText(url))
+    await this.open(
+      fileName,
+      () => this.linkedModels.fetchText(url),
+      () => void this.openLink(url),
+    )
   }
 
   zoomBy(factor: number): void {
@@ -125,14 +123,18 @@ export class StandaloneViewerPage implements Zoomable {
     }
   }
 
-  private async open(fileName: string, readContent: () => Promise<string>): Promise<void> {
+  private async open(
+    fileName: string,
+    readContent: () => Promise<string>,
+    retry?: () => void,
+  ): Promise<void> {
     const openId = ++this.openCount
     const notation = this.notations.detect(fileName)
     if (!notation) {
       this.showError({
-        title: 'File not supported',
-        hint: `Diagit opens ${this.fileExtensions.join(' or ')} files.`,
-        message: fileName,
+        tone: 'warning',
+        title: `Diagit can't open ${fileName}`,
+        body: `It opens ${this.fileExtensions.join(' or ')} files.`,
       })
       return
     }
@@ -142,7 +144,7 @@ export class StandaloneViewerPage implements Zoomable {
       xml = await readContent()
     } catch (err) {
       if (openId === this.openCount) {
-        this.showError(this.loadFailure(notation.descriptor.label, err))
+        this.showError(this.downloadFailure(notation.descriptor.label, fileName, err, retry))
       }
       return
     }
@@ -161,7 +163,7 @@ export class StandaloneViewerPage implements Zoomable {
         return
       }
       this.showError(
-        ErrorNotice.unreadableModel(
+        Notice.unreadableModel(
           notation.descriptor.label,
           'in the standalone viewer',
           err,
@@ -174,7 +176,7 @@ export class StandaloneViewerPage implements Zoomable {
   }
 
   private showDiagram(fileName: string, notationLabel: string): void {
-    this.errorSlot.replaceChildren()
+    this.panel.classList.remove('has-error')
     this.fileName.textContent = fileName
     this.notationBadge.textContent = notationLabel
     this.panel.classList.add('has-diagram')
@@ -200,16 +202,36 @@ export class StandaloneViewerPage implements Zoomable {
     }
   }
 
-  private loadFailure(label: string, err: unknown): ErrorNoticeDetails {
-    const title = `${label} view could not be loaded`
+  private notAllowed(fileName: string, host: string): NoticeDetails {
     return {
-      title,
-      hint: 'Diagit could not download this file. Reload the page to try again.',
-      message: errorMessage(err),
+      tone: 'warning',
+      title: `Can't open ${fileName}`,
+      body: `Diagit may not read files from ${host} yet. Add the domain in the options.`,
+      action: { label: 'Open options', icon: Settings, opensOptions: true },
+      reportUrl: diagitRepository.problemReportUrl(
+        'Linked model refused in the standalone viewer',
+        `Diagit showed "Can't open" for a model from a domain it may not read.`,
+        this.reportContext,
+      ),
+    }
+  }
+
+  private downloadFailure(
+    label: string,
+    fileName: string,
+    err: unknown,
+    retry?: () => void,
+  ): NoticeDetails {
+    return {
+      tone: 'danger',
+      title: `${fileName} could not be downloaded`,
+      body: 'Check your connection and try again.',
+      action: retry ? { label: 'Try again', icon: RotateCw, onClick: retry } : undefined,
       reportUrl: diagitRepository.problemReportUrl(
         `${label} file not loaded in the standalone viewer`,
-        `Diagit showed "${title}" in the standalone viewer.`,
+        `Diagit could not download a ${label} file in the standalone viewer.`,
         this.reportContext,
+        err,
       ),
     }
   }
@@ -222,10 +244,9 @@ export class StandaloneViewerPage implements Zoomable {
     document.head.append(h('style', { text: notation.assetCss }))
   }
 
-  private showError(details: ErrorNoticeDetails): void {
+  private showError(details: NoticeDetails): void {
     this.closeDiagram()
-    const notice = new ErrorNotice(details).element
-    notice.setAttribute('role', 'alert')
-    this.errorSlot.replaceChildren(notice)
+    this.canvas.replaceChildren(new Notice(details, 'pane').element)
+    this.panel.classList.add('has-error')
   }
 }

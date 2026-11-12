@@ -102,37 +102,53 @@ describe('StandaloneViewerPage', () => {
 
     openFile(app, new File(['hello'], 'notes.txt'))
 
-    await vi.waitFor(() => expect(app.querySelector('.diagit-error')).not.toBeNull())
+    await vi.waitFor(() => expect(app.querySelector('.diagit-notice')).not.toBeNull())
     expect(viewer.destroyed).toBe(true)
     expect(textOf(app, '.file-name')).toBe('No file open')
     expect(app.querySelector('.diagit-wrap')!.classList.contains('has-diagram')).toBe(false)
   })
 
-  it('shows the error notice with a report link when the model cannot be rendered', async () => {
+  it('shows a pane notice in the canvas with a report link when the model cannot be read', async () => {
     const { app } = mountPage(new UnreadableNotation())
 
     openFile(app, new File(['not a model'], 'order.bpmn'))
 
-    await vi.waitFor(() => expect(app.querySelector('.diagit-error')).not.toBeNull())
-    expect(textOf(app, '.diagit-error-title')).toBe('BPMN view could not be rendered')
-    expect(textOf(app, '.diagit-error-hint')).toContain('as a BPMN model')
-    expect(textOf(app, '.diagit-error-detail')).toBe('unparsable content')
-    expect(textOf(app, '.diagit-error-report')).toBe('Report this problem')
-    const report = app.querySelector<HTMLAnchorElement>('.diagit-error-report')!
+    await vi.waitFor(() => expect(app.querySelector('.diagit-notice')).not.toBeNull())
+    const notice = app.querySelector<HTMLElement>('.canvas > .diagit-notice')!
+    expect(notice.dataset.layout).toBe('pane')
+    expect(notice.getAttribute('role')).toBe('alert')
+    expect(textOf(app, '.diagit-notice-title')).toBe('BPMN file could not be read')
+    expect(textOf(app, '.diagit-notice-body')).toBe('It is not a valid BPMN model.')
+    expect(textOf(app, '.diagit-notice-report')).toBe('Report problem')
+    const report = app.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
     expect(new URL(report.href).searchParams.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
-    expect(app.querySelector('.diagit-error')!.getAttribute('role')).toBe('alert')
+    expect(new URL(report.href).searchParams.get('console')).toBe('unparsable content')
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-error')).toBe(true)
   })
 
-  it('shows the error notice without a report link for an unsupported file', async () => {
+  it('shows a warning without a report link for an unsupported file', async () => {
     const { app } = mountPage(new FakeNotation())
 
     openFile(app, new File(['hello'], 'notes.txt'))
 
-    await vi.waitFor(() => expect(app.querySelector('.diagit-error')).not.toBeNull())
-    expect(textOf(app, '.diagit-error-title')).toBe('File not supported')
-    expect(textOf(app, '.diagit-error-hint')).toBe('Diagit opens .bpmn files.')
-    expect(textOf(app, '.diagit-error-detail')).toBe('notes.txt')
-    expect(app.querySelector('.diagit-error-report')).toBeNull()
+    await vi.waitFor(() => expect(app.querySelector('.diagit-notice')).not.toBeNull())
+    expect(app.querySelector<HTMLElement>('.diagit-notice')!.dataset.tone).toBe('warning')
+    expect(app.querySelector('.diagit-notice')!.getAttribute('role')).toBe('status')
+    expect(textOf(app, '.diagit-notice-title')).toBe("Diagit can't open notes.txt")
+    expect(textOf(app, '.diagit-notice-body')).toBe('It opens .bpmn files.')
+    expect(app.querySelector('.diagit-notice-actions')).toBeNull()
+  })
+
+  it('clears the error once the next file renders', async () => {
+    const { app } = mountPage(new FakeNotation())
+    openFile(app, new File(['hello'], 'notes.txt'))
+    await vi.waitFor(() => expect(app.querySelector('.diagit-notice')).not.toBeNull())
+
+    openFile(app, new File(['<bpmn/>'], 'order.bpmn'))
+
+    await vi.waitFor(() => expect(app.querySelector('.canvas .fake-diagram')).not.toBeNull())
+    expect(app.querySelector('.diagit-notice')).toBeNull()
+    expect(app.querySelector('.diagit-wrap')!.classList.contains('has-error')).toBe(false)
   })
 })
 
@@ -165,11 +181,14 @@ describe('StandaloneViewerPage with a linked model', () => {
     await page.openLink('https://evil.example/order.bpmn')
 
     expect(linkedModels.fetched).toEqual([])
-    expect(textOf(app, '.diagit-error-title')).toBe('Model could not be opened')
-    expect(textOf(app, '.diagit-error-hint')).toBe(
-      'Diagit only opens models from GitHub, GitLab and the domains you allowed.',
+    expect(app.querySelector<HTMLElement>('.diagit-notice')!.dataset.tone).toBe('warning')
+    expect(textOf(app, '.diagit-notice-title')).toBe("Can't open order.bpmn")
+    expect(textOf(app, '.diagit-notice-body')).toBe(
+      'Diagit may not read files from evil.example yet. Add the domain in the options.',
     )
-    expect(textOf(app, '.diagit-error-detail')).toBe('https://evil.example/order.bpmn')
+    expect(textOf(app, '.diagit-notice-actions button')).toBe('Open options')
+    const report = app.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
+    expect(decodeURIComponent(report.href)).not.toContain('evil.example')
     expect(app.querySelector('.canvas .fake-diagram')).toBeNull()
     expect(textOf(app, '.file-name')).toBe('No file open')
   })
@@ -182,9 +201,30 @@ describe('StandaloneViewerPage with a linked model', () => {
 
     await page.openLink(READABLE_FILE)
 
-    expect(textOf(app, '.diagit-error-title')).toBe('BPMN view could not be loaded')
-    expect(textOf(app, '.diagit-error-detail')).toBe(`HTTP 404 for ${READABLE_FILE}`)
-    expect(textOf(app, '.diagit-error-report')).toBe('Report this problem')
+    expect(textOf(app, '.diagit-notice-title')).toBe('order.bpmn could not be downloaded')
+    expect(textOf(app, '.diagit-notice-body')).toBe('Check your connection and try again.')
+    const report = app.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
+    expect(report.textContent).toBe('Report problem')
+    expect(new URL(report.href).searchParams.get('console')).toBe('HTTP 404 for https://github.com')
+    expect(decodeURIComponent(report.href)).not.toContain('order.bpmn')
+  })
+
+  it('downloads the linked model again on "Try again"', async () => {
+    let attempts = 0
+    const linkedModels = new FakeLinkedModels(async () => {
+      attempts += 1
+      if (attempts === 1) {
+        throw new FetchError('HTTP 503', 503)
+      }
+      return '<bpmn/>'
+    })
+    const { app, page } = mountPage(new FakeNotation(), linkedModels)
+    await page.openLink(READABLE_FILE)
+
+    app.querySelector<HTMLButtonElement>('.diagit-notice-actions button')!.click()
+
+    await vi.waitFor(() => expect(app.querySelector('.canvas .fake-diagram')).not.toBeNull())
+    expect(attempts).toBe(2)
   })
 
   it('refuses a file that is no supported model without fetching it', async () => {
@@ -194,7 +234,7 @@ describe('StandaloneViewerPage with a linked model', () => {
     await page.openLink('https://github.com/o/r/raw/main/notes.txt')
 
     expect(linkedModels.fetched).toEqual([])
-    expect(textOf(app, '.diagit-error-title')).toBe('File not supported')
+    expect(textOf(app, '.diagit-notice-title')).toBe("Diagit can't open notes.txt")
   })
 
   it('keeps a file dropped while the linked model still downloads', async () => {
@@ -231,7 +271,7 @@ describe('StandaloneViewerPage with a linked model', () => {
     answerMayRead(false)
     await linkedModelLoaded
 
-    expect(app.querySelector('.diagit-error')).toBeNull()
+    expect(app.querySelector('.diagit-notice')).toBeNull()
     expect(textOf(app, '.file-name')).toBe('local.bpmn')
   })
 })

@@ -9,18 +9,16 @@ const ACTION_CLASS = 'btn btn-small diagit-diff-failure-action'
 export class PaneFailureBanner {
   readonly element: HTMLElement
 
-  constructor({ title, hint, message, reportUrl, offersReload }: PaneFailure) {
-    this.element = h(
-      'div',
-      { class: 'diagit-diff-failure', role: 'alert', title: `${hint}\n${message}` },
-      [
-        lucideIcon(CircleX, 'diagit-diff-failure-icon'),
-        h('span', { class: 'diagit-diff-failure-title', text: title }),
-        h('span', { class: 'diagit-diff-failure-detail', text: `${hint} ${message}` }),
-        ...(offersReload ? [this.reloadButton()] : []),
-        ...(reportUrl ? [this.reportLink(reportUrl)] : []),
-      ],
-    )
+  constructor({ title, meta, reportUrl, offersReload }: PaneFailure) {
+    this.element = h('div', { class: 'diagit-diff-failure', role: 'alert' }, [
+      lucideIcon(CircleX, 'diagit-diff-failure-icon'),
+      h('span', { class: 'diagit-diff-failure-title' }, [
+        title,
+        ...(meta ? [' ', h('span', { class: 'diagit-notice-meta', text: meta })] : []),
+      ]),
+      ...(offersReload ? [this.reloadButton()] : []),
+      ...(reportUrl ? [this.reportLink(reportUrl)] : []),
+    ])
   }
 
   private reloadButton(): HTMLButtonElement {
@@ -42,7 +40,7 @@ export class PaneFailureBanner {
       { class: ACTION_CLASS },
       this.actionContent(Flag, 'Report'),
     )
-    link.setAttribute('aria-label', 'Report this problem')
+    link.setAttribute('aria-label', 'Report problem')
     return link
   }
 

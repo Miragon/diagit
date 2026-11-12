@@ -239,7 +239,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       (canvas, xml) => differ.createViewer(canvas, xml),
       this.head.value,
       'No current model (file deleted).',
-      this.notices,
+      (err) => this.notices.notRendered('new', err),
     )
     if (this.destroyed) {
       this.plainCanvas.destroy()

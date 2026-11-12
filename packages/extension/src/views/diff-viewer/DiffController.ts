@@ -9,10 +9,14 @@ import type { DiagramDiffer, NotationLookup } from '../../notations/Notation'
 import { diffableNotations } from '../../notations/diffableNotations'
 import { UnrecognizedFileNotices } from './UnrecognizedFileNotices'
 import { DiffPanel } from './DiffPanel'
-import { ErrorNotice } from '../../platform/ui/ErrorNotice'
+import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import type { HostPage, PanelHandle, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
-import type { ReportContext } from '../../platform/DiagitRepository'
+import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
+import { h } from '../../platform/utils/dom'
+import { fileLabel } from '../../platform/utils/fileLabel'
+import { detectHostTheme } from '../../platform/utils/hostTheme'
+import viewerCss from '../../platform/ui/viewer.css?inline'
 import diffCss from './diff.css?inline'
 
 const RERUN_DEBOUNCE_MS = 300
@@ -110,12 +114,42 @@ export class DiffController {
 
   private async mountError(file: ChangedFile, err: DiffDataError, pageKey: string) {
     const label = this.labelFor(file)
-    const notice = await ErrorNotice.mountOn(
-      this.page,
-      { name: DIFF_ERROR_TAG, anchor: file.anchor, append: file.append },
-      { title: `${label} diff could not be loaded`, message: err.message, ...err.help },
-    )
-    this.keepOnPage(notice, pageKey)
+    const { title = `${label} diff data could not be loaded`, ...help } = err.help
+    const failure: NoticeDetails = {
+      title,
+      ...help,
+      reportUrl: diagitRepository.problemReportUrl(
+        `${label} diff data not loaded`,
+        `Diagit showed "${title}" in a diff.`,
+        this.reportContext,
+        err.message,
+      ),
+    }
+    const panel = await this.page.mountPanel({
+      name: DIFF_ERROR_TAG,
+      anchor: file.anchor,
+      append: file.append,
+      css: viewerCss,
+      render: (container) => this.renderFailure(container, file, label, failure),
+    })
+    this.keepOnPage(panel, pageKey)
+  }
+
+  private renderFailure(
+    container: HTMLElement,
+    file: ChangedFile,
+    label: string,
+    failure: NoticeDetails,
+  ): Notice {
+    const fileName = file.path.slice(file.path.lastIndexOf('/') + 1)
+    const notice = new Notice(failure, 'pane')
+    const wrap = h('div', { class: 'diagit-wrap' }, [
+      h('div', { class: 'diagit-toolbar' }, [fileLabel(fileName, label)]),
+      notice.element,
+    ])
+    container.append(wrap)
+    wrap.dataset.cdTheme = detectHostTheme(wrap)
+    return notice
   }
 
   private async mount(block: DiffFileBlock, differ: DiagramDiffer, pageKey: string): Promise<void> {

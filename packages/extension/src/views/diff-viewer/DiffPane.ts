@@ -37,7 +37,7 @@ export class DiffPane {
       (canvas, source) => differ.createViewer(canvas, source),
       xml,
       emptyLabel,
-      notices,
+      (err) => notices.notRendered(this.side, err),
     )
   }
 

@@ -40,8 +40,39 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: 16px;
+  box-sizing: border-box;
+  min-height: var(--cd-shell-zeile);
+  padding: 4px 8px 4px var(--cd-shell-rand);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.diagit-file-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.diagit-file-label svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--fg-muted);
+}
+
+.diagit-file-label .file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagit-file-label .kind {
+  font-weight: 400;
+  color: var(--fg-muted);
 }
 
 /* Model / Code segmented switch. The selected tab is hover plus a 2px bar in
@@ -104,6 +135,10 @@
   );
   backdrop-filter: blur(8px);
   box-shadow: var(--cd-shadow-1);
+}
+
+.diagit-controls[hidden] {
+  display: none;
 }
 
 .diagit-toolbar .diagit-controls {

@@ -1,11 +1,14 @@
 import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSource'
-import { rateLimitHint } from '../utils/rateLimitHint'
+import { rateLimitHelp } from '../utils/rateLimitHelp'
 import type { GitlabDiffScanner } from './GitlabDiffScanner'
 import type { GitlabRestApi, MergeRequestData } from './GitlabRestApi'
 import type { GitlabRoutes, MergeRequestRef } from './GitlabRoutes'
 
-const METADATA_ERROR_HINT =
-  'Could not load the merge request metadata from the GitLab API. Check that you are signed in and can open this merge request.'
+const METADATA_ERROR_HELP: ErrorHelp = {
+  tone: 'danger',
+  title: 'Merge request data could not be loaded',
+  body: 'Check that you are signed in and can open this merge request.',
+}
 
 export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRequestData> {
   constructor(
@@ -57,6 +60,7 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
   }
 
   async errorHelp(_location: Location, err: unknown): Promise<ErrorHelp> {
-    return { hint: rateLimitHint('GitLab', err) ?? METADATA_ERROR_HINT }
+    const rateLimit = rateLimitHelp('GitLab', err)
+    return rateLimit ? { tone: 'warning', ...rateLimit } : METADATA_ERROR_HELP
   }
 }

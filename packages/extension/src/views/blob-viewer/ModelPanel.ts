@@ -1,12 +1,14 @@
+import { RotateCw } from 'lucide'
 import type { Notation, DiagramViewer } from '../../notations/Notation'
 import type { PanelHandle } from '../../platform/page/HostPage'
 import { h } from '../../platform/utils/dom'
-import { errorMessage } from '../../platform/utils/errorMessage'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
-import { ErrorNotice, type ErrorNoticeDetails } from '../../platform/ui/ErrorNotice'
+import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
+
+const CODE_STILL_SHOWN = 'The code below still shows the file.'
 
 export interface ModelPanelOptions {
   notation: Notation
@@ -21,10 +23,8 @@ export class ModelPanel implements PanelHandle, Zoomable {
     text: 'Loading diagram…',
   })
   private readonly canvas = h('div', { class: 'diagit-canvas' }, [this.placeholder])
-  private readonly wrap = h('div', { class: 'diagit-wrap' }, [
-    this.canvas,
-    new ZoomControls(this).element,
-  ])
+  private readonly zoomControls = new ZoomControls(this).element
+  private readonly wrap = h('div', { class: 'diagit-wrap' }, [this.canvas, this.zoomControls])
   private viewer: DiagramViewer | null = null
   private destroyed = false
   private resizeObserver: ResizeObserver | null = null
@@ -59,21 +59,13 @@ export class ModelPanel implements PanelHandle, Zoomable {
   }
 
   private async load(): Promise<void> {
+    this.canvas.replaceChildren(this.placeholder)
+    this.zoomControls.hidden = false
     let xml: string
     try {
       xml = await this.options.loadXml()
     } catch (err) {
-      const title = `${this.label} view could not be loaded`
-      this.showError({
-        title,
-        hint: 'Diagit could not download this file. Reload the page to try again.',
-        message: errorMessage(err),
-        reportUrl: diagitRepository.problemReportUrl(
-          `${this.label} file not loaded on a file page`,
-          `Diagit showed "${title}" on a file page.`,
-          this.options.reportContext,
-        ),
-      })
+      this.showError(this.downloadFailure(err))
       return
     }
     if (this.destroyed) {
@@ -84,9 +76,13 @@ export class ModelPanel implements PanelHandle, Zoomable {
     try {
       viewer = await this.options.notation.createViewer(this.canvas, xml)
     } catch (err) {
-      this.showError(
-        ErrorNotice.unreadableModel(this.label, 'on a file page', err, this.options.reportContext),
+      const unreadable = Notice.unreadableModel(
+        this.label,
+        'on a file page',
+        err,
+        this.options.reportContext,
       )
+      this.showError({ ...unreadable, body: `${unreadable.body} ${CODE_STILL_SHOWN}` })
       return
     }
     if (this.destroyed) {
@@ -109,7 +105,24 @@ export class ModelPanel implements PanelHandle, Zoomable {
     return this.options.notation.descriptor.label
   }
 
-  private showError(details: ErrorNoticeDetails): void {
-    this.wrap.replaceChildren(new ErrorNotice(details).element)
+  private downloadFailure(err: unknown): NoticeDetails {
+    const title = `${this.label} file could not be downloaded`
+    return {
+      tone: 'danger',
+      title,
+      body: `Check your connection and try again. ${CODE_STILL_SHOWN}`,
+      action: { label: 'Try again', icon: RotateCw, onClick: () => void this.load() },
+      reportUrl: diagitRepository.problemReportUrl(
+        `${this.label} file not loaded on a file page`,
+        `Diagit showed "${title}" on a file page.`,
+        this.options.reportContext,
+        err,
+      ),
+    }
+  }
+
+  private showError(details: NoticeDetails): void {
+    this.canvas.replaceChildren(new Notice(details, 'pane').element)
+    this.zoomControls.hidden = true
   }
 }

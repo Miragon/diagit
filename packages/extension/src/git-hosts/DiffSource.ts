@@ -1,7 +1,7 @@
-import type { ErrorNoticeDetails } from '../platform/ui/ErrorNotice'
+import type { NoticeDetails } from '../platform/ui/Notice'
 import type { VisibleFileHeader } from './FileHeaderLocator'
 
-export type ErrorHelp = Pick<ErrorNoticeDetails, 'hint' | 'action'>
+export type ErrorHelp = Pick<NoticeDetails, 'tone' | 'body' | 'action'> & { title?: string }
 
 interface DiffPanelSlot {
   anchor: HTMLElement

@@ -105,31 +105,33 @@ describe('GithubApiAuth.errorHelp', () => {
     minute: '2-digit',
   })
   const rateLimited = (status: number) => new FetchError(`HTTP ${status}`, status, resetsAt)
-  const connectGithub = { label: 'Connect GitHub', opensOptions: true }
-  const installApp = {
+  const connectGithub = expect.objectContaining({ label: 'Connect GitHub', opensOptions: true })
+  const installApp = expect.objectContaining({
     label: 'Install on this repository',
     url: 'https://github.com/apps/miragon-diagit/installations/new',
-  }
+  })
 
   it('offers to connect GitHub for a private github.com repo while not connected', async () => {
     const help = await (await authWithToken('')).errorHelp(githubCom, notFound)
-    expect(help.hint).toMatch(/private repository/i)
-    expect(help.hint).toMatch(/may have expired/)
+    expect(help.tone).toBe('warning')
+    expect(help.title).toBe('This repository looks private')
+    expect(help.body).toMatch(/may have expired/)
     expect(help.action).toEqual(connectGithub)
   })
 
   it('offers to connect GitHub for a 403 while not connected', async () => {
     const help = await (await authWithToken('')).errorHelp(githubCom, forbidden)
-    expect(help.hint).toMatch(/SSO/)
-    expect(help.hint).not.toMatch(/rate limit/i)
+    expect(help.tone).toBe('warning')
+    expect(help.title).toBe('GitHub denied access')
+    expect(help.body).toBe('Your organisation may require SSO. Connect GitHub to continue.')
     expect(help.action).toEqual(connectGithub)
   })
 
   it('says when an exhausted rate limit resets and offers to connect GitHub to raise it', async () => {
     const help = await (await authWithToken('')).errorHelp(githubCom, rateLimited(403))
-    expect(help.hint).toBe(
-      `GitHub's API rate limit is reached. It resets at ${resetTime}. Connect GitHub to raise the limit.`,
-    )
+    expect(help.tone).toBe('warning')
+    expect(help.title).toBe('GitHub rate limit reached')
+    expect(help.body).toBe(`It resets at ${resetTime}. Connect GitHub to raise the limit.`)
     expect(help.action).toEqual(connectGithub)
   })
 
@@ -137,20 +139,27 @@ describe('GithubApiAuth.errorHelp', () => {
     const help = await (
       await authWithToken('')
     ).errorHelp(githubCom, new FetchError('HTTP 429', 429))
-    expect(help.hint).toBe("GitHub's API rate limit is reached. Connect GitHub to raise the limit.")
+    expect(help.title).toBe('GitHub rate limit reached')
+    expect(help.body).toBe('Try again later. Connect GitHub to raise the limit.')
   })
 
   it('offers no action for an exhausted rate limit while connected', async () => {
     const help = await (await authWithToken('secret')).errorHelp(githubCom, rateLimited(429))
-    expect(help.hint).toBe(`GitHub's API rate limit is reached. It resets at ${resetTime}.`)
-    expect(help.action).toBeUndefined()
+    expect(help).toEqual({
+      tone: 'warning',
+      title: 'GitHub rate limit reached',
+      body: `It resets at ${resetTime}.`,
+    })
   })
 
   it('links to the app installation for a 404 or 403 while connected', async () => {
     const auth = await authWithToken('secret')
-    expect((await auth.errorHelp(githubCom, notFound)).action).toEqual(installApp)
+    const notFoundHelp = await auth.errorHelp(githubCom, notFound)
+    expect(notFoundHelp.title).toBe('Diagit GitHub App is not installed here')
+    expect(notFoundHelp.action).toEqual(installApp)
     const forbiddenHelp = await auth.errorHelp(githubCom, forbidden)
-    expect(forbiddenHelp.hint).not.toMatch(/anonymous/)
+    expect(forbiddenHelp.title).toBe('Diagit GitHub App has no access here')
+    expect(forbiddenHelp.tone).toBe('warning')
     expect(forbiddenHelp.action).toEqual(installApp)
   })
 
@@ -158,15 +167,24 @@ describe('GithubApiAuth.errorHelp', () => {
     const help = await (
       await authWithToken('secret')
     ).errorHelp(githubCom, new FetchError('HTTP 401', 401))
-    expect(help.hint).toMatch(/expired or revoked/i)
+    expect(help.tone).toBe('warning')
+    expect(help.title).toBe('GitHub login expired')
     expect(help.action).toEqual(connectGithub)
   })
 
-  it('offers no action for another failure while connected', async () => {
+  it('leaves the title to the caller and offers no action for another failure while connected', async () => {
     const help = await (
       await authWithToken('secret')
     ).errorHelp(githubCom, new FetchError('HTTP 500', 500))
-    expect(help.action).toBeUndefined()
+    expect(help).toEqual({ tone: 'danger', body: 'Reload the page to try again.' })
+  })
+
+  it('offers to connect GitHub for another failure while not connected', async () => {
+    const help = await (
+      await authWithToken('')
+    ).errorHelp(githubCom, new FetchError('HTTP 500', 500))
+    expect(help.tone).toBe('danger')
+    expect(help.action).toEqual(connectGithub)
   })
 
   it('treats an unreadable connection as not connected', async () => {
@@ -178,14 +196,24 @@ describe('GithubApiAuth.errorHelp', () => {
 
   it('never offers a GitHub action on Enterprise, where the token cannot help', async () => {
     const auth = await authWithToken('secret')
-    const help = await auth.errorHelp(enterprise, notFound)
-    expect(help.hint).not.toMatch(/GitHub App|api\.github\.com|expired/)
-    expect(help.action).toBeUndefined()
+    expect(await auth.errorHelp(enterprise, notFound)).toEqual({
+      tone: 'warning',
+      title: 'This repository looks private',
+      body: 'The page login cannot reach it through the API.',
+    })
+    expect(await auth.errorHelp(enterprise, new FetchError('HTTP 401', 401))).toEqual({
+      tone: 'warning',
+      title: 'GitHub login expired',
+      body: 'Sign in to ghe.corp.example again.',
+    })
   })
 
   it('says when the rate limit resets on Enterprise, without offering to connect', async () => {
     const help = await (await authWithToken('')).errorHelp(enterprise, rateLimited(403))
-    expect(help.hint).toBe(`GitHub's API rate limit is reached. It resets at ${resetTime}.`)
-    expect(help.action).toBeUndefined()
+    expect(help).toEqual({
+      tone: 'warning',
+      title: 'GitHub rate limit reached',
+      body: `It resets at ${resetTime}.`,
+    })
   })
 })
