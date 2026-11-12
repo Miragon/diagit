@@ -214,7 +214,7 @@ describe('ModelPanel', () => {
       const theme = wrap.dataset.cdTheme
 
       button().click()
-      await Promise.resolve()
+      await FakeFullScreen.settled()
 
       expect(document.fullscreenElement).toBe(wrap)
       expect(wrap.dataset.cdTheme).toBe(theme)
@@ -226,10 +226,10 @@ describe('ModelPanel', () => {
       const fitsAfterRender = viewer.fits
 
       button().click()
-      await Promise.resolve()
+      await FakeFullScreen.settled()
       expect(viewer.fits).toBe(fitsAfterRender + 1)
 
-      FakeFullScreen.exit()
+      await FakeFullScreen.exit()
       expect(viewer.fits).toBe(fitsAfterRender + 2)
     })
 

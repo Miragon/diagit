@@ -97,7 +97,7 @@ describe('ZoomControls', () => {
       const { target, panel, fullScreenButton } = fullScreenControls()
 
       fullScreenButton().click()
-      await Promise.resolve()
+      await FakeFullScreen.settled()
 
       expect(document.fullscreenElement).toBe(panel)
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('true')
@@ -106,13 +106,36 @@ describe('ZoomControls', () => {
       expect(target.fit).toHaveBeenCalledOnce()
     })
 
+    it('recognises full screen of a panel inside a shadow root', async () => {
+      FakeFullScreen.install()
+      const host = document.createElement('div')
+      document.body.append(host)
+      const panel = document.createElement('div')
+      const shadowRoot = host.attachShadow({ mode: 'open' })
+      shadowRoot.append(panel)
+      const { controls, button } = controlsFor()
+      controls.allowFullScreen(panel)
+      panel.append(controls.element)
+
+      button('Full screen').click()
+      await FakeFullScreen.settled()
+
+      expect(shadowRoot.fullscreenElement).toBe(panel)
+      expect(document.fullscreenElement).toBe(host)
+      expect(button('Full screen').getAttribute('aria-pressed')).toBe('true')
+
+      await FakeFullScreen.exit()
+
+      expect(button('Full screen').getAttribute('aria-pressed')).toBe('false')
+    })
+
     it('leaves full screen through the button and fits again', async () => {
       const { target, fullScreenButton } = fullScreenControls()
       fullScreenButton().click()
-      await Promise.resolve()
+      await FakeFullScreen.settled()
 
       fullScreenButton().click()
-      await Promise.resolve()
+      await FakeFullScreen.settled()
 
       expect(document.fullscreenElement).toBeNull()
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
@@ -123,9 +146,9 @@ describe('ZoomControls', () => {
     it('follows the browser when Esc leaves full screen', async () => {
       const { target, fullScreenButton } = fullScreenControls()
       fullScreenButton().click()
-      await Promise.resolve()
+      await FakeFullScreen.settled()
 
-      FakeFullScreen.exit()
+      await FakeFullScreen.exit()
 
       expect(fullScreenButton().getAttribute('aria-pressed')).toBe('false')
       expect(target.fit).toHaveBeenCalledTimes(2)
@@ -136,10 +159,10 @@ describe('ZoomControls', () => {
       const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
       vi.spyOn(window, 'scrollY', 'get').mockReturnValue(840)
       fullScreenButton().click()
-      await Promise.resolve()
+      await FakeFullScreen.settled()
       expect(scrollTo).not.toHaveBeenCalled()
 
-      FakeFullScreen.exit()
+      await FakeFullScreen.exit()
 
       expect(scrollTo).toHaveBeenCalledWith({ top: 840, behavior: 'instant' })
     })

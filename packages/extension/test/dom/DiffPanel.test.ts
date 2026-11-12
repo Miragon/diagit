@@ -274,7 +274,7 @@ describe('DiffPanel', () => {
       const root = container.querySelector<HTMLElement>('.diagit-diff-root')!
       const enter = async () => {
         buttonLabelled(container, 'Full screen').click()
-        await Promise.resolve()
+        await FakeFullScreen.settled()
       }
       return { container, differ, root, enter }
     }
@@ -289,7 +289,7 @@ describe('DiffPanel', () => {
       expect(buttonNamed(container, 'Diff').getAttribute('aria-pressed')).toBe('true')
       expect([oldViewer!.fits, newViewer!.fits]).toEqual(fitsBefore.map((fits) => fits + 1))
 
-      FakeFullScreen.exit()
+      await FakeFullScreen.exit()
       expect([oldViewer!.fits, newViewer!.fits]).toEqual(fitsBefore.map((fits) => fits + 2))
       expect(buttonNamed(container, 'Diff').getAttribute('aria-pressed')).toBe('true')
     })
