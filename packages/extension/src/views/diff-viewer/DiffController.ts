@@ -13,9 +13,7 @@ import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import type { HostPage, PanelHandle, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
-import { h } from '../../platform/utils/dom'
 import { fileLabel } from '../../platform/utils/fileLabel'
-import { detectHostTheme } from '../../platform/utils/hostTheme'
 import viewerCss from '../../platform/ui/viewer.css?inline'
 import diffCss from './diff.css?inline'
 
@@ -125,31 +123,19 @@ export class DiffController {
         err.message,
       ),
     }
-    const panel = await this.page.mountPanel({
-      name: DIFF_ERROR_TAG,
-      anchor: file.anchor,
-      append: file.append,
-      css: viewerCss,
-      render: (container) => this.renderFailure(container, file, label, failure),
-    })
-    this.keepOnPage(panel, pageKey)
-  }
-
-  private renderFailure(
-    container: HTMLElement,
-    file: ChangedFile,
-    label: string,
-    failure: NoticeDetails,
-  ): Notice {
     const fileName = file.path.slice(file.path.lastIndexOf('/') + 1)
-    const notice = new Notice(failure, 'pane')
-    const wrap = h('div', { class: 'diagit-wrap' }, [
-      h('div', { class: 'diagit-toolbar' }, [fileLabel(fileName, label)]),
-      notice.element,
-    ])
-    container.append(wrap)
-    wrap.dataset.cdTheme = detectHostTheme(wrap)
-    return notice
+    const panel = await Notice.mountOn(
+      this.page,
+      {
+        name: DIFF_ERROR_TAG,
+        anchor: file.anchor,
+        append: file.append,
+        css: viewerCss,
+        fileLabel: fileLabel(fileName, label),
+      },
+      failure,
+    )
+    this.keepOnPage(panel, pageKey)
   }
 
   private async mount(block: DiffFileBlock, differ: DiagramDiffer, pageKey: string): Promise<void> {

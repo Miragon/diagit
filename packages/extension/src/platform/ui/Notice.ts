@@ -28,6 +28,8 @@ export interface NoticePanel {
   name: string
   anchor: HTMLElement
   append: ShadowPanelOptions<Notice>['append']
+  css?: string
+  fileLabel?: HTMLElement
 }
 
 const TONE_ICON: Record<NoticeTone, IconNode> = {
@@ -42,16 +44,16 @@ export class Notice implements PanelHandle {
 
   static mountOn(
     page: HostPage,
-    { name, anchor, append }: NoticePanel,
+    { name, anchor, append, css = '', fileLabel }: NoticePanel,
     details: NoticeDetails,
-    layout?: NoticeLayout,
   ): Promise<ShadowPanel<Notice>> {
     return page.mountPanel({
       name,
       anchor,
       append,
-      css: '',
-      render: (container) => new Notice(details, layout).mountIn(container),
+      css,
+      render: (container) =>
+        new Notice(details, fileLabel ? 'pane' : 'block').mountIn(container, fileLabel),
     })
   }
 
@@ -104,9 +106,15 @@ export class Notice implements PanelHandle {
     this.element.remove()
   }
 
-  private mountIn(container: HTMLElement): this {
-    container.append(this.element)
-    this.element.dataset.cdTheme = detectHostTheme(this.element)
+  private mountIn(container: HTMLElement, fileLabel?: HTMLElement): this {
+    const root = fileLabel
+      ? h('div', { class: 'diagit-wrap' }, [
+          h('div', { class: 'diagit-toolbar' }, [fileLabel]),
+          this.element,
+        ])
+      : this.element
+    container.append(root)
+    root.dataset.cdTheme = detectHostTheme(root)
     return this
   }
 
