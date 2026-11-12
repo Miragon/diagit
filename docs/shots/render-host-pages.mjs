@@ -73,14 +73,19 @@ async function save(name, png) {
 await page.goto(`http://localhost:${port}/octo/flows/blob/main/flows/order.bpmn`)
 await page.locator('.djs-element').first().waitFor({ state: 'attached', timeout: 20_000 })
 await page.waitForTimeout(1000)
+const viewerBottom = await page
+  .locator('diagit-viewer')
+  .evaluate((viewer) => viewer.getBoundingClientRect().bottom)
 await save(
   'file-page.png',
-  await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } }),
+  await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: Math.ceil(viewerBottom) + 8 } }),
 )
 
 await page.goto(`http://localhost:${port}/octo/flows/pull/1/files`)
 const panel = page.locator('diagit-diff')
-await panel.locator('.diagit-tab.is-active', { hasText: 'Diff' }).waitFor({ timeout: 20_000 })
+await panel
+  .locator('.diagit-segmented button[aria-pressed="true"]', { hasText: 'Diff' })
+  .waitFor({ timeout: 20_000 })
 await panel.getByRole('button', { name: 'Plain' }).click()
 await panel.locator('.diagit-diff-single .djs-element').first().waitFor({ state: 'attached' })
 await page.waitForTimeout(1000)

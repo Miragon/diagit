@@ -19,7 +19,7 @@ Public repositories on github.com and all repositories on gitlab.com work right 
 Open any [supported file](./notations) in a repository, for example a `.bpmn`, `.storm` or `.owm` file. Diagit draws the diagram above the source:
 
 <figure class="shot">
-  <img src="/shots/file-page.png" alt="A .bpmn file on a GitHub-like file page: Diagit draws the order process above the file's source, with zoom buttons at the bottom left" />
+  <img src="/shots/file-page.png" alt="A .bpmn file on a GitHub-like file page: Diagit draws the order process under the file name, with the zoom controls, Fit and the full screen button at the bottom right" />
   <figcaption>order.bpmn on a file page, drawn by Diagit</figcaption>
 </figure>
 

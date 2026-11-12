@@ -38,8 +38,9 @@ const page = await context.newPage()
 for (const [name, file] of Object.entries(files)) {
   await page.goto(`chrome-extension://${extensionId}/viewer.html`)
   await page.setInputFiles('input[type=file]', join(fixtures, file))
+  await page.addStyleTag({ content: '.diagit-zoom { visibility: hidden; }' })
   await page.waitForTimeout(2500)
-  const stage = await page.locator('.stage').screenshot()
+  const stage = await page.locator('.diagit-canvas').screenshot()
   writeFileSync(join(out, `${name}.png`), await cropToContent(page, stage))
   console.log(`${name}.png`)
 }

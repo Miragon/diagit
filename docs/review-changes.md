@@ -3,7 +3,7 @@
 See what changed in a `.bpmn` file as two diagrams side by side, with every added, removed, changed and moved element marked, instead of reading the XML diff.
 
 <figure class="shot">
-  <img src="/shots/pr-diff.png" alt="Diagit's Diff view of order.bpmn: the Before version on the left, the After version on the right, and a toolbar with a legend that counts added, removed, changed and moved elements, the Prev, Next and All buttons and the number of changes" />
+  <img src="/shots/pr-diff.png" alt="Diagit's Diff view of order.bpmn: the Before version on the left, the After version on the right, and a toolbar with a legend that counts added, removed, changed and moved elements and the number of changes, the arrows for the previous and the next change and Show all" />
   <figcaption>order.bpmn in a pull request, Diff view</figcaption>
 </figure>
 
