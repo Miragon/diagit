@@ -90,7 +90,7 @@ body {
   font-size: 11px;
 }
 
-.diagit-wrap:not(.has-diagram) :is(.notation-badge, .diagit-controls),
+.diagit-wrap:not(.has-diagram) :is(.notation-badge, .diagit-zoom),
 :is(.has-diagram, .has-error) .dropzone {
   display: none;
 }

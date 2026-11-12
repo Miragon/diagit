@@ -50,7 +50,7 @@ describe('ModelPanel', () => {
       'Check your connection and try again. The code below still shows the file.',
     )
     expect(container.querySelector('.diagit-placeholder')).toBeNull()
-    expect(container.querySelector<HTMLElement>('.diagit-controls')!.hidden).toBe(true)
+    expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(true)
     const report = container.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
     expect(new URL(report.href).searchParams.get('where')).toBe(FAKE_REPORT_CONTEXT.where)
     expect(reportedConsole(container)).toBe('HTTP 500 for https://github.com')
@@ -82,7 +82,26 @@ describe('ModelPanel', () => {
     await vi.waitFor(() => expect(container.querySelector('.fake-diagram')).not.toBeNull())
     expect(attempts).toBe(2)
     expect(container.querySelector('.diagit-notice')).toBeNull()
-    expect(container.querySelector<HTMLElement>('.diagit-controls')!.hidden).toBe(false)
+    expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+  })
+
+  it('reads out the zoom level of the rendered diagram', async () => {
+    const container = mountPanel(
+      new ModelPanel({
+        notation: new FakeNotation(),
+        loadXml: async () => '<bpmn/>',
+        reportContext: FAKE_REPORT_CONTEXT,
+      }),
+    )
+    await vi.waitFor(() => expect(container.querySelector('.fake-diagram')).not.toBeNull())
+    const zoomIn = container.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!
+    const readout = container.querySelector<HTMLButtonElement>('.diagit-zoom-level')!
+
+    expect(readout.textContent).toBe('100%')
+    zoomIn.click()
+    expect(readout.textContent).toBe('120%')
+    readout.click()
+    expect(readout.textContent).toBe('100%')
   })
 
   it('shows a pane notice with a report link when the model cannot be read', async () => {

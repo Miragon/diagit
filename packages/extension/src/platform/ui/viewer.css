@@ -114,18 +114,15 @@
   outline-offset: -2px;
 }
 
-/* Zoom island in the canvas' bottom-left corner: never covered by the host's
-   sticky file header, and clear of the bpmn.io / dmn.io watermark that the
-   viewer libraries render in the bottom-right. Glass with shadow-1. */
-.diagit-controls {
+.diagit-zoom {
   position: absolute;
-  left: var(--cd-shell-rand);
-  bottom: var(--cd-shell-rand);
+  right: var(--cd-shell-rand);
+  bottom: calc(var(--cd-shell-rand) + 28px);
   z-index: 5;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 3px;
+  padding: 4px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: color-mix(
@@ -133,22 +130,36 @@
     var(--cd-ui-flaeche-hoch) var(--cd-ui-chrome-deckkraft),
     transparent
   );
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--cd-kachel-glas-blur));
   box-shadow: var(--cd-shadow-1);
 }
 
-.diagit-controls[hidden] {
+.diagit-zoom[hidden] {
   display: none;
 }
 
-.diagit-toolbar .diagit-controls {
-  position: static;
+.diagit-zoom-level {
+  min-width: 48px;
+  padding: 0 6px;
+  border-radius: var(--cd-radius-sm);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
-.diagit-controls-divider {
+.diagit-zoom-level:disabled {
+  border-color: transparent;
+  background: transparent;
+}
+
+.diagit-zoom-fit {
+  padding: 0 10px;
+  border-radius: var(--cd-radius-sm);
+}
+
+.diagit-zoom-divider {
   width: 1px;
-  align-self: stretch;
-  margin: 4px 2px;
+  height: 20px;
+  margin: 0 4px;
   background: var(--border);
 }
 

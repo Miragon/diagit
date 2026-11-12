@@ -70,6 +70,51 @@ afterEach(() => {
 })
 
 describe('DiffPanel', () => {
+  describe('zoom island', () => {
+    const zoomButton = (container: HTMLElement, label: string) =>
+      container.querySelector<HTMLButtonElement>(`.diagit-zoom [aria-label^="${label}"]`)!
+
+    async function diffShowingBothVersions() {
+      const differ = new FakeDiffer()
+      const container = mount(
+        differ,
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
+      const [oldViewer, newViewer] = differ.viewers
+      oldViewer!.level = 0.5
+      newViewer!.level = 0.8
+      return { container, oldViewer: oldViewer!, newViewer: newViewer! }
+    }
+
+    it('floats over the diagram area, not in the toolbar', async () => {
+      const container = mount(new FakeDiffer(), async () => '<model/>')
+
+      expect(container.querySelector('.diagit-diff-area > .diagit-zoom')).not.toBeNull()
+      expect(container.querySelector('.diagit-toolbar .diagit-zoom')).toBeNull()
+    })
+
+    it('reads out the zoom level of the new version after "Zoom in"', async () => {
+      const { container } = await diffShowingBothVersions()
+
+      zoomButton(container, 'Zoom in').click()
+
+      expect(zoomButton(container, 'Reset zoom').textContent).toBe('96%')
+    })
+
+    it('resets both versions to 100%', async () => {
+      const { container, oldViewer, newViewer } = await diffShowingBothVersions()
+      zoomButton(container, 'Zoom in').click()
+
+      zoomButton(container, 'Reset zoom').click()
+
+      expect(oldViewer.level).toBeCloseTo(1)
+      expect(newViewer.level).toBeCloseTo(1)
+      expect(zoomButton(container, 'Reset zoom').textContent).toBe('100%')
+    })
+  })
+
   describe('loading on demand', () => {
     it('downloads nothing until the panel comes near the viewport', async () => {
       const loadOld = vi.fn(async () => '<old/>')

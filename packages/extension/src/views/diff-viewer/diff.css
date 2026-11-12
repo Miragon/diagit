@@ -28,6 +28,10 @@
   border-bottom: 1px solid var(--border);
 }
 
+.diagit-diff-area {
+  position: relative;
+}
+
 /* The diagram fills the container; the frame is the root border above, so the
    grid itself carries no border of its own. */
 .diagit-diff-grid {

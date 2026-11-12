@@ -27,7 +27,9 @@ export class StandaloneViewerPage implements Zoomable {
   private readonly stage: HTMLElement
   private readonly panel: HTMLElement
   private readonly loadedAssetCss = new Set<Notation>()
+  private readonly zoomControls = new ZoomControls(this)
   private viewer: DiagramViewer | null = null
+  private stopTrackingZoom: (() => void) | null = null
   private openCount = 0
 
   constructor(
@@ -50,11 +52,14 @@ export class StandaloneViewerPage implements Zoomable {
       h('strong', { text: 'Drop a diagram here or open a file' }),
       h('span', { text: notationLabels.join(', ') }),
     ])
-    this.stage = h('div', { class: 'diagit-canvas' }, [this.canvas, this.dropzone])
+    this.stage = h('div', { class: 'diagit-canvas' }, [
+      this.canvas,
+      this.dropzone,
+      this.zoomControls.element,
+    ])
     this.panel = h('section', { class: 'diagit-wrap' }, [
       h('div', { class: 'diagit-toolbar' }, [
         h('div', { class: 'file' }, [this.fileName, this.notationBadge]),
-        new ZoomControls(this).element,
       ]),
       this.stage,
     ])
@@ -93,6 +98,13 @@ export class StandaloneViewerPage implements Zoomable {
 
   zoomBy(factor: number): void {
     this.viewer?.zoomBy(factor)
+  }
+
+  resetZoom(): void {
+    const level = this.viewer?.zoomLevel()
+    if (level) {
+      this.viewer?.zoomBy(1 / level)
+    }
   }
 
   fit(): void {
@@ -182,9 +194,23 @@ export class StandaloneViewerPage implements Zoomable {
     this.panel.classList.add('has-diagram')
     this.viewer?.setInteractive(true)
     this.viewer?.fit()
+    this.trackZoomLevel()
+  }
+
+  private trackZoomLevel(): void {
+    const { viewer } = this
+    if (!viewer) {
+      return
+    }
+    const showLevel = () => this.zoomControls.showLevel(viewer.zoomLevel())
+    this.stopTrackingZoom = viewer.onViewChange(showLevel)
+    showLevel()
   }
 
   private closeDiagram(): void {
+    this.stopTrackingZoom?.()
+    this.stopTrackingZoom = null
+    this.zoomControls.showLevel(null)
     this.viewer?.destroy()
     this.viewer = null
     this.canvas.replaceChildren()

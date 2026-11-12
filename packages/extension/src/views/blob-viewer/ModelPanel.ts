@@ -23,9 +23,13 @@ export class ModelPanel implements PanelHandle, Zoomable {
     text: 'Loading diagram…',
   })
   private readonly canvas = h('div', { class: 'diagit-canvas' }, [this.placeholder])
-  private readonly zoomControls = new ZoomControls(this).element
-  private readonly wrap = h('div', { class: 'diagit-wrap' }, [this.canvas, this.zoomControls])
+  private readonly zoomControls = new ZoomControls(this)
+  private readonly wrap = h('div', { class: 'diagit-wrap' }, [
+    this.canvas,
+    this.zoomControls.element,
+  ])
   private viewer: DiagramViewer | null = null
+  private stopTrackingZoom: (() => void) | null = null
   private destroyed = false
   private resizeObserver: ResizeObserver | null = null
   private detachFocusZoom: (() => void) | null = null
@@ -43,12 +47,21 @@ export class ModelPanel implements PanelHandle, Zoomable {
     this.viewer?.zoomBy(factor)
   }
 
+  resetZoom(): void {
+    const level = this.viewer?.zoomLevel()
+    if (level) {
+      this.viewer?.zoomBy(1 / level)
+    }
+  }
+
   fit(): void {
     this.viewer?.fit()
   }
 
   destroy(): void {
     this.destroyed = true
+    this.stopTrackingZoom?.()
+    this.stopTrackingZoom = null
     this.detachFocusZoom?.()
     this.detachFocusZoom = null
     this.resizeObserver?.disconnect()
@@ -60,7 +73,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   private async load(): Promise<void> {
     this.canvas.replaceChildren(this.placeholder)
-    this.zoomControls.hidden = false
+    this.zoomControls.element.hidden = true
     let xml: string
     try {
       xml = await this.options.loadXml()
@@ -93,12 +106,20 @@ export class ModelPanel implements PanelHandle, Zoomable {
     this.viewer = viewer
     this.placeholder.remove()
     viewer.fit()
+    this.trackZoomLevel(viewer)
     this.options.onRendered?.()
     this.detachFocusZoom = enableFocusZoom(this.canvas, (active) =>
       this.viewer?.setInteractive(active),
     )
     this.resizeObserver = new ResizeObserver(() => this.viewer?.fit())
     this.resizeObserver.observe(this.canvas)
+  }
+
+  private trackZoomLevel(viewer: DiagramViewer): void {
+    const showLevel = () => this.zoomControls.showLevel(viewer.zoomLevel())
+    this.stopTrackingZoom = viewer.onViewChange(showLevel)
+    showLevel()
+    this.zoomControls.element.hidden = false
   }
 
   private get label(): string {
@@ -123,6 +144,6 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   private showError(details: NoticeDetails): void {
     this.canvas.replaceChildren(new Notice(details, 'pane').element)
-    this.zoomControls.hidden = true
+    this.zoomControls.element.hidden = true
   }
 }
