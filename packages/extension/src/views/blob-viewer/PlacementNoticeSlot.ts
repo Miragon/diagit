@@ -1,10 +1,12 @@
-import { CircleAlert } from 'lucide'
+import { ExternalLink, Flag } from 'lucide'
 import { browser } from 'wxt/browser'
 import { PLACEMENT_NOTICE_TAG } from '../../platform/injectedElements'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { BackgroundClient } from '../../platform/messaging/BackgroundClient'
 import { Toast, type ToastAction } from '../../platform/ui/Toast'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
+
+const LAYOUT_CHANGED = 'The page layout has probably changed.'
 
 export class PlacementNoticeSlot {
   private notice: ShadowPanel<Toast> | null = null
@@ -21,15 +23,18 @@ export class PlacementNoticeSlot {
       return
     }
     this.shownPath = path
+    const openInViewer = this.openInViewer(rawUrl)
     const notice = await Toast.mountOn(this.page, PLACEMENT_NOTICE_TAG, {
-      tone: 'danger',
-      icon: CircleAlert,
+      tone: 'warning',
       title: `${label} view could not be added`,
-      message: `Diagit cannot find where to show this ${label} model. The page layout has probably changed.`,
+      body: openInViewer.length
+        ? `${LAYOUT_CHANGED} Open the file in Diagit instead.`
+        : LAYOUT_CHANGED,
       actions: [
-        ...this.openInViewer(rawUrl),
+        ...openInViewer,
         {
-          label: 'Report this problem',
+          label: 'Report problem',
+          icon: Flag,
           variant: 'secondary',
           url: diagitRepository.problemReportUrl(
             `${label} view not added to a file page`,
@@ -65,6 +70,7 @@ export class PlacementNoticeSlot {
     return [
       {
         label: 'Open in Diagit',
+        icon: ExternalLink,
         variant: 'primary',
         onClick: () => void new BackgroundClient().openViewer(rawUrl),
       },

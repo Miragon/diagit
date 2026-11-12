@@ -151,10 +151,15 @@ describe('BlobViewerController', () => {
       await vi.advanceTimersByTimeAsync(ALL_MOUNT_RETRIES_MS)
 
       expect(noticeText()).toContain('view could not be added')
-      expect(noticeText()).toContain('Report this problem')
+      expect(noticeText()).toContain('Report problem')
+      expect(
+        document
+          .querySelector(PLACEMENT_NOTICE_TAG)!
+          .shadowRoot!.querySelector<HTMLElement>('.diagit-toast')!.dataset.tone,
+      ).toBe('warning')
       const openTab = vi.spyOn(window, 'open').mockReturnValue(null)
       const reportButton = noticeButtons().find(
-        (button) => button.textContent === 'Report this problem',
+        (button) => button.textContent === 'Report problem',
       )!
       reportButton.click()
       const fields = new URL(String(openTab.mock.calls[0]![0])).searchParams
@@ -187,7 +192,8 @@ describe('BlobViewerController', () => {
       vi.mocked(browser.extension).inIncognitoContext = false
 
       expect(noticeButtons().map((button) => button.textContent)).not.toContain('Open in Diagit')
-      expect(noticeText()).toContain('Report this problem')
+      expect(noticeText()).toContain('Report problem')
+      expect(noticeText()).not.toContain('Open the file in Diagit')
     })
 
     it('stays quiet on a file that is not a diagram', async () => {

@@ -1,4 +1,4 @@
-import { Star } from 'lucide'
+import { Star, ThumbsUp } from 'lucide'
 import { browser } from 'wxt/browser'
 import type { HostPage, ShadowPanel } from '../page/HostPage'
 import { DIAGRAM_VIEWS_KEY, type DiagramViews } from '../settings/DiagramViewsLocalStorage'
@@ -11,7 +11,8 @@ export const STAR_PROMPT_TAG = 'diagit-star-prompt'
 export const PAGES_BEFORE_PROMPT = 5
 
 const DISMISSED_AT_KEY = 'reviewPromptDismissedAt'
-const MESSAGE = 'Thanks for using Diagit.'
+const TITLE = 'Thanks for using Diagit.'
+const BODY = 'A star helps other teams find it.'
 
 export class StarPrompt {
   private toast: ShadowPanel<Toast> | null = null
@@ -54,8 +55,8 @@ export class StarPrompt {
   private async show(): Promise<void> {
     this.toast = await Toast.mountOn(this.page, STAR_PROMPT_TAG, {
       tone: 'info',
-      icon: Star,
-      message: MESSAGE,
+      title: TITLE,
+      body: BODY,
       actions: this.actions(),
       onClose: () => void this.dismiss(),
     })
@@ -64,12 +65,13 @@ export class StarPrompt {
   private actions(): ToastAction[] {
     const star: ToastAction = {
       label: 'Star on GitHub',
-      variant: 'primary',
+      icon: Star,
+      variant: 'secondary',
       url: diagitRepository.url,
     }
     const storeListingUrl = this.storeListingUrl()
     const rate: ToastAction[] = storeListingUrl
-      ? [{ label: 'Rate Diagit', variant: 'secondary', url: storeListingUrl }]
+      ? [{ label: 'Rate Diagit', icon: ThumbsUp, variant: 'secondary', url: storeListingUrl }]
       : []
     return [star, ...rate]
   }
