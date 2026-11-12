@@ -23,6 +23,8 @@ export class ZoomControls {
   private readonly zoomParts: HTMLElement[]
   private fullScreenButton: HTMLButtonElement | null = null
   private pageScrollBeforeFullScreen = 0
+  private fullScreenPanel: HTMLElement | null = null
+  private hasNothingToShow = false
 
   constructor(target: Zoomable) {
     this.levelButton = h('button', {
@@ -72,10 +74,12 @@ export class ZoomControls {
       onClick: () => this.toggleFullScreen(panel),
     })
     this.element.append(this.fullScreenButton)
+    this.fullScreenPanel = panel
     panel.addEventListener('fullscreenchange', () => {
       const active = ZoomControls.isFullScreen(panel)
       this.showFullScreen(active)
       if (!active) {
+        this.element.hidden ||= this.hasNothingToShow
         window.scrollTo({ top: this.pageScrollBeforeFullScreen, behavior: 'instant' })
       }
     })
@@ -83,6 +87,7 @@ export class ZoomControls {
   }
 
   showLevel(level: number | null): void {
+    this.hasNothingToShow = false
     const zoomable = level !== null && Number.isFinite(level)
     for (const part of this.zoomParts) {
       part.hidden = !zoomable
@@ -97,7 +102,10 @@ export class ZoomControls {
   }
 
   hide(): void {
-    this.element.hidden = true
+    this.showLevel(null)
+    this.hasNothingToShow = true
+    const panel = this.fullScreenPanel
+    this.element.hidden = !panel || !ZoomControls.isFullScreen(panel)
   }
 
   private showFullScreen(active: boolean): void {

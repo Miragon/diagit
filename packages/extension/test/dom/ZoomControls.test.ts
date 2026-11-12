@@ -186,6 +186,22 @@ describe('ZoomControls', () => {
       expect(controls.element.hidden).toBe(true)
     })
 
+    it('keeps the way out of full screen while there is nothing to show', async () => {
+      const { controls, fullScreenButton } = fullScreenControls()
+      fullScreenButton().click()
+      await FakeFullScreen.settled()
+
+      controls.hide()
+
+      expect(controls.element.hidden).toBe(false)
+      expect(fullScreenButton().hidden).toBe(false)
+      expect(controls.element.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(true)
+
+      await FakeFullScreen.exit()
+
+      expect(controls.element.hidden).toBe(true)
+    })
+
     it('stays unpressed when the browser refuses full screen', async () => {
       const { fullScreenButton } = fullScreenControls()
       FakeFullScreen.refuse()
