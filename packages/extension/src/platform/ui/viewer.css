@@ -67,6 +67,12 @@
   white-space: nowrap;
 }
 
+.diagit-file-path .file-name {
+  font-family: var(--diagit-font-mono);
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .diagit-file-label .kind {
   font-weight: 400;
   color: var(--fg-muted);

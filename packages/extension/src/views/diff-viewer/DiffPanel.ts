@@ -5,6 +5,7 @@ import type { PanelHandle } from '../../platform/page/HostPage'
 import type { ReportContext } from '../../platform/DiagitRepository'
 import { h } from '../../platform/utils/dom'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
+import { filePathLabel } from '../../platform/utils/fileLabel'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 import { ChangeControls } from './ChangeControls'
@@ -16,6 +17,7 @@ import { ViewerCanvas } from './ViewerCanvas'
 export interface DiffPanelOptions extends DiffLoaders {
   differ: DiagramDiffer
   label: string
+  filePath: string
   reportContext: ReportContext
   onRendered?: () => void
 }
@@ -73,6 +75,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   constructor(private readonly options: DiffPanelOptions) {
     this.notices = new DiffNotices(options.label, options.reportContext)
+    this.changeControls.element.before(filePathLabel(options.filePath))
+    this.zoomControls.allowFullScreen(this.root)
   }
 
   mount(container: HTMLElement): this {
@@ -154,8 +158,13 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.modelView === 'diff'
         ? (this.newPane.viewer ?? this.oldPane.viewer)
         : this.plainCanvas.viewer
-    const showLevel = () => this.zoomControls.showLevel(viewer?.zoomLevel() ?? null)
-    this.stopTrackingZoom = viewer?.onViewChange(showLevel) ?? null
+    if (!viewer) {
+      this.stopTrackingZoom = null
+      this.zoomControls.hide()
+      return
+    }
+    const showLevel = () => this.zoomControls.showLevel(viewer.zoomLevel())
+    this.stopTrackingZoom = viewer.onViewChange(showLevel)
     showLevel()
   }
 

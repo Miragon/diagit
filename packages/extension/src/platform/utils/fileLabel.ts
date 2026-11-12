@@ -9,3 +9,10 @@ export function fileLabel(filePath: string, notationLabel: string): HTMLElement 
     h('span', { class: 'kind', text: notationLabel }),
   ])
 }
+
+export function filePathLabel(filePath: string): HTMLElement {
+  return h('div', { class: 'diagit-file-label diagit-file-path' }, [
+    lucideIcon(File),
+    h('span', { class: 'file-name', text: filePath }),
+  ])
+}
