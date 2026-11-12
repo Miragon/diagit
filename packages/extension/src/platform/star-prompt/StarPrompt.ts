@@ -11,7 +11,7 @@ export const STAR_PROMPT_TAG = 'diagit-star-prompt'
 export const PAGES_BEFORE_PROMPT = 5
 
 const DISMISSED_AT_KEY = 'reviewPromptDismissedAt'
-const TITLE = 'Thanks for using Diagit.'
+const TITLE = 'Thanks for using Diagit'
 const BODY = 'A star helps other teams find it.'
 
 export class StarPrompt {

@@ -104,7 +104,7 @@ describe('StarPrompt', () => {
     await promptAfterFivePages()
 
     expect(toast()!.querySelector('.diagit-notice-title')!.textContent).toBe(
-      'Thanks for using Diagit.',
+      'Thanks for using Diagit',
     )
     expect(toast()!.querySelector<HTMLElement>('.diagit-toast')!.dataset.tone).toBe('info')
     const status = toast()!.querySelector('[role="status"]')!
