@@ -18,6 +18,15 @@ describe('options page chrome', () => {
     expect(header.textContent).toContain('v0.3.1')
   })
 
+  it('leads to the viewer for files from the disk', () => {
+    const card = new OptionsPageChrome('0.3.1', CHROME_ID).viewerCard()
+    const link = card.querySelector('a')
+
+    expect(card.querySelector('h2')?.textContent).toBe('See any model in seconds')
+    expect(link?.textContent).toBe('Open a file')
+    expect(link?.getAttribute('href')).toBe('/viewer.html')
+  })
+
   it('offers a star and the store rating of the current browser', () => {
     const links = linkTexts(new OptionsPageChrome('0.3.1', CHROME_ID).supportCard())
 

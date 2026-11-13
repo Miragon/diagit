@@ -21,6 +21,7 @@ const pageChrome = new OptionsPageChrome(environment.extensionVersion, browser.r
 const hostAccess = HostAccess.forHosts(hostRegistry)
 
 app.append(pageChrome.header(), content)
+content.append(pageChrome.viewerCard())
 new SelfHostedHostsSection(hostAccess).mount(content)
 new GithubAccessSection(new GithubDeviceFlow(), githubTokens, {
   where: 'Options page',

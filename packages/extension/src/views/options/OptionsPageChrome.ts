@@ -1,13 +1,15 @@
-import { Star, ThumbsUp, type IconNode } from 'lucide'
+import { FolderOpen, Lock, Star, ThumbsUp, type IconNode } from 'lucide'
 import { STORE_LISTINGS } from '../../platform/star-prompt/storeListings'
 import { diagitRepository } from '../../platform/DiagitRepository'
 import { h } from '../../platform/utils/dom'
 import { externalLink } from '../../platform/utils/externalLink'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
+import { ProcessSketch } from './ProcessSketch'
 
 const DOCS_URL = 'https://miragon.github.io/diagit/'
 const PRIVACY_URL = `${DOCS_URL}privacy.html`
 const APP_ICON_PATH = '/icon/icon.svg'
+const VIEWER_PATH = '/viewer.html'
 const FOOTER_LINK = 'btn btn-ghost btn-small'
 
 export class OptionsPageChrome {
@@ -22,6 +24,29 @@ export class OptionsPageChrome {
       h('h1', { text: 'Diagit' }),
       h('span', { class: 'page-subtitle', text: 'Options' }),
       h('span', { class: 'version', text: `v${this.version}` }),
+    ])
+  }
+
+  viewerCard(): HTMLElement {
+    return h('section', { class: 'card viewer-card' }, [
+      h('div', { class: 'viewer-card-body' }, [
+        h('h2', { text: 'See any model in seconds' }),
+        h('p', {
+          class: 'lede',
+          text: 'Open a BPMN, DMN, Event Storming or Wardley file from your disk. No repository, no upload, no setup.',
+        }),
+        h('div', { class: 'viewer-card-actions' }, [
+          h('a', { class: 'btn btn-primary', href: VIEWER_PATH }, [
+            lucideIcon(FolderOpen),
+            'Open a file',
+          ]),
+          h('span', { class: 'viewer-card-private' }, [
+            lucideIcon(Lock),
+            'The file stays on your machine',
+          ]),
+        ]),
+      ]),
+      h('div', { class: 'viewer-card-art' }, [new ProcessSketch().element()]),
     ])
   }
 
