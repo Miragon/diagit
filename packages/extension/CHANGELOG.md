@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/Miragon/diagit/compare/v0.5.0...v0.6.0) (2026-11-13)
+
+
+### Features
+
+* **options:** link the standalone viewer from the options page ([#216](https://github.com/Miragon/diagit/issues/216)) ([0ea00e8](https://github.com/Miragon/diagit/commit/0ea00e873be47e80cb81e859297c05abc42255a6))
+
+
+### Bug Fixes
+
+* **deps:** Bump dmn-js from 17.13.0 to 18.0.1 ([#213](https://github.com/Miragon/diagit/issues/213)) ([0770bd8](https://github.com/Miragon/diagit/commit/0770bd82fa3ce1af69326d5a8dd969ae1d446525))
+* **deps:** Bump webext-alert from 1.1.0 to 2.0.3 ([#214](https://github.com/Miragon/diagit/issues/214)) ([c27cfb4](https://github.com/Miragon/diagit/commit/c27cfb417c617325308df240a954bc246387bfa6))
+
 ## [0.5.0](https://github.com/Miragon/diagit/compare/v0.4.0...v0.5.0) (2026-11-12)
 
 
