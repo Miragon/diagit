@@ -1,14 +1,7 @@
 name: Canary (GitHub DOM drift)
 
-# Drives the REAL github.com with the extension loaded and checks that our
-# content scripts still inject the diagram. If GitHub changes its DOM so our
-# selectors no longer match, this goes red — an early warning that the fixtures +
-# `src/git-hosts/github/githubSelectors.ts` need updating.
-#
-# Deliberately SEPARATE from CI: it runs on a schedule (not on PRs), so real
-# GitHub's occasional flakiness / A-B-tested DOM can never block a merge. It only
-# fails its own workflow and, on a scheduled run, reports the failure in an issue
-# labelled `canary`. See CONTRIBUTING.md.
+# Checks on the real github.com that the diagram still renders; red means githubSelectors.ts needs an update.
+# Scheduled instead of on PRs, so GitHub's flakiness never blocks a merge.
 
 on:
   schedule:
@@ -36,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Normal build → real github.com host matches (no WXT_E2E localhost matches).
+      # Normal build, so the real github.com matches apply.
       - name: Build extension
         run: npm run build -w @diagit/extension
 

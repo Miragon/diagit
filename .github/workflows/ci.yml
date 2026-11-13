@@ -53,10 +53,7 @@ jobs:
       - name: Validate Firefox bundle (web-ext lint)
         run: npm run lint:webext -w @diagit/extension
 
-  # The Miragon corporate identity. The files from Miragon/corporate-identity
-  # (brand-lint and the design tokens) are copied with brand-assets.mjs and listed in
-  # .miragon/brand-assets.yaml, because that repo is private.
-  # Fails when someone edited a copy or a file breaks a hard brand rule.
+  # Fails when a copied brand asset was edited or a hard brand rule is broken.
   brand:
     name: Miragon brand
     runs-on: ubuntu-latest

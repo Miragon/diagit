@@ -28,8 +28,7 @@ jobs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       tag_name: ${{ steps.release.outputs['packages/extension--tag_name'] }}
     steps:
-      # A GitHub App token (not the default GITHUB_TOKEN) so release-please can
-      # open the release PR — the default token is blocked from creating PRs.
+      # An app token, because the default GITHUB_TOKEN may not open the release PR.
       - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         id: app-token
         with:
@@ -43,14 +42,8 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Human approval gate. The `release` environment has a required reviewer, so
-  # the pipeline pauses here until the deployment is approved — nothing is
-  # packaged or published before that. Runs for a real release, or for a manual
-  # re-publish (workflow_dispatch, dry_run unchecked). A dry run only builds and
-  # lints in verify-bundles, so it needs no approval. A rejected release stays
-  # a draft without bundles: a re-publish naming its tag fails, and one without
-  # a tag picks the latest published release instead. Recover with "Re-run
-  # failed jobs" on the original run.
+  # Nothing is packaged or published until a reviewer approves the `release` environment.
+  # A rejected release stays a draft; recover with "Re-run failed jobs" on the original run.
   gate:
     name: Await release approval
     needs: release-please
@@ -63,10 +56,7 @@ jobs:
       - name: Approved
         run: echo "Release approved."
 
-  # On an approved release, build and attest the store bundles, attach them to
-  # the draft GitHub release and publish it. Publishing to the Chrome Web Store /
-  # AMO / Edge is intentionally a separate, secret-gated step so this pipeline works
-  # out of the box without any store credentials.
+  # Builds and attests the store bundles, attaches them to the draft release and publishes it.
   package:
     needs: [release-please, gate]
     if: needs.release-please.outputs.releases_created == 'true'
@@ -117,8 +107,7 @@ jobs:
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: gh release edit "$TAG" --draft=false --latest
 
-  # Manual dry run (workflow_dispatch, dry_run checked): build + lint the store
-  # bundles without uploading and without touching the protected environment.
+  # Manual dry run: builds and lints the store bundles without uploading them.
   verify-bundles:
     if: github.event_name == 'workflow_dispatch' && inputs.dry_run
     runs-on: ubuntu-latest
@@ -152,83 +141,89 @@ jobs:
           npm exec --no -- chrome-webstore-upload --version
           npm exec --no -- web-ext --version
 
-  # Real upload to the stores, after the `gate` approval. Runs on its own after a
-  # release was packaged, or manually (workflow_dispatch, dry_run unchecked) to
-  # re-publish an existing release.
-  # Always ships the bundles attached to the GitHub release of the tag, never a
-  # fresh build of main, and only once their attestation proves this workflow
-  # built them on main. Each store runs only when its secrets exist, so
-  # unconfigured stores (e.g. Edge before you have its keys) are skipped, and a
-  # failing store does not stop the others — the job still ends red.
-  # Add the credentials to the `store-publishing` environment.
+  # Uploads the attested bundles of the release, one job per store, so "Re-run failed jobs" repeats only the failed store.
+  # A store without credentials in the `store-publishing` environment is skipped.
   publish:
+    name: publish (${{ matrix.store }})
     needs: [release-please, gate, package]
     if: >-
       !cancelled() && needs.gate.result == 'success' && (
         (github.event_name == 'push' && needs.package.result == 'success') ||
         (github.event_name == 'workflow_dispatch' && inputs.dry_run == false && needs.package.result != 'failure')
       )
+    strategy:
+      fail-fast: false
+      matrix:
+        store: ${{ fromJSON(inputs.store && inputs.store != 'all' && format('["{0}"]', inputs.store) || '["chrome","edge","firefox"]') }}
     runs-on: ubuntu-latest
     environment: store-publishing
     permissions:
       contents: read
       attestations: read
     steps:
-      # The upload CLIs come from the lockfile of the workflow's own commit,
-      # installed without lifecycle scripts since this job holds the store
-      # secrets. Only the bundles are bound to the release tag.
+      - name: Detect whether the store is configured
+        id: store
+        env:
+          STORE: ${{ matrix.store }}
+          CHROME_ID: ${{ secrets.CHROME_ID }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+        run: |
+          case "$STORE" in
+            chrome) credential="$CHROME_ID" ;;
+            edge) credential="$EDGE_PRODUCT_ID" ;;
+            firefox) credential="$AMO_JWT_ISSUER" ;;
+          esac
+          configured=$([ -n "$credential" ] && echo true || echo false)
+          echo "configured=$configured" >> "$GITHUB_OUTPUT"
+          if [ "$configured" = false ]; then
+            echo "::notice::$STORE has no credentials in store-publishing, skipping."
+          fi
+
+      # Without lifecycle scripts, since this job holds the store secrets.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.store.outputs.configured == 'true'
         with:
           persist-credentials: false
 
       - name: Setup Node
+        if: steps.store.outputs.configured == 'true'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
       - name: Install dependencies
+        if: steps.store.outputs.configured == 'true' && matrix.store != 'edge'
         run: npm ci --ignore-scripts
 
       - name: Resolve the release tag
         id: release
+        if: steps.store.outputs.configured == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
         run: echo "tag=${TAG:-$(gh release view --json tagName --jq .tagName)}" >> "$GITHUB_OUTPUT"
 
-      - name: Download and verify the store bundles of the release
+      - name: Download and verify the store bundle of the release
+        if: steps.store.outputs.configured == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ steps.release.outputs.tag }}
+          BUNDLE: ${{ matrix.store == 'firefox' && 'firefox' || 'chrome' }}
         run: |
-          gh release download "$TAG" --pattern '*-chrome.zip' --pattern '*-firefox.zip' --dir bundles
-          for bundle in bundles/*.zip; do
-            gh attestation verify "$bundle" --repo Miragon/diagit \
-              --signer-workflow Miragon/diagit/.github/workflows/release-please.yml \
-              --source-ref refs/heads/main
-          done
-          unzip -q bundles/*-firefox.zip -d bundles/firefox-mv3
+          gh release download "$TAG" --pattern "*-$BUNDLE.zip" --dir bundles
+          gh attestation verify bundles/*-"$BUNDLE".zip --repo Miragon/diagit \
+            --signer-workflow Miragon/diagit/.github/workflows/release-please.yml \
+            --source-ref refs/heads/main
+          if [ "$BUNDLE" = firefox ]; then
+            unzip -q bundles/*-firefox.zip -d bundles/firefox-mv3
+          fi
           ls -la bundles
 
-      - name: Detect which stores are configured
-        id: stores
-        env:
-          STORE: ${{ inputs.store || 'all' }}
-          CHROME_ID: ${{ secrets.CHROME_ID }}
-          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
-          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
-        run: |
-          enabled() { { [ "$STORE" = all ] || [ "$STORE" = "$1" ]; } && [ -n "$2" ] && echo true || echo false; }
-          {
-            echo "chrome=$(enabled chrome "$CHROME_ID")"
-            echo "edge=$(enabled edge "$EDGE_PRODUCT_ID")"
-            echo "firefox=$(enabled firefox "$AMO_JWT_ISSUER")"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Publish to Chrome Web Store
-        if: ${{ !cancelled() && steps.stores.outputs.chrome == 'true' }}
+        if: steps.store.outputs.configured == 'true' && matrix.store == 'chrome'
         env:
           EXTENSION_ID: ${{ secrets.CHROME_ID }}
           PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
@@ -241,7 +236,7 @@ jobs:
             --source "$(ls "$GITHUB_WORKSPACE"/bundles/*-chrome.zip | head -n1)"
 
       - name: Publish to Edge Add-ons
-        if: ${{ !cancelled() && steps.stores.outputs.edge == 'true' }}
+        if: steps.store.outputs.configured == 'true' && matrix.store == 'edge'
         uses: wdzeng/edge-addon@9881f57720358040d079eaa06a4596dc9c273eb6 # v2.1.1
         with:
           product-id: ${{ secrets.EDGE_PRODUCT_ID }}
@@ -250,7 +245,7 @@ jobs:
           api-key: ${{ secrets.EDGE_API_KEY }}
 
       - name: Sign & publish to Firefox AMO
-        if: ${{ !cancelled() && steps.stores.outputs.firefox == 'true' }}
+        if: steps.store.outputs.configured == 'true' && matrix.store == 'firefox'
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
