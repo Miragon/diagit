@@ -1,9 +1,6 @@
 name: Docs
 
-# The docs (docs/) as a VitePress site on GitHub Pages: https://miragon.github.io/diagit/.
-# A pull request that touches docs/ checks the vendored Miragon docs kit and builds the site
-# (VitePress fails the build on a dead link). A push to main also deploys it.
-# Template from Miragon/corporate-identity (skill docs-site). Replace diagit with the repo name.
+# Builds the docs on PRs that touch docs/ and deploys them from main to https://miragon.github.io/diagit/.
 
 on:
   push:
@@ -42,8 +39,7 @@ jobs:
       - run: npm ci
         working-directory: docs
 
-      # The kit in docs/.vitepress/miragon/ and the logos in docs/public/logo/ come unchanged
-      # from the corporate identity. Fails when someone edited them in this repo.
+      # Fails when the vendored docs kit or logos were edited in this repo.
       - name: Check the Miragon docs kit
         run: node .vitepress/miragon/check.mjs
         working-directory: docs
@@ -51,7 +47,7 @@ jobs:
       - run: npm run build
         working-directory: docs
         env:
-          # Project pages are served under /diagit/; the kit sets VitePress' base from it.
+          # Project pages are served under /diagit/.
           DOCS_BASE: /diagit/
 
       - if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -68,7 +64,6 @@ jobs:
       pages: write
       id-token: write
     # One deploy at a time; a queued deploy finishes instead of being cancelled.
-    # Builds of pull requests never wait for it.
     concurrency:
       group: pages
       cancel-in-progress: false
