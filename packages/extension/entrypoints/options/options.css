@@ -299,3 +299,90 @@ input:focus-visible {
   color: var(--cd-ui-text-leise);
   font-size: 13px;
 }
+
+.viewer-card {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+}
+
+.viewer-card-body {
+  padding: 20px 16px;
+}
+
+.viewer-card-body h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.viewer-card-body .lede {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.viewer-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.viewer-card-private {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cd-ui-text-leise);
+  font-size: 13px;
+}
+
+.viewer-card-private svg {
+  width: 14px;
+  height: 14px;
+}
+
+.viewer-card-art {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-left: 1px solid var(--cd-ui-linie);
+  background: var(--cd-ui-grund);
+}
+
+.process-sketch {
+  width: 100%;
+  font-family: var(--diagit-font);
+  font-size: 10px;
+}
+
+.sketch-shape {
+  fill: var(--cd-ui-flaeche-hoch);
+  stroke: var(--cd-ui-text);
+  stroke-width: 1.6;
+}
+
+.sketch-flow {
+  fill: none;
+  stroke: var(--cd-ui-text);
+  stroke-width: 1.6;
+}
+
+.sketch-arrow-head,
+.sketch-label {
+  fill: var(--cd-ui-text);
+}
+
+.sketch-label {
+  text-anchor: middle;
+}
+
+@media (max-width: 600px) {
+  .viewer-card {
+    grid-template-columns: 1fr;
+  }
+
+  .viewer-card-art {
+    display: none;
+  }
+}
