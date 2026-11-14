@@ -2,7 +2,7 @@ import { ExternalLink, Link } from 'lucide'
 import { FetchError } from '../../platform/messaging/HttpClient'
 import type { NoticeAction } from '../../platform/ui/Notice'
 import type { ErrorHelp } from '../DiffSource'
-import type { AuthPolicy } from '../GitHost'
+import type { AuthPolicy, PageUrl } from '../GitHost'
 import { rateLimitHelp } from '../utils/rateLimitHelp'
 import { GITHUB_APP_INSTALL_URL } from './GithubDeviceFlow'
 import type { GithubRoutes } from './GithubRoutes'
@@ -63,7 +63,7 @@ export class GithubApiAuth implements AuthPolicy {
     return token ? { Authorization: `${BEARER_PREFIX}${token}` } : undefined
   }
 
-  async errorHelp(location: Location, err: unknown): Promise<ErrorHelp> {
+  async errorHelp(location: PageUrl, err: unknown): Promise<ErrorHelp> {
     const status = err instanceof FetchError ? err.status : undefined
     const rateLimit = rateLimitHelp('GitHub', err)
     if (!this.targets(this.routes.apiBase(location))) {
@@ -125,7 +125,7 @@ export class GithubApiAuth implements AuthPolicy {
     }
   }
 
-  private enterpriseHelp(location: Location, status: number | undefined): ErrorHelp {
+  private enterpriseHelp(location: PageUrl, status: number | undefined): ErrorHelp {
     switch (status) {
       case 401:
         return {

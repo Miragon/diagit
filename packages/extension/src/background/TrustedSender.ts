@@ -16,9 +16,13 @@ export interface SenderPage {
 export class TrustedSender {
   constructor(private readonly extensionId: string) {}
 
+  isOwn(sender: MessageSender): boolean {
+    return sender.id === this.extensionId
+  }
+
   pageOf(sender: MessageSender): SenderPage | undefined {
-    const { id, tab } = sender
-    if (id !== this.extensionId || tab?.id == null || !tab.url) {
+    const { tab } = sender
+    if (!this.isOwn(sender) || tab?.id == null || !tab.url) {
       return undefined
     }
     const tabOrigin = webOrigin(tab.url)

@@ -68,3 +68,15 @@ describe('TrustedSender.pageOf', () => {
     expect(senders.pageOf({ id: 'diagit-id', url: 'about:blank', tab: blankTab })).toBeUndefined()
   })
 })
+
+describe('TrustedSender.isOwn', () => {
+  it('knows our own extension pages, which belong to no web page', () => {
+    const viewer = { id: 'diagit-id', url: 'chrome-extension://diagit-id/viewer.html' }
+    expect(senders.isOwn(viewer)).toBe(true)
+    expect(senders.pageOf(viewer)).toBeUndefined()
+  })
+
+  it('refuses another extension', () => {
+    expect(senders.isOwn({ ...chromeTopFrame, id: 'other-id' })).toBe(false)
+  })
+})

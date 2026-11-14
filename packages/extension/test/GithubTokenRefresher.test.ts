@@ -4,6 +4,7 @@ import { GithubTokenRefresher } from '../src/git-hosts/github/GithubTokenRefresh
 import { GithubTokenStore, type GithubTokenSet } from '../src/git-hosts/github/GithubTokenStore'
 import { SettingsStore } from '../src/platform/settings/SettingsStore'
 import { MemoryStorageArea } from './fakes/MemoryStorageArea'
+import { SerialLocks } from './fakes/SerialLocks'
 
 const NOW = 1_000_000_000
 const HOUR_MS = 3_600_000
@@ -49,8 +50,9 @@ async function refresherFor(
   const store = new GithubTokenStore(new SettingsStore(() => area))
   await store.connect(stored, 'octocat')
   const now = () => NOW
-  const refresher = new GithubTokenRefresher(store, new GithubDeviceFlow(fetch, now), now)
-  return { fetch, store, refresher }
+  const locks = new SerialLocks()
+  const refresher = new GithubTokenRefresher(store, new GithubDeviceFlow(fetch, now), now, locks)
+  return { fetch, store, locks, refresher }
 }
 
 describe('GithubTokenRefresher.validToken', () => {
@@ -102,6 +104,20 @@ describe('GithubTokenRefresher.validToken', () => {
 
     await expect(tokens).resolves.toEqual(['ghu_new', 'ghu_new'])
     await expect(lateToken).resolves.toBe('ghu_new')
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('lets a refresher in another extension page reuse the rotated token', async () => {
+    const { fetch, answer } = deferredFetch()
+    const { store, locks, refresher } = await refresherFor(expiringTokens, fetch)
+    const now = () => NOW
+    const otherPage = new GithubTokenRefresher(store, new GithubDeviceFlow(fetch, now), now, locks)
+
+    const tokens = Promise.all([refresher.validToken(), otherPage.validToken()])
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalled())
+    answer(jsonResponse(renewedTokens))
+
+    await expect(tokens).resolves.toEqual(['ghu_new', 'ghu_new'])
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 

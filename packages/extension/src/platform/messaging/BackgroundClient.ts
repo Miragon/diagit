@@ -4,6 +4,7 @@ import type {
   FetchTextRequest,
   FetchTextResponse,
   InjectViewScriptRequest,
+  OpenDiffViewerRequest,
   OpenOptionsRequest,
   OpenViewerRequest,
 } from './messages'
@@ -37,6 +38,11 @@ export class BackgroundClient implements HttpClient {
 
   async openViewer(url: string): Promise<void> {
     const request: OpenViewerRequest = { type: 'openViewer', url }
+    await browser.runtime.sendMessage(request).catch(() => undefined)
+  }
+
+  async openDiffViewer(pageUrl: string, path: string): Promise<void> {
+    const request: OpenDiffViewerRequest = { type: 'openDiffViewer', pageUrl, path }
     await browser.runtime.sendMessage(request).catch(() => undefined)
   }
 }

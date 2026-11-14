@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { browser } from 'wxt/browser'
 import { DiffDataError, type DiffSource } from '../../src/git-hosts/DiffSource'
 import { DIFF_ERROR_TAG, DIFF_PANEL_TAG } from '../../src/platform/injectedElements'
 import { DiffController } from '../../src/views/diff-viewer/DiffController'
@@ -7,6 +8,13 @@ import { HostPage } from '../../src/platform/page/HostPage'
 import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
+
+vi.mock('wxt/browser', () => ({
+  browser: {
+    runtime: { sendMessage: vi.fn(() => Promise.resolve(true)) },
+    extension: { inIncognitoContext: false },
+  },
+}))
 
 const RERUN_DEBOUNCE_MS = 300
 
@@ -32,6 +40,7 @@ function sourceShowing(
   return {
     pageKey,
     unrecognizedFiles: async () => [],
+    loadersFor: async () => null,
     async collect() {
       const code = fileRoot.querySelector<HTMLElement>('.code')!
       await metadata
@@ -175,6 +184,7 @@ describe('DiffController', () => {
     const failing: DiffSource = {
       pageKey: () => 'octo/flows!1',
       unrecognizedFiles: async () => [],
+      loadersFor: async () => null,
       collect: async () => {
         throw new DiffDataError(
           'HTTP 404',
@@ -211,6 +221,7 @@ describe('DiffController', () => {
     )
     expect(notice.querySelector<HTMLElement>('.diagit-notice')!.dataset.layout).toBe('pane')
     expect(notice.querySelector('.diagit-notice-body')?.textContent).toBe('Connect the app.')
+    expect(notice.textContent).not.toContain('Open in Diagit')
     expect(notice.querySelector('.diagit-notice-actions a')?.getAttribute('href')).toBe(
       'https://github.com/apps/x',
     )
@@ -225,6 +236,7 @@ describe('DiffController', () => {
     start({
       pageKey: () => 'octo/flows!1',
       unrecognizedFiles: async () => [],
+      loadersFor: async () => null,
       collect: async () => {
         throw new DiffDataError(
           'HTTP 500',
@@ -254,6 +266,7 @@ describe('DiffController', () => {
 
   describe('a changed diagram file whose diff view Diagit does not recognise', () => {
     afterEach(async () => {
+      vi.mocked(browser.extension).inIncognitoContext = false
       context.invalidate()
       await untilRerunStarted()
     })
@@ -266,6 +279,7 @@ describe('DiffController', () => {
       return {
         pageKey,
         collect: async () => [],
+        loadersFor: async () => null,
         unrecognizedFiles: async () => {
           const header = document.querySelector<HTMLElement>('.file-header')!
           return isRecognized() ? [] : [{ path, header }]
@@ -346,6 +360,39 @@ describe('DiffController', () => {
       document.body.append(document.createElement('div'))
 
       await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).toBeNull())
+    })
+
+    function noticeButtons(): HTMLButtonElement[] {
+      const notice = document.querySelector(DIFF_ERROR_TAG)!.shadowRoot!
+      return [...notice.querySelectorAll<HTMLButtonElement>('button')]
+    }
+
+    it('opens the diff of the file in the standalone viewer', async () => {
+      render(changedFileHtml)
+      start(sourceMissing('flows/order.bpmn'))
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).not.toBeNull())
+
+      const [openButton] = noticeButtons()
+      expect(openButton!.textContent).toBe('Open in Diagit')
+      openButton!.click()
+
+      expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
+        type: 'openDiffViewer',
+        pageUrl: location.href,
+        path: 'flows/order.bpmn',
+      })
+    })
+
+    it('offers no viewer in an incognito window, where it would open in a normal one', async () => {
+      vi.mocked(browser.extension).inIncognitoContext = true
+      render(changedFileHtml)
+      start(sourceMissing('flows/order.bpmn'))
+      await vi.waitFor(() => expect(document.querySelector(DIFF_ERROR_TAG)).not.toBeNull())
+
+      expect(noticeButtons()).toEqual([])
+      expect(document.querySelector(DIFF_ERROR_TAG)!.shadowRoot!.textContent).toContain(
+        "The file's changes are still shown below.",
+      )
     })
   })
 })

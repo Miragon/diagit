@@ -65,6 +65,8 @@ Diagit has its own viewer page for files that are not in a repository. Drop a fi
 
 When Diagit cannot find where to show its view on a file page, for example after GitHub or GitLab changed their layout, it says so in a notice at the bottom right. **Open in Diagit** in that notice opens the file in this viewer. Diagit reads it with the login you already have in the browser, and only from GitHub, GitLab and the domains you allowed.
 
+The same goes for a changed model in a pull or merge request: when Diagit does not recognise the diff view, it shows a notice above the file. **Open in Diagit** in that notice opens the Plain and Diff views of that file in this viewer.
+
 To open the viewer, click the Diagit icon in the browser toolbar and then **Open a file** on Diagit's options page. You can also open it by address:
 
 | Browser | Address                                                                                                                    |

@@ -1,5 +1,7 @@
+import { diagitRepository, type ReportContext } from '../platform/DiagitRepository'
 import type { NoticeDetails } from '../platform/ui/Notice'
 import type { VisibleFileHeader } from './FileHeaderLocator'
+import type { PageUrl } from './GitHost'
 
 export type ErrorHelp = Pick<NoticeDetails, 'tone' | 'body' | 'action'> & { title?: string }
 
@@ -30,21 +32,36 @@ export class DiffDataError extends Error {
     super(message)
     this.name = 'DiffDataError'
   }
+
+  noticeDetails(label: string, reportContext: ReportContext): NoticeDetails {
+    const { title = `${label} diff data could not be loaded`, ...help } = this.help
+    return {
+      title,
+      ...help,
+      reportUrl: diagitRepository.problemReportUrl(
+        `${label} diff data not loaded`,
+        `Diagit showed "${title}" in a diff.`,
+        reportContext,
+        this.message,
+      ),
+    }
+  }
 }
 
 export interface DiffSource {
-  pageKey(location: Location): string | null
-  collect(location: Location, doc: Document): Promise<DiffFileBlock[]>
-  unrecognizedFiles(location: Location, doc: Document): Promise<VisibleFileHeader[]>
+  pageKey(location: PageUrl): string | null
+  collect(location: PageUrl, doc: Document): Promise<DiffFileBlock[]>
+  unrecognizedFiles(location: PageUrl, doc: Document): Promise<VisibleFileHeader[]>
+  loadersFor(location: PageUrl, path: string): Promise<DiffLoaders | null>
 }
 
 export interface DiffPage<Page extends { key: string }, Data> {
-  identify(location: Location): Page | null
-  showsDiffs(location: Location): boolean
+  identify(location: PageUrl): Page | null
+  showsDiffs(location: PageUrl): boolean
   scan(doc: Document): ChangedFile[]
   recognizedPaths(doc: Document): string[]
-  load(location: Location, page: Page): Promise<Data>
+  load(location: PageUrl, page: Page): Promise<Data>
   changedPaths(data: Data): string[]
-  loaders(location: Location, file: ChangedFile, data: Data): DiffLoaders
-  errorHelp(location: Location, err: unknown): Promise<ErrorHelp>
+  loaders(location: PageUrl, path: string, data: Data): DiffLoaders
+  errorHelp(location: PageUrl, err: unknown): Promise<ErrorHelp>
 }

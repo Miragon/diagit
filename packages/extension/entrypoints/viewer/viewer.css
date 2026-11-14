@@ -62,9 +62,33 @@ body {
   min-width: 0;
 }
 
-.diagit-wrap:not(.has-diagram) .diagit-zoom,
+.diagit-wrap:not(.diagit-diff-root, .has-diagram) .diagit-zoom,
 .has-file .empty-state {
   display: none;
+}
+
+.diff-page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.diff-page .diagit-diff-area {
+  flex: 1;
+  min-height: 0;
+}
+
+.diff-page .diagit-diff-grid {
+  height: 100%;
+}
+
+.diff-page .diagit-diff-pane {
+  height: auto;
+}
+
+.diff-page .diagit-diff-root:not(:fullscreen) .diagit-file-path {
+  display: flex;
 }
 
 .diagit-canvas {

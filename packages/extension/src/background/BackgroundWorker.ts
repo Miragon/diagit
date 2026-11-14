@@ -4,7 +4,11 @@ import addPermissionToggle from 'webext-permission-toggle'
 import type { HostRegistry } from '../git-hosts/HostRegistry'
 import { hostRegistry } from '../git-hosts/hosts'
 import { HostAccess } from '../git-hosts/self-hosted/HostAccess'
-import type { BackgroundRequest, FetchTextResponse } from '../platform/messaging/messages'
+import type {
+  BackgroundRequest,
+  FetchTextResponse,
+  OpenOptionsRequest,
+} from '../platform/messaging/messages'
 import { originToPattern, webOrigin } from '../platform/utils/origin'
 import { FetchProxy } from './FetchProxy'
 import { FetchScope } from './FetchScope'
@@ -18,6 +22,7 @@ const HANDLED_REQUESTS = new Set<unknown>([
   'injectViewScript',
   'openOptions',
   'openViewer',
+  'openDiffViewer',
 ])
 
 interface Tab {
@@ -78,14 +83,25 @@ export class BackgroundWorker {
     if (!HANDLED_REQUESTS.has(message?.type)) {
       return false
     }
-    const page = this.senders.pageOf(sender)
-    const response = page ? this.serve(message, page) : this.refuse(message)
-    response.then(sendResponse)
+    this.respond(message, sender).then(sendResponse)
     return KEEP_CHANNEL_OPEN_FOR_ASYNC_RESPONSE
   }
 
-  private serve(
+  private respond(
     message: BackgroundRequest,
+    sender: MessageSender,
+  ): Promise<FetchTextResponse | boolean> {
+    if (message.type === 'openOptions') {
+      return this.senders.isOwn(sender)
+        ? this.openOptionsPage().then(() => true)
+        : this.refuse(message)
+    }
+    const page = this.senders.pageOf(sender)
+    return page ? this.serve(message, page) : this.refuse(message)
+  }
+
+  private serve(
+    message: Exclude<BackgroundRequest, OpenOptionsRequest>,
     page: SenderPage,
   ): Promise<FetchTextResponse | boolean> {
     switch (message.type) {
@@ -93,10 +109,10 @@ export class BackgroundWorker {
         return this.fetchProxy.fetchText(message.url, page.origin)
       case 'injectViewScript':
         return this.injector.inject(page.tabId, message.script)
-      case 'openOptions':
-        return this.openOptionsPage().then(() => true)
       case 'openViewer':
-        return this.openViewer(message.url, page)
+        return this.openViewer(message.url, { src: message.url }, page)
+      case 'openDiffViewer':
+        return this.openDiffViewer(message.pageUrl, message.path, page)
     }
   }
 
@@ -126,13 +142,24 @@ export class BackgroundWorker {
     await requestWithinUserGesture
   }
 
-  private async openViewer(url: string, page: SenderPage): Promise<boolean> {
+  private async openViewer(
+    url: string,
+    params: Record<string, string>,
+    page: SenderPage,
+  ): Promise<boolean> {
     if (page.incognito || webOrigin(url) !== page.origin) {
       return false
     }
-    const viewer = `${browser.runtime.getURL('/viewer.html')}?src=${encodeURIComponent(url)}`
+    const viewer = `${browser.runtime.getURL('/viewer.html')}?${new URLSearchParams(params)}`
     await browser.tabs.create({ url: viewer })
     return true
+  }
+
+  private async openDiffViewer(pageUrl: string, path: unknown, page: SenderPage): Promise<boolean> {
+    if (typeof path !== 'string' || !path) {
+      return false
+    }
+    return this.openViewer(pageUrl, { page: pageUrl, path }, page)
   }
 
   private async openOptionsPage(): Promise<void> {

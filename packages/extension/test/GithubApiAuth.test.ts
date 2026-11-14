@@ -7,12 +7,18 @@ import { GithubTokenStore } from '../src/git-hosts/github/GithubTokenStore'
 import { FetchError } from '../src/platform/messaging/HttpClient'
 import { SettingsStore } from '../src/platform/settings/SettingsStore'
 import { MemoryStorageArea } from './fakes/MemoryStorageArea'
+import { SerialLocks } from './fakes/SerialLocks'
 
 function authOn(area: MemoryStorageArea): GithubApiAuth {
   const store = new GithubTokenStore(new SettingsStore(() => area))
   const renewingFetch = async () =>
     Response.json({ access_token: 'renewed', refresh_token: 'ghr_renewed' })
-  const refresher = new GithubTokenRefresher(store, new GithubDeviceFlow(renewingFetch))
+  const refresher = new GithubTokenRefresher(
+    store,
+    new GithubDeviceFlow(renewingFetch),
+    () => Date.now(),
+    new SerialLocks(),
+  )
   return new GithubApiAuth(refresher, store, new GithubRoutes())
 }
 

@@ -1,7 +1,15 @@
 import { notationDetector, type NotationDetector } from '../notations/NotationDetector'
 import { errorMessage } from '../platform/utils/errorMessage'
 import type { FileHeaderLocator, VisibleFileHeader } from './FileHeaderLocator'
-import { DiffDataError, type DiffFileBlock, type DiffPage, type DiffSource } from './DiffSource'
+import {
+  DiffDataError,
+  type ChangedFile,
+  type DiffFileBlock,
+  type DiffLoaders,
+  type DiffPage,
+  type DiffSource,
+} from './DiffSource'
+import type { PageUrl } from './GitHost'
 
 const RELOAD_AFTER_MS = 60_000
 
@@ -22,11 +30,11 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
     private readonly notations: NotationDetector = notationDetector,
   ) {}
 
-  pageKey(location: Location): string | null {
+  pageKey(location: PageUrl): string | null {
     return this.page.identify(location)?.key ?? null
   }
 
-  async collect(location: Location, doc: Document): Promise<DiffFileBlock[]> {
+  async collect(location: PageUrl, doc: Document): Promise<DiffFileBlock[]> {
     const page = this.page.identify(location)
     if (!page) {
       return []
@@ -35,17 +43,23 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
     if (!files.length) {
       return []
     }
-    let data: Data
-    try {
-      data = await this.load(location, page)
-    } catch (err) {
-      const help = await this.page.errorHelp(location, err)
-      throw new DiffDataError(errorMessage(err), help, files)
-    }
-    return files.map((file) => ({ ...file, ...this.page.loaders(location, file, data) }))
+    const data = await this.dataFor(location, page, files)
+    return files.map((file) => ({ ...file, ...this.page.loaders(location, file.path, data) }))
   }
 
-  async unrecognizedFiles(location: Location, doc: Document): Promise<VisibleFileHeader[]> {
+  async loadersFor(location: PageUrl, path: string): Promise<DiffLoaders | null> {
+    const page = this.page.identify(location)
+    if (!page) {
+      return null
+    }
+    const data = await this.dataFor(location, page, [])
+    if (!this.page.changedPaths(data).includes(path)) {
+      return null
+    }
+    return this.page.loaders(location, path, data)
+  }
+
+  async unrecognizedFiles(location: PageUrl, doc: Document): Promise<VisibleFileHeader[]> {
     const page = this.page.identify(location)
     if (!page || !this.page.showsDiffs(location)) {
       return []
@@ -64,11 +78,20 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
     return this.fileHeaders.findVisible(doc, missedPaths)
   }
 
+  private async dataFor(location: PageUrl, page: Page, files: ChangedFile[]): Promise<Data> {
+    try {
+      return await this.load(location, page)
+    } catch (err) {
+      const help = await this.page.errorHelp(location, err)
+      throw new DiffDataError(errorMessage(err), help, files)
+    }
+  }
+
   private cachedFor(page: Page): CachedLoad<Data> | null {
     return this.cached?.key === page.key ? this.cached : null
   }
 
-  private load(location: Location, page: Page): Promise<Data> {
+  private load(location: PageUrl, page: Page): Promise<Data> {
     const cached = this.cachedFor(page)
     if (cached && !this.isStale(cached)) {
       return cached.promise

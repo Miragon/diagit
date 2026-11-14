@@ -1,17 +1,18 @@
+import type { PageUrl } from '../GitHost'
 import { GithubDiffPage } from './GithubDiffPage'
 import type { GithubDiffData } from './GithubRestApi'
 import type { PullRequestRef } from './GithubRoutes'
 
 export class GithubPullRequestPage extends GithubDiffPage<PullRequestRef> {
-  identify(location: Location): PullRequestRef | null {
+  identify(location: PageUrl): PullRequestRef | null {
     return this.routes.pullRequest(location)
   }
 
-  showsDiffs(location: Location): boolean {
+  showsDiffs(location: PageUrl): boolean {
     return this.routes.pullRequestDiffs(location)
   }
 
-  load(location: Location, page: PullRequestRef): Promise<GithubDiffData> {
+  load(location: PageUrl, page: PullRequestRef): Promise<GithubDiffData> {
     const { revisions } = page
     if (!revisions) {
       return this.api.loadPullRequest(location, page)

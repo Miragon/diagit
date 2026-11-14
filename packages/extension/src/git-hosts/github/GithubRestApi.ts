@@ -1,5 +1,6 @@
 import type { HttpClient } from '../../platform/messaging/HttpClient'
 import { fetchAllPages } from '../../platform/utils/fetchAllPages'
+import type { PageUrl } from '../GitHost'
 import type { CommitRange, CommitRef, GithubRoutes, PullRequestRef } from './GithubRoutes'
 
 export interface GithubDiffFile {
@@ -38,7 +39,7 @@ export class GithubRestApi {
     private readonly routes: GithubRoutes,
   ) {}
 
-  async loadPullRequest(location: Location, ref: PullRequestRef): Promise<GithubDiffData> {
+  async loadPullRequest(location: PageUrl, ref: PullRequestRef): Promise<GithubDiffData> {
     const repo = `${ref.owner}/${ref.repo}`
     const repoApi = `${this.routes.apiBase(location)}/repos/${repo}`
     const pullRequest = await this.http.fetchJson<PullRequestResponse>(
@@ -58,7 +59,7 @@ export class GithubRestApi {
   }
 
   async loadCommit(
-    location: Location,
+    location: PageUrl,
     ref: Pick<CommitRef, 'owner' | 'repo' | 'sha'>,
   ): Promise<GithubDiffData> {
     const repo = `${ref.owner}/${ref.repo}`
@@ -76,7 +77,7 @@ export class GithubRestApi {
   }
 
   async loadComparison(
-    location: Location,
+    location: PageUrl,
     ref: Pick<PullRequestRef, 'owner' | 'repo'>,
     range: CommitRange,
   ): Promise<GithubDiffData> {
@@ -93,7 +94,7 @@ export class GithubRestApi {
     }
   }
 
-  rawFile(location: Location, repoFullName: string, ref: string, path: string): Promise<string> {
+  rawFile(location: PageUrl, repoFullName: string, ref: string, path: string): Promise<string> {
     return this.http.fetchText(this.routes.rawFileUrl(location, repoFullName, ref, path))
   }
 

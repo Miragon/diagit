@@ -1,5 +1,6 @@
 import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSource'
 import { rateLimitHelp } from '../utils/rateLimitHelp'
+import type { PageUrl } from '../GitHost'
 import type { GitlabDiffScanner } from './GitlabDiffScanner'
 import type { GitlabRestApi, MergeRequestData } from './GitlabRestApi'
 import type { GitlabRoutes, MergeRequestRef } from './GitlabRoutes'
@@ -17,11 +18,11 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
     private readonly scanner: GitlabDiffScanner,
   ) {}
 
-  identify(location: Location): MergeRequestRef | null {
+  identify(location: PageUrl): MergeRequestRef | null {
     return this.routes.mergeRequest(location)
   }
 
-  showsDiffs(location: Location): boolean {
+  showsDiffs(location: PageUrl): boolean {
     return this.routes.mergeRequestDiffs(location)
   }
 
@@ -33,7 +34,7 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
     return this.scanner.scan(doc).map((file) => file.path)
   }
 
-  load(location: Location, page: MergeRequestRef): Promise<MergeRequestData> {
+  load(location: PageUrl, page: MergeRequestRef): Promise<MergeRequestData> {
     return page.commit
       ? this.api.loadCommit(location, page, page.commit)
       : this.api.loadMergeRequest(location, page)
@@ -46,20 +47,18 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
       .filter((path): path is string => !!path)
   }
 
-  loaders(_location: Location, file: ChangedFile, data: MergeRequestData): DiffLoaders {
-    const change = data.changeByPath.get(file.path)
-    const oldPath = change?.old_path || file.path
+  loaders(_location: PageUrl, path: string, data: MergeRequestData): DiffLoaders {
+    const change = data.changeByPath.get(path)
+    const oldPath = change?.old_path || path
     return {
       loadOld: () =>
         change?.new_file ? Promise.resolve(null) : this.api.rawFile(data, oldPath, data.baseSha),
       loadNew: () =>
-        change?.deleted_file
-          ? Promise.resolve(null)
-          : this.api.rawFile(data, file.path, data.headSha),
+        change?.deleted_file ? Promise.resolve(null) : this.api.rawFile(data, path, data.headSha),
     }
   }
 
-  async errorHelp(_location: Location, err: unknown): Promise<ErrorHelp> {
+  async errorHelp(_location: PageUrl, err: unknown): Promise<ErrorHelp> {
     const rateLimit = rateLimitHelp('GitLab', err)
     return rateLimit ? { tone: 'warning', ...rateLimit } : METADATA_ERROR_HELP
   }

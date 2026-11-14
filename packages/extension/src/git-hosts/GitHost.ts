@@ -1,4 +1,4 @@
-export type PageUrl = Pick<Location, 'hostname' | 'pathname' | 'search'>
+export type PageUrl = Pick<Location, 'origin' | 'hostname' | 'pathname' | 'search'>
 
 export interface PageView {
   readonly script: string
