@@ -4,6 +4,7 @@ export class FakeDiffableViewer implements DiffableViewer {
   readonly markers: Array<{ id: string; marker: string }> = []
   readonly focused: string[] = []
   fits = 0
+  resets = 0
   destroyed = false
   level: number | null = 1
   private readonly viewChangeListeners = new Set<() => void>()
@@ -27,6 +28,10 @@ export class FakeDiffableViewer implements DiffableViewer {
 
   focusElement(id: string): void {
     this.focused.push(id)
+  }
+
+  resetView(): void {
+    this.resets += 1
   }
 
   fit(): void {

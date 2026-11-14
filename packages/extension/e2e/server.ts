@@ -36,6 +36,20 @@ const PR = {
   headSha: 'head1111111111111111111111111111111111111',
 } as const
 
+const SUBPROCESS_PR = {
+  ...PR,
+  number: '2',
+  baseSha: 'base2222222222222222222222222222222222222',
+  headSha: 'head2222222222222222222222222222222222222',
+} as const
+
+const PULL_REQUESTS = [PR, SUBPROCESS_PR]
+
+const FIXTURE_BY_REF: Record<string, string> = {
+  [SUBPROCESS_PR.baseSha]: 'collapsed-subprocess-before.bpmn',
+  [SUBPROCESS_PR.headSha]: 'collapsed-subprocess-after.bpmn',
+}
+
 /** The single commit the fixtures describe (head = its own SHA, base = parent). */
 const COMMIT = {
   owner: 'octo',
@@ -91,6 +105,10 @@ function serveStatic(path: string, res: import('node:http').ServerResponse): boo
 const SAMPLE_EXTENSIONS = ['.dmn', '.owm', '.tt', '.storm', '.cm', '.vc.json', '.excalidraw']
 
 function rawDiagram(path: string): Buffer {
+  const refFixture = Object.entries(FIXTURE_BY_REF).find(([ref]) => path.includes(`/${ref}/`))
+  if (refFixture) {
+    return readFileSync(join(fixtures, refFixture[1]))
+  }
   const extension = SAMPLE_EXTENSIONS.find((candidate) => path.toLowerCase().endsWith(candidate))
   const name = `sample${extension ?? '.bpmn'}`
   return readFileSync(join(fixtures, name))
@@ -112,33 +130,36 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
     }
 
     // GitHub REST metadata for the PR diff adapter (Enterprise `/api/v3` path).
-    if (path === `/api/v3/repos/${PR.owner}/${PR.repo}/pulls/${PR.number}`) {
-      const repo = { full_name: `${PR.owner}/${PR.repo}` }
-      return send(
-        res,
-        200,
-        MIME['.json']!,
-        JSON.stringify({
-          base: { sha: PR.baseSha, repo },
-          head: { sha: PR.headSha, repo },
-        }),
-      )
-    }
-    if (path === `/api/v3/repos/${PR.owner}/${PR.repo}/compare/${PR.baseSha}...${PR.headSha}`) {
-      return send(
-        res,
-        200,
-        MIME['.json']!,
-        JSON.stringify({ merge_base_commit: { sha: PR.baseSha } }),
-      )
-    }
-    if (path === `/api/v3/repos/${PR.owner}/${PR.repo}/pulls/${PR.number}/files`) {
-      return send(
-        res,
-        200,
-        MIME['.json']!,
-        JSON.stringify([{ filename: PR.file, status: 'modified' }]),
-      )
+    for (const pr of PULL_REQUESTS) {
+      const pulls = `/api/v3/repos/${pr.owner}/${pr.repo}/pulls/${pr.number}`
+      if (path === pulls) {
+        const repo = { full_name: `${pr.owner}/${pr.repo}` }
+        return send(
+          res,
+          200,
+          MIME['.json']!,
+          JSON.stringify({
+            base: { sha: pr.baseSha, repo },
+            head: { sha: pr.headSha, repo },
+          }),
+        )
+      }
+      if (path === `/api/v3/repos/${pr.owner}/${pr.repo}/compare/${pr.baseSha}...${pr.headSha}`) {
+        return send(
+          res,
+          200,
+          MIME['.json']!,
+          JSON.stringify({ merge_base_commit: { sha: pr.baseSha } }),
+        )
+      }
+      if (path === `${pulls}/files`) {
+        return send(
+          res,
+          200,
+          MIME['.json']!,
+          JSON.stringify([{ filename: pr.file, status: 'modified' }]),
+        )
+      }
     }
 
     // GitHub REST metadata for the commit diff adapter (Enterprise `/api/v3` path).

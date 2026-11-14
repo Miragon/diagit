@@ -21,6 +21,7 @@ export interface DiffableViewer extends DiagramViewer {
   addMarker(id: string, marker: string): void
   removeMarker(id: string, marker: string): void
   focusElement(id: string, zoom: number): void
+  resetView(): void
 }
 
 export interface DiagramDiffer {

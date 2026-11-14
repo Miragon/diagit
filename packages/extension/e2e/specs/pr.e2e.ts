@@ -50,4 +50,20 @@ describe('GitHub PR diff (content script)', () => {
     const panels = await $$('diagit-diff')
     await expect(panels).toBeElementsArrayOfSize(1)
   })
+
+  it('returns both panes from a collapsed subprocess to the process on "Show all"', async () => {
+    await browser.url('/octo/flows/pull/2/files')
+
+    const host = $('diagit-diff')
+    await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
+    await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+    const panesInsideASubprocess = host.shadow$$('.bjs-breadcrumbs-shown')
+
+    await host.shadow$('button[aria-label="Next change"]').click()
+    await expect(panesInsideASubprocess).toBeElementsArrayOfSize(2)
+
+    await host.shadow$('.diagit-diff-nav .btn-ghost').click()
+    await expect(panesInsideASubprocess).toBeElementsArrayOfSize(0)
+  })
 })

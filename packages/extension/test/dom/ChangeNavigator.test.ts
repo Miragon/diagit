@@ -53,7 +53,7 @@ describe('ChangeNavigator', () => {
     expect(navigator.position).toBe(3)
   })
 
-  it('wraps around backwards and fits every viewer on "All"', () => {
+  it('wraps around backwards and resets every viewer to the view it opened on, on "All"', () => {
     const viewer = new FakeDiffableViewer(['A', 'B'])
     const navigator = new ChangeNavigator(['A', 'B'], [viewer, null])
 
@@ -63,6 +63,6 @@ describe('ChangeNavigator', () => {
 
     navigator.showAll()
     expect(viewer.markers).toEqual([])
-    expect(viewer.fits).toBe(1)
+    expect(viewer.resets).toBe(1)
   })
 })
