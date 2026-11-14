@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/Miragon/diagit/compare/v0.6.0...v0.6.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **diff:** return to the process on Show all after stepping into a collapsed subprocess ([#222](https://github.com/Miragon/diagit/issues/222)) ([c24c261](https://github.com/Miragon/diagit/commit/c24c261016b0cc042c857dc2d6dc189d5bcca4ef))
+* keep the diff panel inside the file frame on GitHub's new diff layout ([#219](https://github.com/Miragon/diagit/issues/219)) ([b35e787](https://github.com/Miragon/diagit/commit/b35e78790239cd66e1bc8fe84ad516eb81a76a49)), closes [#218](https://github.com/Miragon/diagit/issues/218)
+
 ## [0.6.0](https://github.com/Miragon/diagit/compare/v0.5.0...v0.6.0) (2026-11-13)
 
 
