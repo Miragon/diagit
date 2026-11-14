@@ -13,6 +13,7 @@ import { NOTATION_CATALOG } from '../../src/notations/notationCatalog'
 import { allNotations } from '../../src/notations/allNotations'
 import { ExtensionEnvironment } from '../../src/platform/ExtensionEnvironment'
 import { PageHttpClient } from '../../src/platform/messaging/PageHttpClient'
+import { ViewerHeader } from '../../src/platform/ui/ViewerHeader'
 import { webOrigin } from '../../src/platform/utils/origin'
 import { StandaloneDiffPage } from '../../src/views/diff-viewer/StandaloneDiffPage'
 import { LinkedModelReader } from '../../src/views/standalone-viewer/LinkedModelReader'
@@ -31,6 +32,7 @@ const reportContext = {
 }
 const linkedModels = new LinkedModelReader(new FetchProxy(NO_AUTH_POLICIES, new FetchScope()))
 
+app.append(new ViewerHeader().element)
 if (diffPage && diffOrigin && diffPath) {
   const fetchProxy = new FetchProxy([githubHost.authPolicy], new FetchScope())
   const http = new PageHttpClient(fetchProxy, diffOrigin)

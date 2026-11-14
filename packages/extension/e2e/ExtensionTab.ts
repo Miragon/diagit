@@ -26,6 +26,21 @@ export class ExtensionTab {
     })
   }
 
+  async click(selector: string): Promise<void> {
+    const result = await browser.scriptEvaluate({
+      expression: `document.querySelector(${JSON.stringify(selector)}).click()`,
+      target: { context: this.context },
+      awaitPromise: false,
+    })
+    if (result.type === 'exception') {
+      throw new Error(`Could not click ${selector}: ${result.exceptionDetails.text}`)
+    }
+  }
+
+  async back(): Promise<void> {
+    await browser.browsingContextTraverseHistory({ context: this.context, delta: -1 })
+  }
+
   async navigate(url: string): Promise<void> {
     await browser.browsingContextNavigate({ context: this.context, url, wait: 'complete' })
   }

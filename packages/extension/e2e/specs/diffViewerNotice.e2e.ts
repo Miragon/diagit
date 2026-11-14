@@ -17,5 +17,11 @@ describe('diff notice on a pull request whose diff view Diagit does not recognis
 
     await viewer.waitForText(RENDERED_PANES, 'true')
     expect(await viewer.text(FILE_PATH)).toBe('flows/order.bpmn')
+
+    await viewer.click('.page-header a[href="/options.html"]')
+    await viewer.waitForText('location.pathname', '/options.html')
+
+    await viewer.back()
+    await viewer.waitForText(RENDERED_PANES, 'true')
   })
 })

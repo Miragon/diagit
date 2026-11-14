@@ -40,6 +40,10 @@ body {
   height: 32px;
 }
 
+.page-header-end {
+  margin-left: auto;
+}
+
 .page-subtitle {
   padding-left: 12px;
   border-left: 1px solid var(--cd-ui-linie);

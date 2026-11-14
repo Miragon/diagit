@@ -32,6 +32,12 @@ describe('standalone viewer page', () => {
     await expectRenders('sample.bpmn')
   })
 
+  it('links to the options page from its header', async () => {
+    await browser.url('/viewer.html')
+    const optionsLink = $('.page-header a[href="/options.html"]')
+    await expect(optionsLink).toHaveText('Options')
+  })
+
   it('marks Camunda 7 transaction boundaries', async () => {
     await expectRenders('c7-async.bpmn')
     await expect($$('.diagit-transaction-boundary')).toBeElementsArrayOfSize(1)
