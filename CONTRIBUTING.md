@@ -214,6 +214,21 @@ npm run format     # prettier
   the git host only decides light or dark. CI checks this with brand-lint (job `brand`). Details
   and the update path are in `CLAUDE.md`.
 
+## Known error: store publish fails right after a release
+
+The Chrome Web Store and Edge Add-ons reject a new upload while an older version is still in
+review. If two releases follow each other closely, the job `publish (chrome)` or `publish (edge)`
+of the `Release` workflow can fail with errors like these:
+
+- Chrome: `You may not edit or publish an item that is in review.`
+- Edge: `Can't publish extension as your extension submission is in progress.` or just
+  `An error occurred while performing the operation`
+
+The new bundle is fine. Wait until the review ends, or cancel it in the
+[Chrome Developer Console](https://chrome.google.com/webstore/devconsole) or the
+[Partner Center](https://partner.microsoft.com/dashboard/microsoftedge/overview). On Edge, a
+cancellation takes 5–10 minutes. Then re-run the failed jobs of the run.
+
 ## Where things live
 
 - `packages/bpmn-diff/src/domain`: the diff algorithm (pure).
