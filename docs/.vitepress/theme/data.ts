@@ -11,7 +11,7 @@ export const stores = [
 ]
 export const status = {
   label: 'Pre-1.0:',
-  text: '0.6.0, expect changes between releases.', // x-release-please-version
+  text: '0.6.1, expect changes between releases.', // x-release-please-version
 }
 export const next = {
   text: 'Open your first model on GitHub',
