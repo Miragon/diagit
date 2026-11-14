@@ -5,7 +5,6 @@ export default miragonDocs({
   title: 'Miragon Diagit',
   description:
     'A browser extension that renders diagram models inline on GitLab and GitHub and shows a visual before/after diff in merge and pull requests.',
-  githubStars: false,
   footerMessage: 'Released under the MIT License.',
   nav: [
     { text: 'Getting started', link: '/getting-started' },
