@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/Miragon/diagit/compare/v0.6.1...v0.7.0) (2026-11-14)
+
+
+### Features
+
+* expand the diagram panel in the tab before full screen ([#231](https://github.com/Miragon/diagit/issues/231)) ([1a8b4c1](https://github.com/Miragon/diagit/commit/1a8b4c1ee20d9d8e1cc1ead23d0ab60e8f7e863e)), closes [#229](https://github.com/Miragon/diagit/issues/229)
+* link from the standalone viewer to the options page ([#227](https://github.com/Miragon/diagit/issues/227)) ([0335335](https://github.com/Miragon/diagit/commit/0335335c0cc264f49e46557ffac996bc333479a2))
+* show the diff of a file in the standalone viewer when Diagit cannot place it ([#223](https://github.com/Miragon/diagit/issues/223)) ([2dc6f89](https://github.com/Miragon/diagit/commit/2dc6f894f5926d9566b921a8996fb4477a3421bf))
+
+
+### Bug Fixes
+
+* open a deleted diagram on the Diff tab ([#230](https://github.com/Miragon/diagit/issues/230)) ([3c9f961](https://github.com/Miragon/diagit/commit/3c9f961e44ca8e77b3f06ad870c4406380a5ed1b))
+
 ## [0.6.1](https://github.com/Miragon/diagit/compare/v0.6.0...v0.6.1) (2026-11-14)
 
 
