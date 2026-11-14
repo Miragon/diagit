@@ -18,7 +18,7 @@ export class GithubDiffScanner {
       return {
         path,
         anchor: code,
-        append: 'before' as const,
+        append: this.hasFramedCode(root) ? ('first' as const) : ('before' as const),
         fileRoot: root,
         isCollapsed: () => !isRendered(this.codeOf(root)),
       }
@@ -73,6 +73,10 @@ export class GithubDiffScanner {
   private headSidePath(headerText: string): string {
     const clean = stripBidiMarks(headerText).trim()
     return (clean.split(RENAME_ARROW).pop() ?? clean).trim()
+  }
+
+  private hasFramedCode(root: HTMLElement): boolean {
+    return root.querySelector(githubSelectors.diff.modernCode) !== null
   }
 
   private codeOf(root: HTMLElement): HTMLElement | null {
