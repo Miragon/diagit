@@ -20,6 +20,7 @@ export interface DiffPanelOptions extends DiffLoaders {
   filePath: string
   reportContext: ReportContext
   onRendered?: () => void
+  onOwnPage?: boolean
 }
 
 type ModelView = 'plain' | 'diff'
@@ -76,7 +77,11 @@ export class DiffPanel implements PanelHandle, Zoomable {
   constructor(private readonly options: DiffPanelOptions) {
     this.notices = new DiffNotices(options.label, options.reportContext)
     this.changeControls.element.before(filePathLabel(options.filePath))
-    this.zoomControls.allowFullScreen(this.root)
+    if (options.onOwnPage) {
+      this.zoomControls.allowFullScreen(this.root)
+    } else {
+      this.zoomControls.allowExpanding(this.root)
+    }
   }
 
   mount(container: HTMLElement): this {
@@ -127,6 +132,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.viewportObserver?.disconnect()
     this.viewportObserver = null
     this.destroyViewers()
+    this.zoomControls.collapse()
     this.root.remove()
   }
 

@@ -40,7 +40,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
       this.canvas,
       this.zoomControls.element,
     ])
-    this.zoomControls.allowFullScreen(this.wrap)
+    this.zoomControls.allowExpanding(this.wrap)
   }
 
   mount(container: HTMLElement): this {
@@ -72,6 +72,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
     this.resizeObserver = null
     this.viewer?.destroy()
     this.viewer = null
+    this.zoomControls.collapse()
     this.wrap.remove()
   }
 

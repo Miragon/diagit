@@ -261,6 +261,24 @@ describe('DiffPanel', () => {
     })
   })
 
+  it('offers direct full screen instead of Expand on its own page', () => {
+    FakeFullScreen.install()
+    const container = document.createElement('div')
+    document.body.append(container)
+    panel = new DiffPanel({
+      differ: new FakeDiffer(),
+      loadOld: async () => '<old/>',
+      loadNew: async () => '<new/>',
+      label: 'BPMN',
+      filePath: 'processes/order.bpmn',
+      reportContext: FAKE_REPORT_CONTEXT,
+      onOwnPage: true,
+    }).mount(container)
+
+    expect(buttonLabelled(container, 'Full screen').hidden).toBe(false)
+    expect(container.querySelector('.diagit-zoom-expand')).toBeNull()
+  })
+
   describe('full screen', () => {
     async function fullScreenDiff() {
       FakeFullScreen.install()
@@ -273,6 +291,7 @@ describe('DiffPanel', () => {
       await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
       const root = container.querySelector<HTMLElement>('.diagit-diff-root')!
       const enter = async () => {
+        buttonLabelled(container, 'Expand').click()
         buttonLabelled(container, 'Full screen').click()
         await FakeFullScreen.settled()
       }

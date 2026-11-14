@@ -145,7 +145,7 @@ describe('ModelPanel', () => {
     expect(readout.textContent).toBe('100%')
   })
 
-  it('hides the zoom island while the diagram has no zoomable canvas', async () => {
+  it('hides the zoom buttons while the diagram has no zoomable canvas', async () => {
     const viewer = new FakeDiffableViewer()
     viewer.level = null
     const notation = new FakeNotation()
@@ -158,13 +158,13 @@ describe('ModelPanel', () => {
         reportContext: FAKE_REPORT_CONTEXT,
       }),
     )
-    const zoom = container.querySelector<HTMLElement>('.diagit-zoom')!
+    const fit = container.querySelector<HTMLElement>('.diagit-zoom-fit')!
     await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
 
-    expect(zoom.hidden).toBe(true)
+    expect(fit.hidden).toBe(true)
     viewer.level = 1
     viewer.zoomBy(1)
-    expect(zoom.hidden).toBe(false)
+    expect(fit.hidden).toBe(false)
   })
 
   it('shows a pane notice with a report link when the model cannot be read', async () => {
@@ -190,37 +190,51 @@ describe('ModelPanel', () => {
     expect(reportedConsole(container)).not.toContain('unparsable content')
   })
 
-  describe('full screen', () => {
+  describe('expanding and full screen', () => {
     function fullScreenPanel(viewer = new FakeDiffableViewer(), loadXml = async () => '<bpmn/>') {
       FakeFullScreen.install()
       const notation = new FakeNotation()
       vi.spyOn(notation, 'createViewer').mockResolvedValue(viewer)
-      const container = mountPanel(
-        new ModelPanel({
-          notation,
-          filePath: 'flows/order.bpmn',
-          loadXml,
-          reportContext: FAKE_REPORT_CONTEXT,
-        }),
-      )
-      const button = () => container.querySelector<HTMLButtonElement>('[aria-label="Full screen"]')!
-      return { container, viewer, button }
+      const panel = new ModelPanel({
+        notation,
+        filePath: 'flows/order.bpmn',
+        loadXml,
+        reportContext: FAKE_REPORT_CONTEXT,
+      })
+      const container = mountPanel(panel)
+      const button = (label = 'Expand') =>
+        container.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!
+      return { container, viewer, button, panel }
     }
 
-    it('puts the whole file panel in full screen without changing its theme', async () => {
+    it('expands the whole file panel and puts it in full screen without changing its theme', async () => {
       const { container, button } = fullScreenPanel()
       await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
       const wrap = container.querySelector<HTMLElement>('.diagit-wrap')!
       const theme = wrap.dataset.cdTheme
 
       button().click()
+      expect(wrap.parentElement!.tagName).toBe('DIALOG')
+      expect(wrap.parentElement!.dataset.cdTheme).toBe(theme)
+      button('Full screen').click()
       await FakeFullScreen.settled()
 
       expect(document.fullscreenElement).toBe(wrap)
       expect(wrap.dataset.cdTheme).toBe(theme)
     })
 
-    it('keeps only the full screen button on a decision table', async () => {
+    it('leaves no dialog behind when destroyed while expanded', async () => {
+      const { container, button, panel } = fullScreenPanel()
+      await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
+      button().click()
+
+      panel.destroy()
+
+      expect(container.querySelector('dialog')).toBeNull()
+      expect(container.querySelector('.diagit-wrap')).toBeNull()
+    })
+
+    it('keeps only the Expand button on a decision table', async () => {
       const viewer = new FakeDiffableViewer()
       viewer.level = null
       const { container, button } = fullScreenPanel(viewer)

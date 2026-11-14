@@ -57,6 +57,129 @@ describe('ZoomControls', () => {
     expect(controls.element.querySelector('.diagit-zoom-fit')!.textContent).toBe('Fit')
   })
 
+  describe('expanding', () => {
+    afterEach(() => {
+      FakeFullScreen.uninstall()
+      document.body.replaceChildren()
+    })
+
+    function expandingControls() {
+      FakeFullScreen.install()
+      const panel = document.createElement('div')
+      document.body.append(panel)
+      const parts = controlsFor()
+      parts.controls.allowExpanding(panel)
+      panel.append(parts.controls.element)
+      parts.controls.showLevel(1)
+      const visibleLabels = () =>
+        [...parts.controls.element.querySelectorAll('button')]
+          .filter((button) => !button.hidden)
+          .map((button) => button.title || button.getAttribute('aria-label'))
+      return { ...parts, panel, visibleLabels }
+    }
+
+    it('offers Expand in place of Full screen while the panel is in the page', () => {
+      const { button, visibleLabels } = expandingControls()
+
+      expect(visibleLabels()).toEqual([
+        'Zoom out',
+        'Reset zoom',
+        'Zoom in',
+        'Fit to view',
+        'Expand',
+      ])
+      expect(button('Expand').getAttribute('aria-pressed')).toBe('false')
+    })
+
+    it('offers Full screen and Collapse in the dialog', () => {
+      const { panel, button, visibleLabels } = expandingControls()
+
+      button('Expand').click()
+
+      expect(panel.parentElement!.tagName).toBe('DIALOG')
+      expect(visibleLabels()).toEqual([
+        'Zoom out',
+        'Reset zoom',
+        'Zoom in',
+        'Fit to view',
+        'Full screen',
+        'Collapse',
+      ])
+      expect(button('Expand').getAttribute('aria-pressed')).toBe('true')
+      expect(document.activeElement).toBe(button('Expand'))
+    })
+
+    it('puts the panel back and focuses the button on Collapse', () => {
+      const { panel, button } = expandingControls()
+      button('Expand').click()
+
+      button('Expand').click()
+
+      expect(panel.parentElement).toBe(document.body)
+      expect(document.activeElement).toBe(button('Expand'))
+      expect(button('Full screen').hidden).toBe(true)
+    })
+
+    it('goes to full screen from the dialog and back to the dialog', async () => {
+      const { panel, button, visibleLabels } = expandingControls()
+      button('Expand').click()
+
+      button('Full screen').click()
+      await FakeFullScreen.settled()
+
+      expect(document.fullscreenElement).toBe(panel)
+      expect(visibleLabels()).toEqual([
+        'Zoom out',
+        'Reset zoom',
+        'Zoom in',
+        'Fit to view',
+        'Exit full screen',
+      ])
+
+      await FakeFullScreen.exit()
+
+      expect(panel.parentElement!.tagName).toBe('DIALOG')
+      expect(button('Expand').hidden).toBe(false)
+    })
+
+    it('keeps the way out of the dialog while there is nothing to show', () => {
+      const { controls, button } = expandingControls()
+      button('Expand').click()
+
+      controls.hide()
+
+      expect(controls.element.hidden).toBe(false)
+      expect(button('Expand').hidden).toBe(false)
+
+      button('Expand').click()
+
+      expect(controls.element.hidden).toBe(true)
+    })
+
+    it('collapses on request, before the panel goes away', () => {
+      const { controls, panel, button } = expandingControls()
+      button('Expand').click()
+
+      controls.collapse()
+
+      expect(panel.parentElement).toBe(document.body)
+      expect(document.querySelector('dialog')).toBeNull()
+    })
+
+    it('still expands where the browser does not allow full screen', () => {
+      const { controls, button } = controlsFor()
+      const panel = document.createElement('div')
+      document.body.append(panel)
+      controls.allowExpanding(panel)
+      panel.append(controls.element)
+
+      button('Expand').click()
+
+      expect(panel.parentElement!.tagName).toBe('DIALOG')
+      expect(controls.element.querySelector('.diagit-zoom-full-screen')).toBeNull()
+    })
+  })
+
   describe('full screen', () => {
     afterEach(() => {
       vi.restoreAllMocks()
