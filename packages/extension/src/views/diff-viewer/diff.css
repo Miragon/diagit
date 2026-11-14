@@ -64,6 +64,11 @@
   background: var(--canvas-bg);
 }
 
+.diagit-diff-canvas .bjs-breadcrumbs {
+  top: calc(var(--cd-shell-rand) * 2 + 24px);
+  left: var(--cd-shell-rand);
+}
+
 /* Keep diagram labels in the text role (light or dark). */
 .diagit-diff-canvas .djs-label,
 .diagit-diff-canvas text {

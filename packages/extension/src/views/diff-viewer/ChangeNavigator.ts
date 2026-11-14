@@ -38,7 +38,7 @@ export class ChangeNavigator {
     this.clearActive()
     this.index = -1
     for (const viewer of this.viewers) {
-      viewer?.fit()
+      viewer?.resetView()
     }
   }
 

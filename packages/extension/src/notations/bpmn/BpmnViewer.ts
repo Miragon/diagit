@@ -34,7 +34,11 @@ export class BpmnViewer implements DiffableViewer {
     return bpmnViewer
   }
 
-  private constructor(private readonly viewer: NavigatedViewer) {}
+  private readonly initialRoot
+
+  private constructor(private readonly viewer: NavigatedViewer) {
+    this.initialRoot = this.canvas.getRootElement()
+  }
 
   fit(): void {
     fitWithPadding(this.canvas)
@@ -75,6 +79,11 @@ export class BpmnViewer implements DiffableViewer {
     }
     this.canvas.zoom(zoom)
     this.canvas.scrollToElement(element)
+  }
+
+  resetView(): void {
+    this.canvas.setRootElement(this.initialRoot)
+    this.fit()
   }
 
   destroy(): void {
