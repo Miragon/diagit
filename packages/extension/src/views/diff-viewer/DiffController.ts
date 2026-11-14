@@ -9,10 +9,10 @@ import type { DiagramDiffer, NotationLookup } from '../../notations/Notation'
 import { diffableNotations } from '../../notations/diffableNotations'
 import { UnrecognizedFileNotices } from './UnrecognizedFileNotices'
 import { DiffPanel } from './DiffPanel'
-import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
+import { Notice } from '../../platform/ui/Notice'
 import type { HostPage, PanelHandle, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
-import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
+import type { ReportContext } from '../../platform/DiagitRepository'
 import { fileLabel } from '../../platform/utils/fileLabel'
 import viewerCss from '../../platform/ui/viewer.css?inline'
 import diffCss from './diff.css?inline'
@@ -112,17 +112,6 @@ export class DiffController {
 
   private async mountError(file: ChangedFile, err: DiffDataError, pageKey: string) {
     const label = this.labelFor(file)
-    const { title = `${label} diff data could not be loaded`, ...help } = err.help
-    const failure: NoticeDetails = {
-      title,
-      ...help,
-      reportUrl: diagitRepository.problemReportUrl(
-        `${label} diff data not loaded`,
-        `Diagit showed "${title}" in a diff.`,
-        this.reportContext,
-        err.message,
-      ),
-    }
     const panel = await Notice.mountOn(
       this.page,
       {
@@ -132,7 +121,7 @@ export class DiffController {
         css: viewerCss,
         fileLabel: fileLabel(file.path, label),
       },
-      failure,
+      err.noticeDetails(label, this.reportContext),
     )
     this.keepOnPage(panel, pageKey)
   }

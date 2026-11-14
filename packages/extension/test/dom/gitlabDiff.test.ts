@@ -75,6 +75,24 @@ describe('GitLab merge-request diff', () => {
     expect(await block!.loadNew()).toBe('<new/>')
   })
 
+  it('loads a renamed file for the standalone viewer by its new path only', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [
+        { old_path: 'flows/old.bpmn', new_path: 'flows/order.bpmn', renamed_file: true },
+      ],
+      [`${rawFiles}/flows%2Fold.bpmn/raw?ref=aaa&lfs=true`]: '<old/>',
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=bbb&lfs=true`]: '<new/>',
+    })
+    const diff = new GitlabHost(http).mergeRequestDiff
+
+    const loaders = await diff.loadersFor(location, 'flows/order.bpmn')
+
+    expect(await loaders!.loadOld()).toBe('<old/>')
+    expect(await loaders!.loadNew()).toBe('<new/>')
+    expect(await diff.loadersFor(location, 'flows/other.bpmn')).toBeNull()
+  })
+
   it('compares a single commit with its parent when the view is limited to one commit', async () => {
     const commitApi = 'https://gitlab.com/api/v4/projects/group%2Fproject/repository/commits/ccc'
     const http = new FakeHttpClient().respondWith({

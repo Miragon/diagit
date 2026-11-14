@@ -8,7 +8,8 @@
  *      (so the standalone `viewer.html` can be driven over HTTP, extension-free).
  *   2. GitHub-shaped host pages — a repository landing page, a blob file view (also
  *      in a layout the viewer cannot place itself in), a
- *      pull-request "Files changed" view and a single-commit diff view — from
+ *      pull-request "Files changed" view (also in a layout the diff adapter does not
+ *      recognise) and a single-commit diff view — from
  *      `fixtures/host-dom/`.
  *   3. The data those pages make the extension fetch: the raw `.bpmn`/`.dmn`
  *      bytes (blob + base/head) and the PR/commit REST metadata the diff adapters
@@ -43,7 +44,9 @@ const SUBPROCESS_PR = {
   headSha: 'head2222222222222222222222222222222222222',
 } as const
 
-const PULL_REQUESTS = [PR, SUBPROCESS_PR]
+const UNKNOWN_LAYOUT_PR = { ...PR, repo: 'relayout' } as const
+
+const PULL_REQUESTS = [PR, SUBPROCESS_PR, UNKNOWN_LAYOUT_PR]
 
 const FIXTURE_BY_REF: Record<string, string> = {
   [SUBPROCESS_PR.baseSha]: 'collapsed-subprocess-before.bpmn',
@@ -62,7 +65,7 @@ const COMMIT = {
 const REPO_HOME = `/${PR.owner}/${PR.repo}`
 const RENAMED_REPO_SEGMENT = `/${PR.owner}/renamed/`
 const REPO_SEGMENT = `/${PR.owner}/${PR.repo}/`
-const UNKNOWN_LAYOUT_REPO_SEGMENT = `/${PR.owner}/relayout/`
+const UNKNOWN_LAYOUT_REPO_SEGMENT = `/${UNKNOWN_LAYOUT_PR.owner}/${UNKNOWN_LAYOUT_PR.repo}/`
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -192,7 +195,10 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
       return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, page)))
     }
     if (path.includes('/pull/')) {
-      return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, 'pr.html')))
+      const page = path.startsWith(UNKNOWN_LAYOUT_REPO_SEGMENT)
+        ? 'pr-unknown-layout.html'
+        : 'pr.html'
+      return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, page)))
     }
     if (path.includes('/commit/')) {
       return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, 'commit.html')))

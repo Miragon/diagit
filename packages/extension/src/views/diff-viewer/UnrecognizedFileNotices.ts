@@ -1,12 +1,16 @@
+import { ExternalLink } from 'lucide'
+import { browser } from 'wxt/browser'
 import type { VisibleFileHeader } from '../../git-hosts/FileHeaderLocator'
 import type { NotationLookup } from '../../notations/Notation'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { DIFF_ERROR_TAG } from '../../platform/injectedElements'
-import { Notice } from '../../platform/ui/Notice'
+import { BackgroundClient } from '../../platform/messaging/BackgroundClient'
+import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 
-const UNRECOGNIZED_BODY =
-  "The page layout has probably changed. The file's changes are still shown below."
+const LAYOUT_CHANGED = 'The page layout has probably changed.'
+const CHANGES_STILL_SHOWN = `${LAYOUT_CHANGED} The file's changes are still shown below.`
+const OPEN_IN_DIAGIT = `${LAYOUT_CHANGED} Open the diagram diff in Diagit instead.`
 
 export class UnrecognizedFileNotices {
   private readonly shown = new Map<string, ShadowPanel<Notice>>()
@@ -55,7 +59,7 @@ export class UnrecognizedFileNotices {
       {
         tone: 'danger',
         title,
-        body: UNRECOGNIZED_BODY,
+        ...this.openInViewer(path),
         reportUrl: diagitRepository.problemReportUrl(
           `${label} diff not shown, diff view not recognised`,
           `Diagit showed "${title}" for a changed file whose diff it did not recognise.`,
@@ -63,5 +67,19 @@ export class UnrecognizedFileNotices {
         ),
       },
     )
+  }
+
+  private openInViewer(path: string): Pick<NoticeDetails, 'body' | 'action'> {
+    if (browser.extension.inIncognitoContext) {
+      return { body: CHANGES_STILL_SHOWN }
+    }
+    return {
+      body: OPEN_IN_DIAGIT,
+      action: {
+        label: 'Open in Diagit',
+        icon: ExternalLink,
+        onClick: () => void new BackgroundClient().openDiffViewer(this.page.location.href, path),
+      },
+    }
   }
 }

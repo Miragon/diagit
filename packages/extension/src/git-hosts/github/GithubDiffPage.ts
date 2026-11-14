@@ -1,4 +1,5 @@
 import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSource'
+import type { PageUrl } from '../GitHost'
 import type { GithubApiAuth } from './GithubApiAuth'
 import type { GithubDiffScanner } from './GithubDiffScanner'
 import type { GithubDiffData, GithubRestApi } from './GithubRestApi'
@@ -15,11 +16,11 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
     private readonly auth: GithubApiAuth,
   ) {}
 
-  abstract identify(location: Location): Page | null
+  abstract identify(location: PageUrl): Page | null
 
-  abstract showsDiffs(location: Location): boolean
+  abstract showsDiffs(location: PageUrl): boolean
 
-  abstract load(location: Location, page: Page): Promise<GithubDiffData>
+  abstract load(location: PageUrl, page: Page): Promise<GithubDiffData>
 
   scan(doc: Document): ChangedFile[] {
     return this.scanner.scan(doc)
@@ -34,9 +35,9 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
     return [...files].map((file) => file.filename)
   }
 
-  loaders(location: Location, file: ChangedFile, data: GithubDiffData): DiffLoaders {
-    const change = data.fileByPath.get(file.path)
-    const oldPath = change?.previous_filename || file.path
+  loaders(location: PageUrl, path: string, data: GithubDiffData): DiffLoaders {
+    const change = data.fileByPath.get(path)
+    const oldPath = change?.previous_filename || path
     const hasNoOldSide = change?.status === 'added' || !data.baseSha
     const hasNoNewSide = change?.status === 'removed'
     return {
@@ -47,11 +48,11 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
       loadNew: () =>
         hasNoNewSide
           ? Promise.resolve(null)
-          : this.api.rawFile(location, data.headRepo, data.headSha, file.path),
+          : this.api.rawFile(location, data.headRepo, data.headSha, path),
     }
   }
 
-  errorHelp(location: Location, err: unknown): Promise<ErrorHelp> {
+  errorHelp(location: PageUrl, err: unknown): Promise<ErrorHelp> {
     return this.auth.errorHelp(location, err)
   }
 }

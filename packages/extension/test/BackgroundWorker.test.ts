@@ -47,6 +47,8 @@ function startedWorker(browserReinjectsOnUpdate = false): void {
     publicMatchPatterns: () => PUBLIC_PATTERNS,
   }
   const senders = {
+    isOwn: (sender: { trusted?: boolean; extensionPage?: boolean }) =>
+      sender.trusted === true || sender.extensionPage === true,
     pageOf: (sender: { trusted?: boolean; incognito?: boolean }) =>
       sender.trusted ? { ...TRUSTED_TAB, incognito: sender.incognito === true } : undefined,
   }
@@ -62,7 +64,7 @@ function startedWorker(browserReinjectsOnUpdate = false): void {
 
 function sendMessage(
   message: unknown,
-  sender: { trusted?: boolean; incognito?: boolean },
+  sender: { trusted?: boolean; incognito?: boolean; extensionPage?: boolean },
 ): Promise<unknown> {
   const [onMessage] = vi.mocked(browser.runtime.onMessage.addListener).mock.lastCall!
   const handle = onMessage as (m: unknown, s: unknown, respond: (r: unknown) => void) => boolean
@@ -146,6 +148,18 @@ describe('BackgroundWorker openOptions message', () => {
     expect(browser.runtime.openOptionsPage).toHaveBeenCalled()
   })
 
+  it('opens the options page for an extension page such as the standalone viewer', async () => {
+    expect(await sendMessage({ type: 'openOptions' }, { extensionPage: true })).toBe(true)
+    expect(browser.runtime.openOptionsPage).toHaveBeenCalled()
+  })
+
+  it('serves an extension page nothing but the options page', async () => {
+    const extensionPage = { extensionPage: true }
+    const message = { type: 'openViewer', url: 'https://github.com/o/r/raw/main/order.bpmn' }
+    expect(await sendMessage(message, extensionPage)).toBe(false)
+    expect(browser.tabs.create).not.toHaveBeenCalled()
+  })
+
   it('refuses an untrusted sender', async () => {
     expect(await sendMessage({ type: 'openOptions' }, {})).toBe(false)
     expect(browser.runtime.openOptionsPage).not.toHaveBeenCalled()
@@ -189,6 +203,49 @@ describe('BackgroundWorker openViewer message', () => {
 
   it('refuses an untrusted sender', async () => {
     expect(await sendMessage({ type: 'openViewer', url: RAW_FILE }, {})).toBe(false)
+    expect(browser.tabs.create).not.toHaveBeenCalled()
+  })
+})
+
+describe('BackgroundWorker openDiffViewer message', () => {
+  const PULL_REQUEST = 'https://github.com/o/r/pull/1/files'
+  const PATH = 'flows/order v2.bpmn'
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    startedWorker()
+  })
+
+  it('opens the viewer with the diff of a file on the sender page', async () => {
+    const message = { type: 'openDiffViewer', pageUrl: PULL_REQUEST, path: PATH }
+    expect(await sendMessage(message, { trusted: true })).toBe(true)
+
+    const opened = new URL(vi.mocked(browser.tabs.create).mock.calls[0]![0].url!)
+    expect(opened.pathname).toBe('/viewer.html')
+    expect(opened.searchParams.get('page')).toBe(PULL_REQUEST)
+    expect(opened.searchParams.get('path')).toBe(PATH)
+  })
+
+  it('refuses a page of another origin', async () => {
+    for (const pageUrl of ['https://gitlab.com/g/p/-/merge_requests/1/diffs', 'not a url']) {
+      const message = { type: 'openDiffViewer', pageUrl, path: PATH }
+      expect(await sendMessage(message, { trusted: true })).toBe(false)
+    }
+    expect(browser.tabs.create).not.toHaveBeenCalled()
+  })
+
+  it('refuses a message without a file path', async () => {
+    for (const path of [undefined, '', 42]) {
+      const message = { type: 'openDiffViewer', pageUrl: PULL_REQUEST, path }
+      expect(await sendMessage(message, { trusted: true })).toBe(false)
+    }
+    expect(browser.tabs.create).not.toHaveBeenCalled()
+  })
+
+  it('refuses an incognito tab and an untrusted sender', async () => {
+    const message = { type: 'openDiffViewer', pageUrl: PULL_REQUEST, path: PATH }
+    expect(await sendMessage(message, { trusted: true, incognito: true })).toBe(false)
+    expect(await sendMessage(message, {})).toBe(false)
     expect(browser.tabs.create).not.toHaveBeenCalled()
   })
 })

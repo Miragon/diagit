@@ -1,5 +1,6 @@
 import type { HttpClient } from '../../platform/messaging/HttpClient'
 import { fetchAllPages } from '../../platform/utils/fetchAllPages'
+import type { PageUrl } from '../GitHost'
 import type { GitlabRoutes, MergeRequestRef } from './GitlabRoutes'
 
 export interface MergeRequestChange {
@@ -33,7 +34,7 @@ export class GitlabRestApi {
     private readonly routes: GitlabRoutes,
   ) {}
 
-  async loadMergeRequest(location: Location, ref: MergeRequestRef): Promise<MergeRequestData> {
+  async loadMergeRequest(location: PageUrl, ref: MergeRequestRef): Promise<MergeRequestData> {
     const mergeRequestApi = this.routes.mergeRequestApi(location.origin, ref)
     const mergeRequest = await this.http.fetchJson<MergeRequestResponse>(mergeRequestApi)
     const changes = await fetchAllPages<MergeRequestChange>(this.http, `${mergeRequestApi}/diffs`)
@@ -47,7 +48,7 @@ export class GitlabRestApi {
   }
 
   async loadCommit(
-    location: Location,
+    location: PageUrl,
     ref: Pick<MergeRequestRef, 'projectPath'>,
     sha: string,
   ): Promise<MergeRequestData> {

@@ -94,6 +94,53 @@ describe('GitHub pull-request diff', () => {
   })
 })
 
+describe('GitHub pull-request diff for one file outside the page', () => {
+  it('loads the base and head of a path without reading the page', async () => {
+    const http = new FakeHttpClient().respondWith({
+      ...pullRequestMetadata,
+      'https://github.com/o/r/raw/aaa/flows/order.bpmn': '<old/>',
+      'https://github.com/o/r/raw/bbb/flows/order.bpmn': '<new/>',
+    })
+
+    const loaders = await pullRequestDiff(http).loadersFor(location, 'flows/order.bpmn')
+
+    expect(await loaders!.loadOld()).toBe('<old/>')
+    expect(await loaders!.loadNew()).toBe('<new/>')
+  })
+
+  it('carries the cause of a failed load without any file', async () => {
+    const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 404 for x', 404))
+
+    const err = await pullRequestDiff(http)
+      .loadersFor(location, 'flows/order.bpmn')
+      .then(
+        () => expect.unreachable(),
+        (e: DiffDataError) => e,
+      )
+
+    expect(err).toBeInstanceOf(DiffDataError)
+    expect(err.files).toEqual([])
+    expect(err.help.title).toBe('This repository looks private')
+  })
+
+  it('has no loaders for a path the pull request does not change', async () => {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+
+    for (const path of ['flows/other.bpmn', '../../o/r/raw/main/order.bpmn']) {
+      expect(await pullRequestDiff(http).loadersFor(location, path)).toBeNull()
+    }
+    expect(http.requests.some((url) => url.includes('/raw/'))).toBe(false)
+  })
+
+  it('has no loaders for a page that is no pull request', async () => {
+    const http = new FakeHttpClient()
+    const repoHome = { ...location, pathname: '/o/r' }
+
+    expect(await pullRequestDiff(http).loadersFor(repoHome, 'flows/order.bpmn')).toBeNull()
+    expect(http.requests).toEqual([])
+  })
+})
+
 describe('GitHub pull-request diff limited to commits', () => {
   const at = (pathname: string) => ({ ...location, pathname }) as Location
 

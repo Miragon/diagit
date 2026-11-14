@@ -3,6 +3,11 @@ import type { GithubDeviceFlow } from './GithubDeviceFlow'
 import type { GithubConnection, GithubTokenSet, GithubTokenStore } from './GithubTokenStore'
 
 const EXPIRY_MARGIN_MS = 60_000
+const REFRESH_LOCK = 'diagit-github-token-refresh'
+
+interface Locks {
+  request<T>(name: string, work: () => Promise<T>): Promise<T>
+}
 
 export class GithubTokenRefresher {
   private refreshing: Promise<string> | undefined
@@ -11,6 +16,7 @@ export class GithubTokenRefresher {
     private readonly store: GithubTokenStore,
     private readonly deviceFlow: GithubDeviceFlow,
     private readonly now: () => number = () => Date.now(),
+    private readonly locks: Locks = navigator.locks,
   ) {}
 
   async validToken(): Promise<string> {
@@ -25,9 +31,11 @@ export class GithubTokenRefresher {
   }
 
   private refreshOnce(staleToken: string, offlineFallback: string): Promise<string> {
-    this.refreshing ??= this.refresh(staleToken, offlineFallback).finally(() => {
-      this.refreshing = undefined
-    })
+    this.refreshing ??= this.locks
+      .request(REFRESH_LOCK, () => this.refresh(staleToken, offlineFallback))
+      .finally(() => {
+        this.refreshing = undefined
+      })
     return this.refreshing
   }
 

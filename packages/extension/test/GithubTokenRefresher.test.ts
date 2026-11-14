@@ -105,6 +105,20 @@ describe('GithubTokenRefresher.validToken', () => {
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 
+  it('lets a refresher in another extension page reuse the rotated token', async () => {
+    const { fetch, answer } = deferredFetch()
+    const { store, refresher } = await refresherFor(expiringTokens, fetch)
+    const now = () => NOW
+    const otherPage = new GithubTokenRefresher(store, new GithubDeviceFlow(fetch, now), now)
+
+    const tokens = Promise.all([refresher.validToken(), otherPage.validToken()])
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalled())
+    answer(jsonResponse(renewedTokens))
+
+    await expect(tokens).resolves.toEqual(['ghu_new', 'ghu_new'])
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
   it('forgets the connection when GitHub rejects the refresh token', async () => {
     const fetch = vi.fn().mockResolvedValue(jsonResponse({ error: 'bad_refresh_token' }))
     const { store, refresher } = await refresherFor(expiringTokens, fetch)

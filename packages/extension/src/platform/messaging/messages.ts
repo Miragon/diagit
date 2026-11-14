@@ -17,8 +17,18 @@ export interface OpenViewerRequest {
   url: string
 }
 
+export interface OpenDiffViewerRequest {
+  type: 'openDiffViewer'
+  pageUrl: string
+  path: string
+}
+
 export type BackgroundRequest =
-  FetchTextRequest | InjectViewScriptRequest | OpenOptionsRequest | OpenViewerRequest
+  | FetchTextRequest
+  | InjectViewScriptRequest
+  | OpenOptionsRequest
+  | OpenViewerRequest
+  | OpenDiffViewerRequest
 
 export type FetchTextResponse =
   | { ok: true; text: string }
