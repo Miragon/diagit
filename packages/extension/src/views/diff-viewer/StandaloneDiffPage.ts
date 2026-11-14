@@ -30,14 +30,7 @@ export class StandaloneDiffPage {
   ) {}
 
   mount(app: HTMLElement): void {
-    app.append(
-      h('header', { class: 'page-header' }, [
-        h('img', { class: 'app-icon', src: '/icon/icon.svg', alt: '' }),
-        h('h1', { text: 'Diagit' }),
-        h('span', { class: 'page-subtitle', text: 'Viewer' }),
-      ]),
-      this.body,
-    )
+    app.append(this.body)
   }
 
   async open(pageUrl: string, path: string): Promise<void> {

@@ -72,18 +72,12 @@ export class StandaloneViewerPage implements Zoomable {
       this.emptyState,
       this.zoomControls.element,
     ])
-    this.panel = h('section', { class: 'diagit-wrap' }, [this.toolbar, this.stage])
+    this.panel = h('section', { class: 'diagit-wrap' }, [this.toolbar, this.stage, this.fileInput])
     this.zoomControls.allowFullScreen(this.panel)
   }
 
   mount(app: HTMLElement): void {
-    const header = h('header', { class: 'page-header' }, [
-      h('img', { class: 'app-icon', src: '/icon/icon.svg', alt: '' }),
-      h('h1', { text: 'Diagit' }),
-      h('span', { class: 'page-subtitle', text: 'Viewer' }),
-      this.fileInput,
-    ])
-    app.append(header, this.panel)
+    app.append(this.panel)
     this.listen()
     new ResizeObserver(() => this.viewer?.fit()).observe(this.stage)
   }
