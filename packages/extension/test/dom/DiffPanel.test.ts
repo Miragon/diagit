@@ -606,23 +606,30 @@ describe('DiffPanel', () => {
       expect(createViewer).toHaveBeenCalledTimes(2)
     })
 
-    it('stays on Plain for an added or a deleted file', async () => {
-      const added = mount(
+    it('stays on Plain for an added file', async () => {
+      const container = mount(
         new FakeDiffer(),
         async () => null,
         async () => '<new/>',
       )
-      const deleted = mount(
+
+      await untilLoaded(container)
+
+      expect(activeTab(container)).toBe('Plain')
+    })
+
+    it('opens on Diff for a deleted file, with the old version beside the deleted one', async () => {
+      const container = mount(
         new FakeDiffer(),
         async () => '<old/>',
         async () => null,
       )
 
-      await untilLoaded(added)
-      await untilLoaded(deleted)
-
-      expect(activeTab(added)).toBe('Plain')
-      expect(activeTab(deleted)).toBe('Plain')
+      await vi.waitFor(() => expect(activeTab(container)).toBe('Diff'))
+      await vi.waitFor(() =>
+        expect(diffPanes(container)[0]!.querySelector('.fake-diagram')).not.toBeNull(),
+      )
+      expect(diffPanes(container)[1]!.textContent).toContain('deleted')
     })
 
     it('stays on Plain when a version could not be loaded', async () => {
