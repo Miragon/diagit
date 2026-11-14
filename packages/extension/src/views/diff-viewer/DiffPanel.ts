@@ -205,8 +205,16 @@ export class DiffPanel implements PanelHandle, Zoomable {
     }
     this.base = oldModel
     this.head = newModel
-    const opensOnDiff = !this.viewPickedByUser && this.bothVersionsLoaded(oldModel, newModel)
+    const opensOnDiff =
+      !this.viewPickedByUser &&
+      (this.bothVersionsLoaded(oldModel, newModel) || this.fileDeleted(oldModel, newModel))
     this.show(opensOnDiff ? 'diff' : this.modelView)
+  }
+
+  private fileDeleted(oldModel: LoadedModel, newModel: LoadedModel): boolean {
+    const oldVersionLoaded = oldModel.status === 'fulfilled' && !!oldModel.value
+    const newVersionMissing = newModel.status === 'fulfilled' && newModel.value === null
+    return oldVersionLoaded && newVersionMissing
   }
 
   private async ensureDiffRendered(): Promise<void> {
