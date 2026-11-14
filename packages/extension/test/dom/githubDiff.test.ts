@@ -316,7 +316,7 @@ describe('GitHub commit diff on the file-tree layout', () => {
     return new GithubHost(http, tokens).commitDiff
   }
 
-  it('anchors the panel above the code of a file region', async () => {
+  it('anchors the panel inside the framed code box of a file region, above the code', async () => {
     const http = new FakeHttpClient().respondWith(commitMetadata)
     const doc = withFileBoxes(expandedRegion)
 
@@ -324,6 +324,7 @@ describe('GitHub commit diff on the file-tree layout', () => {
 
     expect(blocks.map((block) => block.path)).toEqual(['flows/order.bpmn'])
     expect(blocks[0]!.anchor).toBe(doc.querySelector('.border'))
+    expect(blocks[0]!.append).toBe('first')
     expect(blocks[0]!.fileRoot).toBe(doc.querySelector('[role="region"]'))
   })
 
