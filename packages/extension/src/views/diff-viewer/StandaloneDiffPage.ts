@@ -79,6 +79,7 @@ export class StandaloneDiffPage {
       label,
       filePath: path,
       reportContext: this.reportContext,
+      onOwnPage: true,
       ...loaders,
     }).mount(this.body)
   }
