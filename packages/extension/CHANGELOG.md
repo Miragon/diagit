@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/Miragon/diagit/compare/v0.7.0...v0.7.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* detect the execution platform for transaction boundary markers ([#236](https://github.com/Miragon/diagit/issues/236)) ([3c0b3a7](https://github.com/Miragon/diagit/commit/3c0b3a7874671ec7c7fe7645b0bc7e51702591a6))
+
 ## [0.7.0](https://github.com/Miragon/diagit/compare/v0.6.1...v0.7.0) (2026-11-14)
 
 
