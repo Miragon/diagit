@@ -52,6 +52,7 @@
     "@wdio/mocha-framework": "10.2.0",
     "@wdio/spec-reporter": "10.2.0",
     "@wdio/types": "10.2.0",
+    "bpmn-moddle": "10.3.1",
     "chrome-webstore-upload-cli": "4.0.2",
     "dependency-cruiser": "18.7.2",
     "expect-webdriverio": "8.0.0",
