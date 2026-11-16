@@ -1,5 +1,6 @@
 import type NavigatedViewer from 'bpmn-js/lib/NavigatedViewer'
-import { transactionBoundariesOf, usesCamunda7 } from '../utils/transactionBoundaries'
+import { ExecutionPlatform } from '../execution-platform/ExecutionPlatform'
+import { TransactionBoundaries } from './TransactionBoundaries'
 
 const OVERLAY_TYPE = 'transaction-boundary'
 const MARKER_GAP = 6
@@ -8,11 +9,13 @@ export class TransactionBoundaryOverlays {
   constructor(private readonly viewer: NavigatedViewer) {}
 
   show(): void {
-    if (!usesCamunda7(this.viewer.getDefinitions())) {
+    const platform = ExecutionPlatform.detect(this.viewer.getDefinitions())
+    if (!platform.hasTransactionBoundaries) {
       return
     }
+    const boundaries = new TransactionBoundaries(platform)
     for (const shape of this.flowNodeShapes()) {
-      const { before, after } = transactionBoundariesOf(shape.businessObject)
+      const { before, after } = boundaries.of(shape.businessObject)
       if (before) {
         this.addMarker(shape, -MARKER_GAP)
       }
