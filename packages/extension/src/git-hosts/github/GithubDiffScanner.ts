@@ -4,7 +4,7 @@ import { isRendered } from '../../platform/utils/isRendered'
 import { githubSelectors } from './githubSelectors'
 import { stripBidiMarks } from '../../platform/utils/stripBidiMarks'
 
-const RENAME_ARROW = '→'
+const RENAME_SEPARATORS = ['→', ' renamed to ']
 
 export class GithubDiffScanner {
   constructor(private readonly notations: NotationDetector = notationDetector) {}
@@ -64,15 +64,21 @@ export class GithubDiffScanner {
 
   private modernFilePath(root: HTMLElement): string | null {
     const headingId = root.getAttribute('aria-labelledby')
-    const heading = headingId ? root.ownerDocument.getElementById(headingId) : null
-    const raw =
-      heading?.textContent ?? root.querySelector(githubSelectors.diff.modernHeading)?.textContent
+    const heading =
+      (headingId ? root.ownerDocument.getElementById(headingId) : null) ??
+      root.querySelector(githubSelectors.diff.modernHeading)
+    const fullPathText = heading?.querySelector(githubSelectors.diff.modernHeadingFullPath)
+    const raw = (fullPathText ?? heading)?.textContent
     return raw ? this.headSidePath(raw) || null : null
   }
 
   private headSidePath(headerText: string): string {
     const clean = stripBidiMarks(headerText).trim()
-    return (clean.split(RENAME_ARROW).pop() ?? clean).trim()
+    const headSide = RENAME_SEPARATORS.reduce(
+      (text, separator) => text.split(separator).pop() ?? text,
+      clean,
+    )
+    return headSide.trim()
   }
 
   private hasFramedCode(root: HTMLElement): boolean {

@@ -12,6 +12,7 @@ export const githubSelectors = {
     pathAttrs: ['data-tagsearch-path', 'data-path'],
     legacyPathEl: '.file-info a, .file-header [title]',
     modernHeading: '[data-diff-header-wrapper] h3',
+    modernHeadingFullPath: 'code > .sr-only',
     modernCode: 'table[data-diff-anchor]',
     legacyCode: '.js-file-content, .data.highlight, .diff-table',
   },

@@ -408,6 +408,74 @@ describe('GitHub commit diff on the file-tree layout', () => {
   })
 })
 
+describe('GitHub pull-request diff of a renamed file with a shortened path', () => {
+  const oldPath = 'deck/content/1-fundamentals/03-bpmn/resources/balance-bad.bpmn'
+  const newPath = 'deck/content/1-fundamentals/03-bpmn/resources/bad-practice-balance.bpmn'
+  const renamedMetadata = {
+    ...pullRequestMetadata,
+    [`${api}/pulls/1/files?per_page=100&page=1`]: [
+      { filename: newPath, previous_filename: oldPath, status: 'renamed' },
+    ],
+  }
+  const renamedFile = `
+    <div id="diff-1" aria-labelledby="heading-1">
+      <div data-diff-header-wrapper>
+        <h3 id="heading-1"><a href="#diff-1"><code>
+          <span aria-hidden="true">…ntals/03-bpmn/resources/balance-bad.bpmn <svg></svg> …bpmn/resources/bad-practice-balance.bpmn</span>
+          <span class="sr-only">${oldPath} renamed to ${newPath} </span>
+        </code></a><span role="tooltip" popover="auto" aria-hidden="true">${oldPath} renamed to ${newPath}</span></h3>
+        <span>${newPath}</span>
+      </div>
+      <div><table data-diff-anchor></table></div>
+    </div>`
+
+  it('loads the old side from the old path and the new side from the new path', async () => {
+    const http = new FakeHttpClient().respondWith({
+      ...renamedMetadata,
+      [`https://github.com/o/r/raw/aaa/${oldPath}`]: '<old/>',
+      [`https://github.com/o/r/raw/bbb/${newPath}`]: '<new/>',
+    })
+
+    const [block] = await pullRequestDiff(http).collect(location, withFileBoxes(renamedFile))
+
+    expect(block!.path).toBe(newPath)
+    expect(await block!.loadOld()).toBe('<old/>')
+    expect(await block!.loadNew()).toBe('<new/>')
+  })
+
+  it('does not treat the renamed file as unrecognised', async () => {
+    const http = new FakeHttpClient().respondWith(renamedMetadata)
+
+    const files = await pullRequestDiff(http).unrecognizedFiles(
+      location,
+      withFileBoxes(renamedFile),
+    )
+
+    expect(files).toEqual([])
+  })
+
+  it('reads the full path of a shortened file that keeps its name', async () => {
+    const http = new FakeHttpClient().respondWith({
+      ...pullRequestMetadata,
+      [`${api}/pulls/1/files?per_page=100&page=1`]: [{ filename: newPath, status: 'modified' }],
+    })
+    const doc = withFileBoxes(`
+      <div id="diff-1" aria-labelledby="heading-1">
+        <div data-diff-header-wrapper>
+          <h3 id="heading-1"><a href="#diff-1"><code>
+            <span aria-hidden="true">…bpmn/resources/bad-practice-balance.bpmn</span>
+            <span class="sr-only">${newPath}</span>
+          </code></a></h3>
+        </div>
+        <div><table data-diff-anchor></table></div>
+      </div>`)
+
+    const blocks = await pullRequestDiff(http).collect(location, doc)
+
+    expect(blocks.map((block) => block.path)).toEqual([newPath])
+  })
+})
+
 describe('GitHub pull-request diff with file regions around the React header', () => {
   const reactHeader = `
     <div data-diff-header-wrapper><h3 id="heading-1">flows/order.bpmn</h3></div>`
