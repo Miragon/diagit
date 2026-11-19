@@ -75,6 +75,23 @@ describe('GitLab merge-request diff', () => {
     expect(await block!.loadNew()).toBe('<new/>')
   })
 
+  it.each([
+    ['only renamed', { diff: '' }, 'flows/old.bpmn'],
+    ['renamed and changed', { diff: '@@ -1 +1 @@' }, undefined],
+    ['renamed with its diff left out', { diff: '', too_large: true }, undefined],
+  ])('names the old path of a file that was %s accordingly', async (_, diff, renamedFrom) => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [
+        { old_path: 'flows/old.bpmn', new_path: 'flows/order.bpmn', renamed_file: true, ...diff },
+      ],
+    })
+
+    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, withFileBox())
+
+    expect(block!.renamedFrom).toBe(renamedFrom)
+  })
+
   it('loads a renamed file for the standalone viewer by its new path only', async () => {
     const http = new FakeHttpClient().respondWith({
       [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },

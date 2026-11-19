@@ -19,6 +19,8 @@ export interface ChangedFile extends DiffPanelSlot {
 export interface DiffLoaders {
   loadOld(): Promise<string | null>
   loadNew(): Promise<string | null>
+  /** Old path of a file that was only renamed or moved, its content unchanged. */
+  renamedFrom?: string
 }
 
 export interface DiffFileBlock extends ChangedFile, DiffLoaders {}

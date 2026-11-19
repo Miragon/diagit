@@ -216,6 +216,20 @@
   border-left: 1px solid var(--border);
 }
 
+.diagit-diff-renamed {
+  min-width: 0;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  color: var(--fg-muted);
+}
+
+.diagit-diff-renamed-path {
+  font-family: var(--diagit-font-mono);
+  font-size: 12px;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+
 .diagit-diff-position:empty {
   padding: 0;
 }

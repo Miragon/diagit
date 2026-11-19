@@ -140,6 +140,7 @@ export class DiffController {
           reportContext: this.reportContext,
           loadOld: block.loadOld,
           loadNew: block.loadNew,
+          renamedFrom: block.renamedFrom,
           onRendered: () => void this.diagramViews.save(this.page.location.pathname),
         }).mount(container),
     })

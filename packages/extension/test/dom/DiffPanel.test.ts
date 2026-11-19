@@ -42,6 +42,7 @@ function mountAwayFromViewport(
   loadOld: () => Promise<string | null>,
   loadNew = loadOld,
   onRendered?: () => void,
+  renamedFrom?: string,
 ) {
   const container = document.createElement('div')
   document.body.append(container)
@@ -53,6 +54,7 @@ function mountAwayFromViewport(
     filePath: 'processes/order.bpmn',
     reportContext: FAKE_REPORT_CONTEXT,
     onRendered,
+    renamedFrom,
   }).mount(container)
   return container
 }
@@ -716,6 +718,29 @@ describe('DiffPanel', () => {
     expect(buttonLabelled(container, 'Previous change').disabled).toBe(true)
     expect(total(container)).toBe('No changes')
     expect(container.querySelectorAll('.diagit-legend-chip')).toHaveLength(0)
+  })
+
+  it('says where a file that was only renamed came from', async () => {
+    const oldPath = 'deck/content/1-fundamentals/03-bpmn/resources/balance-bad.bpmn'
+    const container = mountAwayFromViewport(
+      new FakeDiffer(),
+      async () => '<same/>',
+      undefined,
+      undefined,
+      oldPath,
+    )
+    FakeIntersectionObserver.bringNear()
+
+    await vi.waitFor(() => expect(total(container)).toBe('No changes'))
+    const hint = container.querySelector('.diagit-diff-legend .diagit-diff-renamed')
+    expect(hint?.textContent).toBe(`Renamed from ${oldPath}`)
+  })
+
+  it('shows no rename hint for a file that was not renamed', async () => {
+    const container = mount(new FakeDiffer(), async () => '<same/>')
+
+    await vi.waitFor(() => expect(total(container)).toBe('No changes'))
+    expect(container.querySelector('.diagit-diff-renamed')).toBeNull()
   })
 
   it('shows no legend and no navigator for an added file', async () => {
