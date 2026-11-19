@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/Miragon/diagit/compare/v0.7.1...v0.8.0) (2026-11-19)
+
+
+### Features
+
+* show Before or After alone when expanded or in full screen ([#244](https://github.com/Miragon/diagit/issues/244)) ([08de64f](https://github.com/Miragon/diagit/commit/08de64ff3ac4431253697f7810b6dadc4737ce4c))
+
+
+### Bug Fixes
+
+* read the full path of a renamed file on GitHub's new diff layout ([#239](https://github.com/Miragon/diagit/issues/239)) ([6cdb95d](https://github.com/Miragon/diagit/commit/6cdb95d048a26c66142b7996fb8bde5aae20b4d0))
+
 ## [0.7.1](https://github.com/Miragon/diagit/compare/v0.7.0...v0.7.1) (2026-11-16)
 
 
