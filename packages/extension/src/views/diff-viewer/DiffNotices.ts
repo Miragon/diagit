@@ -3,8 +3,7 @@ import { diagitRepository, type ReportContext } from '../../platform/DiagitRepos
 import type { NoticeDetails } from '../../platform/ui/Notice'
 import { FetchError } from '../../platform/messaging/HttpClient'
 import { unreadableModelReason } from '../../platform/utils/errorMessage'
-
-export type DiffSide = 'old' | 'new'
+import type { DiffSide } from './sides'
 
 const VERSION_NAME: Record<DiffSide, string> = { old: 'Old', new: 'New' }
 const PLACE = 'in a diff'

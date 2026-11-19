@@ -11,7 +11,8 @@ import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 import { ChangeControls } from './ChangeControls'
 import { ChangeNavigator } from './ChangeNavigator'
 import { DiffNotices } from './DiffNotices'
-import { DiffPane } from './DiffPane'
+import type { DiffPane } from './DiffPane'
+import { DiffSides } from './DiffSides'
 import { ViewerCanvas } from './ViewerCanvas'
 
 export interface DiffPanelOptions extends DiffLoaders {
@@ -30,17 +31,19 @@ const NO_CHANGES: DiagramDiff = { added: [], removed: [], changed: [], moved: []
 const ONE_SCREEN_AROUND_THE_VIEWPORT = '100% 0px'
 
 export class DiffPanel implements PanelHandle, Zoomable {
-  private readonly oldPane = new DiffPane('old')
-  private readonly newPane = new DiffPane('new')
+  private readonly sides = new DiffSides(() => this.sidesChanged())
+  private readonly oldPane = this.sides.oldPane
+  private readonly newPane = this.sides.newPane
   private readonly plainCanvas = new ViewerCanvas<DiffableViewer>()
   private readonly plainButton = this.viewButton('Plain')
   private readonly diffButton = this.viewButton('Diff')
   private readonly changeControls = new ChangeControls()
-  private readonly zoomControls = new ZoomControls(this)
-  private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, [
-    this.oldPane.element,
-    this.newPane.element,
-  ])
+  private readonly zoomControls = new ZoomControls(this, (view) => {
+    if (!this.destroyed) {
+      this.sides.followPanelView(view)
+    }
+  })
+  private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, this.sides.elements)
   private readonly plainGrid = h('div', { class: 'diagit-diff-grid' }, [
     h('div', { class: 'diagit-diff-pane diagit-diff-single' }, [this.plainCanvas.element]),
   ])
@@ -60,6 +63,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.diagramArea,
   ])
   private modelView: ModelView = 'plain'
+  private diff: DiagramDiff | null = null
   private viewPickedByUser = false
   private base: LoadedModel | null = null
   private head: LoadedModel | null = null
@@ -81,6 +85,10 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.zoomControls.allowFullScreen(this.root)
     } else {
       this.zoomControls.allowExpanding(this.root)
+    }
+    const largerView = this.zoomControls.largerView
+    if (largerView) {
+      this.sides.offerEnlarging(largerView, () => this.zoomControls.enlarge())
     }
   }
 
@@ -136,6 +144,17 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.root.remove()
   }
 
+  private sidesChanged(): void {
+    if (this.destroyed) {
+      return
+    }
+    this.showChanges()
+    if (this.modelView === 'diff') {
+      this.fit()
+      this.trackZoomLevel()
+    }
+  }
+
   private pick(view: ModelView): void {
     this.viewPickedByUser = true
     this.show(view)
@@ -160,10 +179,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   private trackZoomLevel(): void {
     this.stopTrackingZoom?.()
-    const viewer =
-      this.modelView === 'diff'
-        ? (this.newPane.viewer ?? this.oldPane.viewer)
-        : this.plainCanvas.viewer
+    const viewer = this.modelView === 'diff' ? this.sides.leadingViewer : this.plainCanvas.viewer
     if (!viewer) {
       this.stopTrackingZoom = null
       this.zoomControls.hide()
@@ -176,7 +192,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   private visibleViewers(): (DiffableViewer | null)[] {
     return this.modelView === 'diff'
-      ? [this.oldPane.viewer, this.newPane.viewer]
+      ? this.sides.shownPanes.map((pane) => pane.viewer)
       : [this.plainCanvas.viewer]
   }
 
@@ -260,7 +276,16 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private showDiff(diff: DiagramDiff): void {
     this.oldPane.showDiff(diff)
     this.newPane.showDiff(diff)
-    const viewers = [this.oldPane.viewer, this.newPane.viewer]
+    this.diff = diff
+    this.showChanges()
+  }
+
+  private showChanges(): void {
+    if (!this.diff) {
+      return
+    }
+    const diff = this.sides.changesShown(this.diff)
+    const viewers = this.sides.shownPanes.map((pane) => pane.viewer)
     this.changeControls.showDiff(diff, ChangeNavigator.forDiff(diff, viewers))
   }
 

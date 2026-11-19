@@ -349,6 +349,269 @@ describe('DiffPanel', () => {
     })
   })
 
+  describe('one side alone', () => {
+    const DIFF = { added: ['A'], removed: ['R'], changed: ['C'], moved: [] }
+    const sideButton = (container: HTMLElement, name: string) =>
+      [...container.querySelectorAll<HTMLButtonElement>('.diagit-side-switch button')].find(
+        (button) => button.textContent === name,
+      )!
+    const shownSides = (container: HTMLElement) =>
+      diffPanes(container)
+        .filter((pane) => !pane.hidden)
+        .map((pane) => pane.querySelector('.diagit-pane-label')!.textContent)
+    const chips = (container: HTMLElement) =>
+      [...container.querySelectorAll('.diagit-legend-chip')].map((chip) => chip.textContent)
+    const isExpanded = () => document.querySelector('dialog.diagit-expanded') !== null
+
+    async function diffOf(options: { onOwnPage?: boolean; fullScreenAllowed?: boolean } = {}) {
+      if (options.fullScreenAllowed !== false) {
+        FakeFullScreen.install()
+      }
+      const differ = new FakeDiffer(DIFF, ['A', 'R', 'C'])
+      const container = document.createElement('div')
+      document.body.append(container)
+      panel = new DiffPanel({
+        differ,
+        loadOld: async () => '<old/>',
+        loadNew: async () => '<new/>',
+        label: 'BPMN',
+        filePath: 'processes/order.bpmn',
+        reportContext: FAKE_REPORT_CONTEXT,
+        onOwnPage: options.onOwnPage,
+      }).mount(container)
+      FakeIntersectionObserver.bringNear()
+      await vi.waitFor(() => expect(total(container)).toBe('3 changes'))
+      const [oldViewer, newViewer] = differ.viewers
+      return { container, differ, oldViewer: oldViewer!, newViewer: newViewer! }
+    }
+
+    it('offers to expand each side in a host page', async () => {
+      const { container } = await diffOf()
+
+      expect(buttonLabelled(container, 'Expand Before')).not.toBeNull()
+      expect(buttonLabelled(container, 'Expand After')).not.toBeNull()
+    })
+
+    it('offers each side in full screen on its own page', async () => {
+      const { container } = await diffOf({ onOwnPage: true })
+
+      expect(buttonLabelled(container, 'Before in full screen')).not.toBeNull()
+      expect(buttonLabelled(container, 'After in full screen')).not.toBeNull()
+    })
+
+    it('offers no side button on its own page where full screen is not allowed', async () => {
+      const { container } = await diffOf({ onOwnPage: true, fullScreenAllowed: false })
+
+      expect(container.querySelector('.diagit-pane-enlarge')).toBeNull()
+    })
+
+    it('expands with only the picked side and presses it in the side switch', async () => {
+      const { container } = await diffOf()
+
+      buttonLabelled(container, 'Expand After').click()
+
+      expect(isExpanded()).toBe(true)
+      expect(shownSides(container)).toEqual(['After'])
+      expect(sideButton(container, 'After').getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('moves the focus to the picked side once the dialog opened from a pane', async () => {
+      const { container } = await diffOf()
+
+      buttonLabelled(container, 'Expand Before').click()
+
+      expect(document.activeElement).toBe(sideButton(container, 'Before'))
+    })
+
+    it('keeps the focus on Collapse when expanded from the zoom island', async () => {
+      const { container } = await diffOf()
+
+      buttonLabelled(container, 'Expand').click()
+
+      expect(document.activeElement).toBe(buttonLabelled(container, 'Expand'))
+    })
+
+    it('expands with both sides from the zoom island', async () => {
+      const { container } = await diffOf()
+
+      buttonLabelled(container, 'Expand').click()
+
+      expect(shownSides(container)).toEqual(['Before', 'After'])
+      expect(sideButton(container, 'Before').getAttribute('aria-pressed')).toBe('false')
+      expect(sideButton(container, 'After').getAttribute('aria-pressed')).toBe('false')
+    })
+
+    it('goes back to both sides when the pressed side is picked again, still expanded', async () => {
+      const { container } = await diffOf()
+      buttonLabelled(container, 'Expand After').click()
+
+      sideButton(container, 'After').click()
+
+      expect(isExpanded()).toBe(true)
+      expect(shownSides(container)).toEqual(['Before', 'After'])
+    })
+
+    it('counts and steps through the changes of the shown side only', async () => {
+      const { container, oldViewer, newViewer } = await diffOf()
+      buttonLabelled(container, 'Expand After').click()
+
+      expect(chips(container)).toEqual(['Added 1', 'Changed 1'])
+      expect(total(container)).toBe('2 changes')
+      buttonLabelled(container, 'Next change').click()
+      buttonLabelled(container, 'Next change').click()
+
+      expect(position(container)).toBe('2 of 2')
+      expect(newViewer.focused).toEqual(['A', 'C'])
+      expect(oldViewer.focused).toEqual([])
+    })
+
+    it('leaves no selected change on a side that is hidden', async () => {
+      const { container, oldViewer } = await diffOf()
+      buttonLabelled(container, 'Expand').click()
+      buttonLabelled(container, 'Next change').click()
+      buttonLabelled(container, 'Next change').click()
+      expect(oldViewer.markers).toContainEqual({ id: 'R', marker: MARKER.active })
+
+      sideButton(container, 'After').click()
+
+      expect(oldViewer.markers).not.toContainEqual({ id: 'R', marker: MARKER.active })
+    })
+
+    it('fits only the shown side when switching, and both when going back', async () => {
+      const { container, oldViewer, newViewer } = await diffOf()
+      buttonLabelled(container, 'Expand').click()
+      const [oldFits, newFits] = [oldViewer.fits, newViewer.fits]
+
+      sideButton(container, 'Before').click()
+      expect(oldViewer.fits).toBe(oldFits + 1)
+      expect(newViewer.fits).toBe(newFits)
+
+      sideButton(container, 'Before').click()
+      expect(oldViewer.fits).toBe(oldFits + 2)
+      expect(newViewer.fits).toBe(newFits + 1)
+    })
+
+    it('zooms only the shown side and reads out its level', async () => {
+      const { container, oldViewer } = await diffOf()
+      oldViewer.level = 0.5
+      buttonLabelled(container, 'Expand Before').click()
+
+      container.querySelector<HTMLButtonElement>('.diagit-zoom [aria-label="Zoom in"]')!.click()
+
+      expect(oldViewer.level).toBeCloseTo(0.6)
+      expect(container.querySelector('.diagit-zoom [aria-label^="Reset zoom"]')!.textContent).toBe(
+        '60%',
+      )
+    })
+
+    it('keeps the side across Plain and back to Diff', async () => {
+      const { container } = await diffOf()
+      buttonLabelled(container, 'Expand Before').click()
+
+      buttonNamed(container, 'Plain').click()
+      buttonNamed(container, 'Diff').click()
+
+      expect(shownSides(container)).toEqual(['Before'])
+    })
+
+    it('shows both sides again after collapsing', async () => {
+      const { container } = await diffOf()
+      buttonLabelled(container, 'Expand After').click()
+
+      buttonLabelled(container, 'Expand').click()
+
+      expect(isExpanded()).toBe(false)
+      expect(shownSides(container)).toEqual(['Before', 'After'])
+      expect(total(container)).toBe('3 changes')
+    })
+
+    it('keeps the side when leaving full screen back to the dialog', async () => {
+      const { container } = await diffOf()
+      buttonLabelled(container, 'Expand Before').click()
+      buttonLabelled(container, 'Full screen').click()
+      await FakeFullScreen.settled()
+
+      await FakeFullScreen.exit()
+
+      expect(isExpanded()).toBe(true)
+      expect(shownSides(container)).toEqual(['Before'])
+    })
+
+    it('opens one side in full screen on its own page and both again on leaving', async () => {
+      const { container } = await diffOf({ onOwnPage: true })
+
+      buttonLabelled(container, 'After in full screen').click()
+      await FakeFullScreen.settled()
+      expect(document.fullscreenElement).not.toBeNull()
+      expect(shownSides(container)).toEqual(['After'])
+
+      await FakeFullScreen.exit()
+      expect(shownSides(container)).toEqual(['Before', 'After'])
+    })
+
+    it('moves the focus to the picked side once full screen opened from a pane', async () => {
+      const { container } = await diffOf({ onOwnPage: true })
+
+      buttonLabelled(container, 'Before in full screen').click()
+      await FakeFullScreen.settled()
+
+      expect(document.activeElement).toBe(sideButton(container, 'Before'))
+    })
+
+    it('keeps both sides when the browser refuses full screen', async () => {
+      const { container } = await diffOf({ onOwnPage: true })
+      FakeFullScreen.refuse()
+
+      buttonLabelled(container, 'After in full screen').click()
+      await vi.waitFor(() => expect(document.fullscreenElement).toBeNull())
+      await Promise.resolve()
+
+      expect(shownSides(container)).toEqual(['Before', 'After'])
+    })
+
+    it('scopes the changes that arrive after a side was picked', async () => {
+      FakeFullScreen.install()
+      const differ = new FakeDiffer(DIFF, ['A', 'R', 'C'])
+      let deliverDiff!: () => void
+      const diffArrives = new Promise<void>((done) => (deliverDiff = done))
+      vi.spyOn(differ, 'diff').mockImplementation(async () => {
+        await diffArrives
+        return DIFF
+      })
+      const container = document.createElement('div')
+      document.body.append(container)
+      panel = new DiffPanel({
+        differ,
+        loadOld: async () => '<old/>',
+        loadNew: async () => '<new/>',
+        label: 'BPMN',
+        filePath: 'processes/order.bpmn',
+        reportContext: FAKE_REPORT_CONTEXT,
+      }).mount(container)
+      FakeIntersectionObserver.bringNear()
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(2))
+
+      buttonLabelled(container, 'Expand Before').click()
+      deliverDiff()
+
+      await vi.waitFor(() => expect(total(container)).toBe('2 changes'))
+      expect(chips(container)).toEqual(['Removed 1', 'Changed 1'])
+    })
+
+    it('collapses without touching the diagrams when destroyed while expanded', async () => {
+      const { container, oldViewer, newViewer } = await diffOf()
+      buttonLabelled(container, 'Expand After').click()
+      const markers = [...oldViewer.markers]
+
+      panel!.destroy()
+      panel = null
+
+      expect(isExpanded()).toBe(false)
+      expect(oldViewer.markers).toEqual(markers)
+      expect(newViewer.destroyed).toBe(true)
+    })
+  })
+
   it('shows a loading label while the models are still on their way', () => {
     const neverArrives = () => new Promise<string | null>(() => {})
 

@@ -15,14 +15,18 @@ function retargetedTo(root: Node): Element | null {
 }
 
 function changeInNextFrame(next: Element | null, announcedOn: Element): Promise<void> {
-  pendingChange = new Promise<void>((resolve) => {
+  let announced!: () => void
+  pendingChange = new Promise<void>((resolve) => (announced = resolve))
+  return new Promise<void>((resolve) => {
     setTimeout(() => {
       fullScreenElement = next
-      announcedOn.dispatchEvent(new Event('fullscreenchange', { bubbles: true, composed: true }))
       resolve()
+      setTimeout(() => {
+        announcedOn.dispatchEvent(new Event('fullscreenchange', { bubbles: true, composed: true }))
+        announced()
+      })
     })
   })
-  return pendingChange
 }
 
 export class FakeFullScreen {
@@ -58,7 +62,8 @@ export class FakeFullScreen {
     if (!fullScreenElement) {
       return Promise.resolve()
     }
-    return changeInNextFrame(null, fullScreenElement)
+    void changeInNextFrame(null, fullScreenElement)
+    return pendingChange
   }
 
   static settled(): Promise<void> {

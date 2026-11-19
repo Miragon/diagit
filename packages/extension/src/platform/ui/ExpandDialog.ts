@@ -37,7 +37,7 @@ export class ExpandDialog {
     }
   }
 
-  private open(): void {
+  open(): void {
     this.spot.style.height = `${this.panel.offsetHeight}px`
     this.dialog.dataset.cdTheme = this.panel.dataset.cdTheme
     this.panel.replaceWith(this.spot)

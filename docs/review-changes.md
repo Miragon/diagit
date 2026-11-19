@@ -42,7 +42,13 @@ Diagit matches elements by id. When a change gives an element a new id, it shows
 
 ## Step through the changes
 
-The arrows for the previous and the next change in the toolbar select one change after the other and zoom both sides to it. Next to them Diagit shows which change is selected, for example "2 of 7", or how many changes there are when none is selected. **Show all** clears the selection and fits both diagrams again. The **−**, **+** and **Fit** buttons zoom by hand. The full screen button next to **Fit** shows the panel on the whole screen, with the file path in its toolbar. Press it again or Esc to leave.
+The arrows for the previous and the next change in the toolbar select one change after the other and zoom both sides to it. Next to them Diagit shows which change is selected, for example "2 of 7", or how many changes there are when none is selected. **Show all** clears the selection and fits both diagrams again. The **−**, **+** and **Fit** buttons zoom by hand.
+
+## Look at one side
+
+**Expand** next to **Fit** opens the panel in a larger dialog, with the file path in its toolbar. From there, the full screen button shows it on the whole screen. Press it again or Esc to go back.
+
+Expanded and in full screen, a switch at the top shows **Before** or **After** alone, on the full width and with its markers. The arrows then step through the changes of that side only. Click the pressed side again to see both sides. To start with one side, use the expand button in the top right corner of that side. On Diagit's own diff page, which has no dialog, this button opens the side in full screen right away. Leaving the dialog or full screen always brings back both sides.
 
 ## Limits
 

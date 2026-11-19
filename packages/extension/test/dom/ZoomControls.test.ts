@@ -337,3 +337,119 @@ describe('ZoomControls', () => {
     })
   })
 })
+
+describe('ZoomControls larger view', () => {
+  afterEach(() => {
+    FakeFullScreen.uninstall()
+    document.body.replaceChildren()
+  })
+
+  function panelControls() {
+    const panel = document.createElement('div')
+    document.body.append(panel)
+    const views: string[] = []
+    const controls = new ZoomControls(
+      { zoomBy: vi.fn(), resetZoom: vi.fn(), fit: vi.fn() },
+      (view) => views.push(view),
+    )
+    panel.append(controls.element)
+    const button = (label: string) =>
+      controls.element.querySelector<HTMLButtonElement>(`[aria-label^="${label}"]`)!
+    return { controls, button, panel, views }
+  }
+
+  it('names the dialog as the larger view of a panel in a host page', () => {
+    FakeFullScreen.install()
+    const { controls, panel } = panelControls()
+
+    controls.allowExpanding(panel)
+
+    expect(controls.largerView).toBe('expanded')
+  })
+
+  it('names full screen as the larger view of a panel on its own page', () => {
+    FakeFullScreen.install()
+    const { controls, panel } = panelControls()
+
+    controls.allowFullScreen(panel)
+
+    expect(controls.largerView).toBe('fullScreen')
+  })
+
+  it('has no larger view where the browser does not allow full screen', () => {
+    const { controls, panel } = panelControls()
+
+    controls.allowFullScreen(panel)
+
+    expect(controls.largerView).toBeNull()
+  })
+
+  it('enlarges a panel in a host page into the dialog', async () => {
+    FakeFullScreen.install()
+    const { controls, panel, views } = panelControls()
+    controls.allowExpanding(panel)
+
+    const enlarged = await controls.enlarge()
+
+    expect(enlarged).toBe(true)
+    expect(panel.parentElement!.tagName).toBe('DIALOG')
+    expect(views).toEqual(['expanded'])
+  })
+
+  it('enlarges a panel on its own page into full screen', async () => {
+    FakeFullScreen.install()
+    const { controls, panel, views } = panelControls()
+    controls.allowFullScreen(panel)
+
+    const enlarged = await controls.enlarge()
+    await FakeFullScreen.settled()
+
+    expect(enlarged).toBe(true)
+    expect(document.fullscreenElement).toBe(panel)
+    expect(views).toEqual(['fullScreen'])
+  })
+
+  it('stays inline when the browser refuses full screen', async () => {
+    FakeFullScreen.install()
+    FakeFullScreen.refuse()
+    const { controls, panel, views } = panelControls()
+    controls.allowFullScreen(panel)
+
+    const enlarged = await controls.enlarge()
+
+    expect(enlarged).toBe(false)
+    expect(document.fullscreenElement).toBeNull()
+    expect(views).toEqual([])
+  })
+
+  it('reports every step from the page to full screen and back', async () => {
+    FakeFullScreen.install()
+    const { controls, panel, button, views } = panelControls()
+    controls.allowExpanding(panel)
+
+    button('Expand').click()
+    button('Full screen').click()
+    await FakeFullScreen.settled()
+    await FakeFullScreen.exit()
+    button('Expand').click()
+
+    expect(views).toEqual(['expanded', 'fullScreen', 'expanded', 'inline'])
+  })
+
+  it('leaves the focus where the listener put it on expanding', () => {
+    FakeFullScreen.install()
+    const outside = document.createElement('button')
+    document.body.append(outside)
+    const panel = document.createElement('div')
+    document.body.append(panel)
+    const controls = new ZoomControls({ zoomBy: vi.fn(), resetZoom: vi.fn(), fit: vi.fn() }, () =>
+      outside.focus(),
+    )
+    panel.append(controls.element)
+    controls.allowExpanding(panel)
+
+    controls.element.querySelector<HTMLButtonElement>('[aria-label="Expand"]')!.click()
+
+    expect(document.activeElement).toBe(outside)
+  })
+})
