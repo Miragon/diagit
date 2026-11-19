@@ -1,8 +1,9 @@
 import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSource'
 import type { PageUrl } from '../GitHost'
+import { sideLoader } from '../utils/sideLoader'
 import type { GithubApiAuth } from './GithubApiAuth'
 import type { GithubDiffScanner } from './GithubDiffScanner'
-import type { GithubDiffData, GithubRestApi } from './GithubRestApi'
+import type { GithubDiffData, GithubDiffFile, GithubRestApi } from './GithubRestApi'
 import type { GithubRoutes } from './GithubRoutes'
 
 export abstract class GithubDiffPage<Page extends { key: string }> implements DiffPage<
@@ -38,20 +39,22 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
   loaders(location: PageUrl, path: string, data: GithubDiffData): DiffLoaders {
     const change = data.fileByPath.get(path)
     const oldPath = change?.previous_filename || path
-    const hasNoOldSide = change?.status === 'added' || !data.baseSha
-    const hasNoNewSide = change?.status === 'removed'
-    const onlyRenamed = change?.status === 'renamed' && change.changes === 0
+    const hasOldSide = change?.status !== 'added' && !!data.baseSha
+    const hasNewSide = change?.status !== 'removed'
     return {
-      ...(onlyRenamed && change.previous_filename ? { renamedFrom: change.previous_filename } : {}),
-      loadOld: () =>
-        hasNoOldSide
-          ? Promise.resolve(null)
-          : this.api.rawFile(location, data.baseRepo, data.baseSha, oldPath),
-      loadNew: () =>
-        hasNoNewSide
-          ? Promise.resolve(null)
-          : this.api.rawFile(location, data.headRepo, data.headSha, path),
+      loadOld: sideLoader(hasOldSide, () =>
+        this.api.rawFile(location, data.baseRepo, data.baseSha, oldPath),
+      ),
+      loadNew: sideLoader(hasNewSide, () =>
+        this.api.rawFile(location, data.headRepo, data.headSha, path),
+      ),
+      renamedFrom: this.renamedFrom(change),
     }
+  }
+
+  private renamedFrom(change: GithubDiffFile | undefined): string | undefined {
+    const onlyRenamed = change?.status === 'renamed' && change.changes === 0
+    return onlyRenamed ? change.previous_filename : undefined
   }
 
   errorHelp(location: PageUrl, err: unknown): Promise<ErrorHelp> {
