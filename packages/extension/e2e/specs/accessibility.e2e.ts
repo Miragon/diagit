@@ -4,6 +4,7 @@ import { AccessibilityAudit } from '../AccessibilityAudit'
 const PANELS = [
   { name: 'blob viewer', url: '/octo/flows/blob/main/order.bpmn', host: 'diagit-viewer' },
   { name: 'PR diff', url: '/octo/flows/pull/1/files', host: 'diagit-diff' },
+  { name: 'renamed-only PR diff', url: '/octo/flows/pull/3/files', host: 'diagit-diff' },
 ]
 
 describe('accessibility (axe, WCAG 2.2 AA)', () => {

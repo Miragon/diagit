@@ -16,6 +16,7 @@ const LEGEND_LABEL: Record<ChangeCategory, string> = {
 export class ChangeControls {
   readonly element = h('div', { class: 'diagit-diff-changes' })
   private navigator: ChangeNavigator | null = null
+  renamedFrom: string | null = null
 
   showDiff(diff: DiagramDiff, navigator: ChangeNavigator): void {
     this.releaseNavigator()
@@ -91,6 +92,14 @@ export class ChangeControls {
     return h('div', { class: 'diagit-diff-legend' }, [
       ...chips,
       h('span', { class: 'diagit-diff-total', text: this.totalText(total) }),
+      ...(this.renamedFrom ? [this.renameHint(this.renamedFrom)] : []),
+    ])
+  }
+
+  private renameHint(oldPath: string): HTMLElement {
+    return h('span', { class: 'diagit-diff-renamed' }, [
+      'Renamed from ',
+      h('span', { class: 'diagit-diff-renamed-path', text: oldPath }),
     ])
   }
 

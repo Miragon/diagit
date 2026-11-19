@@ -81,6 +81,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
   constructor(private readonly options: DiffPanelOptions) {
     this.notices = new DiffNotices(options.label, options.reportContext)
     this.changeControls.element.before(filePathLabel(options.filePath))
+    this.changeControls.renamedFrom = options.renamedFrom ?? null
     if (options.onOwnPage) {
       this.zoomControls.allowFullScreen(this.root)
     } else {

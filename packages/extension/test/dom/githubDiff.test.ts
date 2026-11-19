@@ -443,6 +443,32 @@ describe('GitHub pull-request diff of a renamed file with a shortened path', () 
     expect(await block!.loadNew()).toBe('<new/>')
   })
 
+  it('names the old path of a file that was only renamed', async () => {
+    const http = new FakeHttpClient().respondWith({
+      ...pullRequestMetadata,
+      [`${api}/pulls/1/files?per_page=100&page=1`]: [
+        { filename: newPath, previous_filename: oldPath, status: 'renamed', changes: 0 },
+      ],
+    })
+
+    const [block] = await pullRequestDiff(http).collect(location, withFileBoxes(renamedFile))
+
+    expect(block!.renamedFrom).toBe(oldPath)
+  })
+
+  it('names no old path when the renamed file also changed', async () => {
+    const http = new FakeHttpClient().respondWith({
+      ...pullRequestMetadata,
+      [`${api}/pulls/1/files?per_page=100&page=1`]: [
+        { filename: newPath, previous_filename: oldPath, status: 'renamed', changes: 4 },
+      ],
+    })
+
+    const [block] = await pullRequestDiff(http).collect(location, withFileBoxes(renamedFile))
+
+    expect(block!.renamedFrom).toBeUndefined()
+  })
+
   it('does not treat the renamed file as unrecognised', async () => {
     const http = new FakeHttpClient().respondWith(renamedMetadata)
 

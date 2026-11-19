@@ -35,6 +35,20 @@ describe('GitHub PR diff (content script)', () => {
     await expect(host.shadow$('.diagit-diff-total')).toHaveText('No changes')
   })
 
+  it('says where a file that was only renamed came from', async () => {
+    await browser.url('/octo/flows/pull/3/files')
+
+    const host = $('diagit-diff')
+    await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
+    await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+
+    await expect(host.shadow$('.diagit-diff-total')).toHaveText('No changes')
+    await expect(host.shadow$('.diagit-diff-renamed')).toHaveText(
+      'Renamed from deck/content/1-fundamentals/03-bpmn/resources/balance-bad.bpmn',
+    )
+  })
+
   it('does not stack a second panel when the file is re-rendered (Viewed toggle)', async () => {
     await browser.url('/octo/flows/pull/1/files')
 

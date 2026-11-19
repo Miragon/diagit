@@ -7,6 +7,7 @@ export interface GithubDiffFile {
   filename: string
   previous_filename?: string
   status: string
+  changes?: number
 }
 
 export interface GithubDiffData {

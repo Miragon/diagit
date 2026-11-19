@@ -2,7 +2,7 @@ import type { ChangedFile, DiffLoaders, DiffPage, ErrorHelp } from '../DiffSourc
 import { rateLimitHelp } from '../utils/rateLimitHelp'
 import type { PageUrl } from '../GitHost'
 import type { GitlabDiffScanner } from './GitlabDiffScanner'
-import type { GitlabRestApi, MergeRequestData } from './GitlabRestApi'
+import type { GitlabRestApi, MergeRequestChange, MergeRequestData } from './GitlabRestApi'
 import type { GitlabRoutes, MergeRequestRef } from './GitlabRoutes'
 
 const METADATA_ERROR_HELP: ErrorHelp = {
@@ -51,11 +51,17 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
     const change = data.changeByPath.get(path)
     const oldPath = change?.old_path || path
     return {
+      ...(change && this.onlyRenamed(change) ? { renamedFrom: oldPath } : {}),
       loadOld: () =>
         change?.new_file ? Promise.resolve(null) : this.api.rawFile(data, oldPath, data.baseSha),
       loadNew: () =>
         change?.deleted_file ? Promise.resolve(null) : this.api.rawFile(data, path, data.headSha),
     }
+  }
+
+  private onlyRenamed(change: MergeRequestChange): boolean {
+    const diffLeftOut = change.too_large || change.collapsed
+    return !!change.renamed_file && !!change.old_path && change.diff === '' && !diffLeftOut
   }
 
   async errorHelp(_location: PageUrl, err: unknown): Promise<ErrorHelp> {

@@ -40,7 +40,9 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
     const oldPath = change?.previous_filename || path
     const hasNoOldSide = change?.status === 'added' || !data.baseSha
     const hasNoNewSide = change?.status === 'removed'
+    const onlyRenamed = change?.status === 'renamed' && change.changes === 0
     return {
+      ...(onlyRenamed && change.previous_filename ? { renamedFrom: change.previous_filename } : {}),
       loadOld: () =>
         hasNoOldSide
           ? Promise.resolve(null)

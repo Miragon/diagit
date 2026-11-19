@@ -46,7 +46,14 @@ const SUBPROCESS_PR = {
 
 const UNKNOWN_LAYOUT_PR = { ...PR, repo: 'relayout' } as const
 
-const PULL_REQUESTS = [PR, SUBPROCESS_PR, UNKNOWN_LAYOUT_PR]
+/** A PR that only moves the diagram: same content, long old path. */
+const RENAMED_ONLY_PR = {
+  ...PR,
+  number: '3',
+  previousFile: 'deck/content/1-fundamentals/03-bpmn/resources/balance-bad.bpmn',
+} as const
+
+const PULL_REQUESTS = [PR, SUBPROCESS_PR, UNKNOWN_LAYOUT_PR, RENAMED_ONLY_PR]
 
 const FIXTURE_BY_REF: Record<string, string> = {
   [SUBPROCESS_PR.baseSha]: 'collapsed-subprocess-before.bpmn',
@@ -160,7 +167,16 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
           res,
           200,
           MIME['.json']!,
-          JSON.stringify([{ filename: pr.file, status: 'modified' }]),
+          JSON.stringify([
+            'previousFile' in pr
+              ? {
+                  filename: pr.file,
+                  previous_filename: pr.previousFile,
+                  status: 'renamed',
+                  changes: 0,
+                }
+              : { filename: pr.file, status: 'modified' },
+          ]),
         )
       }
     }

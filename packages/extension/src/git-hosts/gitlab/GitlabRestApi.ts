@@ -9,6 +9,9 @@ export interface MergeRequestChange {
   new_file?: boolean
   deleted_file?: boolean
   renamed_file?: boolean
+  diff?: string
+  too_large?: boolean
+  collapsed?: boolean
 }
 
 export interface MergeRequestData {
