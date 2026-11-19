@@ -26,3 +26,8 @@ declare module '*.css?inline' {
   const content: string
   export default content
 }
+
+declare module 'camunda-transaction-boundaries/lib/index.js' {
+  const transactionBoundariesModule: Record<string, unknown>
+  export default transactionBoundariesModule
+}

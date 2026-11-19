@@ -1,11 +1,12 @@
 import NavigatedViewer from 'bpmn-js/lib/NavigatedViewer'
-import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json' with { type: 'json' }
+import transactionBoundariesModule from 'camunda-transaction-boundaries/lib/index.js'
 import { detectHostTheme, diagramColors } from '../../platform/utils/hostTheme'
 import { fitWithPadding } from '../../platform/utils/fitWithPadding'
 import { onViewboxChange } from '../../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import type { DiffableViewer } from '../Notation'
-import { TransactionBoundaryOverlays } from './transaction-boundaries/TransactionBoundaryOverlays'
+import { ExecutionPlatform } from './execution-platform/ExecutionPlatform'
+import { camundaModdleFor } from './utils/camundaModdle'
 import { dropInvalidDiColors } from './utils/diColors'
 
 export class BpmnViewer implements DiffableViewer {
@@ -15,7 +16,8 @@ export class BpmnViewer implements DiffableViewer {
       container: canvas,
       bpmnRenderer: { defaultStrokeColor: stroke, defaultFillColor: fill },
       zoomScroll: { enabled: false },
-      moddleExtensions: { camunda: camundaModdle },
+      additionalModules: [transactionBoundariesModule],
+      moddleExtensions: { camunda: camundaModdleFor(xml) },
     })
     viewer.on('import.parse.complete', ({ error, definitions }) => {
       if (!error) {
@@ -28,7 +30,9 @@ export class BpmnViewer implements DiffableViewer {
       viewer.destroy()
       throw err
     }
-    new TransactionBoundaryOverlays(viewer).show()
+    if (ExecutionPlatform.detect(viewer.getDefinitions()).hasTransactionBoundaries) {
+      viewer.get('transactionBoundaries').show()
+    }
     const bpmnViewer = new BpmnViewer(viewer)
     bpmnViewer.fitViewportUnlessContainerIsUnmeasured()
     return bpmnViewer

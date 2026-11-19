@@ -40,17 +40,17 @@ describe('standalone viewer page', () => {
 
   it('marks Camunda 7 transaction boundaries', async () => {
     await expectRenders('c7-async.bpmn')
-    await expect($$('.diagit-transaction-boundary')).toBeElementsArrayOfSize(1)
+    await expect($$('.transaction-boundary')).toBeElementsArrayOfSize(1)
   })
 
   it('marks Operaton transaction boundaries', async () => {
     await expectRenders('operaton-async.bpmn')
-    await expect($$('.diagit-transaction-boundary')).toBeElementsArrayOfSize(1)
+    await expect($$('.transaction-boundary')).toBeElementsArrayOfSize(1)
   })
 
   it('marks no transaction boundaries on Camunda 8 with a camunda namespace', async () => {
     await expectRenders('c8-camunda-namespace.bpmn')
-    await expect($$('.diagit-transaction-boundary')).toBeElementsArrayOfSize(0)
+    await expect($$('.transaction-boundary')).toBeElementsArrayOfSize(0)
   })
 
   it('renders a .dmn file with dmn-js', async () => {
