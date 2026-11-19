@@ -34,7 +34,7 @@ To update to a new miragon-brand release: update the plugin, run
 `node <miragon-brand>/scripts/brand-assets.mjs --check` to see which copies are behind, then
 `node <miragon-brand>/scripts/brand-assets.mjs` (copies every file, writes `skillVersion` and the
 checksums), run `listing.mjs --check` of the product-shots skill for `.miragon/product-shots.yaml`,
-check the docs kit as the `docs-site` skill describes, then build, test and look at the views in
+bump `@miragon/docs-starter` in `docs/` if a new docs kit is out, then build, test and look at the views in
 light and dark.
 
 ## Browser automation

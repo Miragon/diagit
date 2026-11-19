@@ -8,7 +8,6 @@ coverage
 package-lock.json
 CHANGELOG.md
 .context
-docs/.vitepress/miragon
 .miragon/brand-lint
 .miragon/brand-assets.yaml
 packages/extension/src/platform/theme/cd-*

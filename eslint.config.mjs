@@ -13,7 +13,6 @@ export default tseslint.config(
       '**/playwright-report/**',
       '**/test-results/**',
       '.context/**',
-      'docs/.vitepress/miragon/**',
       '.miragon/brand-lint/**',
       'docs/.vitepress/cache/**',
     ],
