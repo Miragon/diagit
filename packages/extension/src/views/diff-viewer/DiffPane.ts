@@ -1,9 +1,13 @@
 import type { DiagramDiff } from '../../notations/Notation'
 import type { DiagramDiffer, DiffableViewer } from '../../notations/Notation'
+import { Maximize, Maximize2 } from 'lucide'
 import { h } from '../../platform/utils/dom'
+import { lucideIcon } from '../../platform/utils/lucideIcon'
 import type { NoticeDetails } from '../../platform/ui/Notice'
+import type { LargerView } from '../../platform/ui/ZoomControls'
 import type { DiffNotices, DiffSide } from './DiffNotices'
 import { MARKER } from './markers'
+import { SIDE_LABEL } from './sides'
 import { ViewerCanvas } from './ViewerCanvas'
 
 type ChangeCategory = keyof DiagramDiff
@@ -11,11 +15,6 @@ type ChangeCategory = keyof DiagramDiff
 const CATEGORIES_MARKED_ON: Record<DiffSide, ChangeCategory[]> = {
   new: ['added', 'changed', 'moved'],
   old: ['removed', 'changed', 'moved'],
-}
-
-const SIDE_LABEL: Record<DiffSide, string> = {
-  old: 'Before',
-  new: 'After',
 }
 
 export class DiffPane {
@@ -31,6 +30,32 @@ export class DiffPane {
 
   get viewer(): DiffableViewer | null {
     return this.canvas.viewer
+  }
+
+  get shown(): boolean {
+    return !this.element.hidden
+  }
+
+  set shown(visible: boolean) {
+    this.element.hidden = !visible
+  }
+
+  offerEnlarging(view: LargerView, onEnlarge: () => void): void {
+    const name = SIDE_LABEL[this.side]
+    const label = view === 'expanded' ? `Expand ${name}` : `${name} in full screen`
+    this.element.append(
+      h(
+        'button',
+        {
+          class: 'btn btn-icon diagit-pane-enlarge',
+          type: 'button',
+          title: label,
+          'aria-label': label,
+          onClick: onEnlarge,
+        },
+        [lucideIcon(view === 'expanded' ? Maximize2 : Maximize)],
+      ),
+    )
   }
 
   render(differ: DiagramDiffer, xml: string | null, emptyLabel: string, notices: DiffNotices) {
@@ -53,6 +78,17 @@ export class DiffPane {
           this.viewer.addMarker(id, MARKER[category])
         }
       }
+    }
+  }
+
+  changesOn(diff: DiagramDiff): DiagramDiff {
+    const marked = CATEGORIES_MARKED_ON[this.side]
+    const keep = (category: ChangeCategory) => (marked.includes(category) ? diff[category] : [])
+    return {
+      added: keep('added'),
+      removed: keep('removed'),
+      changed: keep('changed'),
+      moved: keep('moved'),
     }
   }
 

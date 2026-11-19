@@ -337,3 +337,94 @@ describe('ZoomControls', () => {
     })
   })
 })
+
+describe('ZoomControls larger view', () => {
+  afterEach(() => {
+    FakeFullScreen.uninstall()
+    document.body.replaceChildren()
+  })
+
+  function panelControls() {
+    const panel = document.createElement('div')
+    document.body.append(panel)
+    const parts = controlsFor()
+    panel.append(parts.controls.element)
+    const views: string[] = []
+    parts.controls.onPanelViewChange((view) => views.push(view))
+    return { ...parts, panel, views }
+  }
+
+  it('names the dialog as the larger view of a panel in a host page', () => {
+    FakeFullScreen.install()
+    const { controls, panel } = panelControls()
+
+    controls.allowExpanding(panel)
+
+    expect(controls.largerView).toBe('expanded')
+  })
+
+  it('names full screen as the larger view of a panel on its own page', () => {
+    FakeFullScreen.install()
+    const { controls, panel } = panelControls()
+
+    controls.allowFullScreen(panel)
+
+    expect(controls.largerView).toBe('fullScreen')
+  })
+
+  it('has no larger view where the browser does not allow full screen', () => {
+    const { controls, panel } = panelControls()
+
+    controls.allowFullScreen(panel)
+
+    expect(controls.largerView).toBeNull()
+  })
+
+  it('enlarges a panel in a host page into the dialog', async () => {
+    FakeFullScreen.install()
+    const { controls, panel, views } = panelControls()
+    controls.allowExpanding(panel)
+
+    await controls.enlarge()
+
+    expect(panel.parentElement!.tagName).toBe('DIALOG')
+    expect(views).toEqual(['expanded'])
+  })
+
+  it('enlarges a panel on its own page into full screen', async () => {
+    FakeFullScreen.install()
+    const { controls, panel, views } = panelControls()
+    controls.allowFullScreen(panel)
+
+    await controls.enlarge()
+
+    expect(document.fullscreenElement).toBe(panel)
+    expect(views).toEqual(['fullScreen'])
+  })
+
+  it('stays inline when the browser refuses full screen', async () => {
+    FakeFullScreen.install()
+    FakeFullScreen.refuse()
+    const { controls, panel, views } = panelControls()
+    controls.allowFullScreen(panel)
+
+    await controls.enlarge()
+
+    expect(document.fullscreenElement).toBeNull()
+    expect(views).toEqual([])
+  })
+
+  it('reports every step from the page to full screen and back', async () => {
+    FakeFullScreen.install()
+    const { controls, panel, button, views } = panelControls()
+    controls.allowExpanding(panel)
+
+    button('Expand').click()
+    button('Full screen').click()
+    await FakeFullScreen.settled()
+    await FakeFullScreen.exit()
+    button('Expand').click()
+
+    expect(views).toEqual(['expanded', 'fullScreen', 'expanded', 'inline'])
+  })
+})

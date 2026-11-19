@@ -34,6 +34,10 @@ export class ChangeNavigator {
     this.go(-1)
   }
 
+  release(): void {
+    this.clearActive()
+  }
+
   showAll(): void {
     this.clearActive()
     this.index = -1

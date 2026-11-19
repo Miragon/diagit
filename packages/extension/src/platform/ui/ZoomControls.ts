@@ -14,7 +14,8 @@ interface ZoomedViewer {
   zoomLevel(): number | null
 }
 
-type View = 'inline' | 'expanded' | 'fullScreen'
+export type PanelView = 'inline' | 'expanded' | 'fullScreen'
+export type LargerView = Exclude<PanelView, 'inline'>
 
 const ZOOM_STEP = 1.2
 const RESET_ZOOM = 'Reset zoom'
@@ -28,7 +29,9 @@ export class ZoomControls {
   private fullScreenButton: HTMLButtonElement | null = null
   private expandButton: HTMLButtonElement | null = null
   private expandDialog: ExpandDialog | null = null
-  private view: View = 'inline'
+  private view: PanelView = 'inline'
+  private panel: HTMLElement | null = null
+  private panelViewChanged: (view: PanelView) => void = () => {}
   private pageScrollBeforeFullScreen = 0
   private hasNothingToShow = false
 
@@ -73,6 +76,7 @@ export class ZoomControls {
     if (!document.fullscreenEnabled) {
       return
     }
+    this.panel = panel
     this.fullScreenButton = this.viewButton('diagit-zoom-full-screen', FULL_SCREEN, () =>
       this.toggleFullScreen(panel),
     )
@@ -95,6 +99,28 @@ export class ZoomControls {
     this.expandButton = this.viewButton('diagit-zoom-expand', EXPAND, () => expandDialog.toggle())
     this.element.append(this.expandButton)
     this.renderViewButtons()
+  }
+
+  get largerView(): LargerView | null {
+    if (this.expandDialog) {
+      return 'expanded'
+    }
+    return this.fullScreenButton ? 'fullScreen' : null
+  }
+
+  onPanelViewChange(listener: (view: PanelView) => void): void {
+    this.panelViewChanged = listener
+  }
+
+  async enlarge(): Promise<void> {
+    if (this.view !== 'inline') {
+      return
+    }
+    if (this.expandDialog) {
+      this.expandDialog.open()
+    } else if (this.panel) {
+      await this.enterFullScreen(this.panel)
+    }
   }
 
   collapse(): void {
@@ -127,12 +153,13 @@ export class ZoomControls {
     this.expandButton?.focus({ preventScroll: true })
   }
 
-  private showView(view: View): void {
+  private showView(view: PanelView): void {
     this.view = view
     if (view === 'inline') {
       this.element.hidden ||= this.hasNothingToShow
     }
     this.renderViewButtons()
+    this.panelViewChanged(view)
   }
 
   private renderViewButtons(): void {
@@ -162,9 +189,13 @@ export class ZoomControls {
     if (ZoomControls.isFullScreen(panel)) {
       document.exitFullscreen().catch(() => {})
     } else {
-      this.pageScrollBeforeFullScreen = window.scrollY
-      panel.requestFullscreen().catch(() => {})
+      void this.enterFullScreen(panel)
     }
+  }
+
+  private async enterFullScreen(panel: HTMLElement): Promise<void> {
+    this.pageScrollBeforeFullScreen = window.scrollY
+    await panel.requestFullscreen().catch(() => {})
   }
 
   private static isFullScreen(panel: HTMLElement): boolean {

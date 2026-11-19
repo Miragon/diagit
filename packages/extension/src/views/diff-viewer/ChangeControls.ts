@@ -15,8 +15,11 @@ const LEGEND_LABEL: Record<ChangeCategory, string> = {
 
 export class ChangeControls {
   readonly element = h('div', { class: 'diagit-diff-changes' })
+  private navigator: ChangeNavigator | null = null
 
   showDiff(diff: DiagramDiff, navigator: ChangeNavigator): void {
+    this.releaseNavigator()
+    this.navigator = navigator
     const position = h('span', {
       class: 'diagit-btn-group-position diagit-diff-position',
       'aria-live': 'polite',
@@ -65,9 +68,15 @@ export class ChangeControls {
   }
 
   showDiffUnavailable(): void {
+    this.releaseNavigator()
     this.element.replaceChildren(
       h('span', { class: 'diagit-diff-legend', text: 'Changes could not be computed' }),
     )
+  }
+
+  private releaseNavigator(): void {
+    this.navigator?.release()
+    this.navigator = null
   }
 
   private legend(diff: DiagramDiff, total: number): HTMLElement {
