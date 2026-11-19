@@ -40,12 +40,7 @@ describe('ExecutionPlatform', () => {
     expect(ExecutionPlatform.detect({ $attrs: ZEEBE }).hasTransactionBoundaries).toBe(false)
   })
 
-  it('reads Operaton attributes under the prefix the model declares', () => {
-    const platform = ExecutionPlatform.detect({
-      $attrs: { 'xmlns:op': 'http://operaton.org/schema/1.0/bpmn' },
-    })
-    expect(
-      platform.extensionAttribute({ $attrs: { 'op:asyncBefore': 'true' } }, 'asyncBefore'),
-    ).toBe('true')
+  it('detects Operaton under any prefix the model declares', () => {
+    expect(engineOf({ 'xmlns:op': 'http://operaton.org/schema/1.0/bpmn' })).toBe('operaton')
   })
 })

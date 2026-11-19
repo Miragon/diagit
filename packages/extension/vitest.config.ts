@@ -21,7 +21,7 @@ export default defineConfig({
           environment: 'happy-dom',
           include: ['test/dom/**/*.test.ts'],
           css: { include: [/platform\/theme\/.*\.css/, /platform\/ui\/(base|fonts)\.css/] },
-          server: { deps: { inline: [/@miragon\//] } },
+          server: { deps: { inline: [/@miragon\//, /camunda-transaction-boundaries/] } },
         },
       },
     ],

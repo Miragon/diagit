@@ -18,28 +18,16 @@ interface Definitions {
 export class ExecutionPlatform {
   static detect(definitions: Definitions): ExecutionPlatform {
     const attributes = definitions.$attrs ?? {}
-    const operatonPrefix = ExecutionPlatform.prefixOf(attributes, OPERATON_NAMESPACE)
     return new ExecutionPlatform(
       ExecutionPlatform.declaredEngine(attributes) ??
-        ExecutionPlatform.engineFromNamespaces(attributes, operatonPrefix),
-      operatonPrefix,
+        ExecutionPlatform.engineFromNamespaces(attributes),
     )
   }
 
-  private constructor(
-    readonly engine: Engine,
-    private readonly operatonPrefix: string | undefined,
-  ) {}
+  private constructor(readonly engine: Engine) {}
 
   get hasTransactionBoundaries(): boolean {
     return this.engine === 'camunda7' || this.engine === 'operaton'
-  }
-
-  extensionAttribute(businessObject: Record<string, any>, name: string): unknown {
-    if (this.engine === 'operaton') {
-      return businessObject.$attrs?.[`${this.operatonPrefix}:${name}`]
-    }
-    return businessObject[name]
   }
 
   private static declaredEngine(attributes: Attributes): Engine | undefined {
@@ -51,23 +39,14 @@ export class ExecutionPlatform {
       : ENGINES_BY_DECLARED_PLATFORM[declaredPlatform]
   }
 
-  private static engineFromNamespaces(
-    attributes: Attributes,
-    operatonPrefix: string | undefined,
-  ): Engine {
-    if (Object.values(attributes).includes(CAMUNDA_7_NAMESPACE)) {
+  private static engineFromNamespaces(attributes: Attributes): Engine {
+    const namespaces = Object.values(attributes)
+    if (namespaces.includes(CAMUNDA_7_NAMESPACE)) {
       return 'camunda7'
     }
-    if (operatonPrefix !== undefined) {
+    if (namespaces.includes(OPERATON_NAMESPACE)) {
       return 'operaton'
     }
     return 'unknown'
-  }
-
-  private static prefixOf(attributes: Attributes, namespace: string): string | undefined {
-    const declaration = Object.entries(attributes).find(
-      ([name, uri]) => name.startsWith('xmlns:') && uri === namespace,
-    )
-    return declaration?.[0].slice('xmlns:'.length)
   }
 }
