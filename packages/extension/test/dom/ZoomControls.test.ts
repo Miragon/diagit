@@ -347,11 +347,15 @@ describe('ZoomControls larger view', () => {
   function panelControls() {
     const panel = document.createElement('div')
     document.body.append(panel)
-    const parts = controlsFor()
-    panel.append(parts.controls.element)
     const views: string[] = []
-    parts.controls.onPanelViewChange((view) => views.push(view))
-    return { ...parts, panel, views }
+    const controls = new ZoomControls(
+      { zoomBy: vi.fn(), resetZoom: vi.fn(), fit: vi.fn() },
+      (view) => views.push(view),
+    )
+    panel.append(controls.element)
+    const button = (label: string) =>
+      controls.element.querySelector<HTMLButtonElement>(`[aria-label^="${label}"]`)!
+    return { controls, button, panel, views }
   }
 
   it('names the dialog as the larger view of a panel in a host page', () => {
@@ -385,8 +389,9 @@ describe('ZoomControls larger view', () => {
     const { controls, panel, views } = panelControls()
     controls.allowExpanding(panel)
 
-    await controls.enlarge()
+    const enlarged = await controls.enlarge()
 
+    expect(enlarged).toBe(true)
     expect(panel.parentElement!.tagName).toBe('DIALOG')
     expect(views).toEqual(['expanded'])
   })
@@ -396,8 +401,10 @@ describe('ZoomControls larger view', () => {
     const { controls, panel, views } = panelControls()
     controls.allowFullScreen(panel)
 
-    await controls.enlarge()
+    const enlarged = await controls.enlarge()
+    await FakeFullScreen.settled()
 
+    expect(enlarged).toBe(true)
     expect(document.fullscreenElement).toBe(panel)
     expect(views).toEqual(['fullScreen'])
   })
@@ -408,8 +415,9 @@ describe('ZoomControls larger view', () => {
     const { controls, panel, views } = panelControls()
     controls.allowFullScreen(panel)
 
-    await controls.enlarge()
+    const enlarged = await controls.enlarge()
 
+    expect(enlarged).toBe(false)
     expect(document.fullscreenElement).toBeNull()
     expect(views).toEqual([])
   })
@@ -426,5 +434,22 @@ describe('ZoomControls larger view', () => {
     button('Expand').click()
 
     expect(views).toEqual(['expanded', 'fullScreen', 'expanded', 'inline'])
+  })
+
+  it('leaves the focus where the listener put it on expanding', () => {
+    FakeFullScreen.install()
+    const outside = document.createElement('button')
+    document.body.append(outside)
+    const panel = document.createElement('div')
+    document.body.append(panel)
+    const controls = new ZoomControls({ zoomBy: vi.fn(), resetZoom: vi.fn(), fit: vi.fn() }, () =>
+      outside.focus(),
+    )
+    panel.append(controls.element)
+    controls.allowExpanding(panel)
+
+    controls.element.querySelector<HTMLButtonElement>('[aria-label="Expand"]')!.click()
+
+    expect(document.activeElement).toBe(outside)
   })
 })

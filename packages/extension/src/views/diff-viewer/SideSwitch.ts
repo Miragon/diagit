@@ -1,16 +1,14 @@
 import { h } from '../../platform/utils/dom'
-import type { DiffSide } from './DiffNotices'
-import { SIDE_LABEL, type ShownSides } from './sides'
+import { SIDE_LABEL, type DiffSide, type ShownSides } from './sides'
 
 const SIDES: DiffSide[] = ['old', 'new']
 
 export class SideSwitch {
   readonly element: HTMLElement
   private readonly buttons: Record<DiffSide, HTMLButtonElement>
-  private shownSides: ShownSides = 'both'
 
-  constructor(private readonly onPick: (sides: ShownSides) => void) {
-    this.buttons = { old: this.button('old'), new: this.button('new') }
+  constructor(onPick: (side: DiffSide) => void) {
+    this.buttons = { old: this.button('old', onPick), new: this.button('new', onPick) }
     this.element = h(
       'div',
       { class: 'diagit-segmented diagit-side-switch', role: 'group', 'aria-label': 'Side' },
@@ -20,7 +18,6 @@ export class SideSwitch {
   }
 
   show(sides: ShownSides): void {
-    this.shownSides = sides
     for (const side of SIDES) {
       const pressed = sides === side
       const button = this.buttons[side]
@@ -29,17 +26,16 @@ export class SideSwitch {
     }
   }
 
-  focusPressed(): void {
-    if (this.shownSides !== 'both') {
-      this.buttons[this.shownSides].focus({ preventScroll: true })
-    }
+  focus(side: DiffSide): void {
+    this.buttons[side].focus({ preventScroll: true })
   }
 
-  private button(side: DiffSide): HTMLButtonElement {
+  private button(side: DiffSide, onPick: (side: DiffSide) => void): HTMLButtonElement {
     return h('button', {
       type: 'button',
       text: SIDE_LABEL[side],
-      onClick: () => this.onPick(this.shownSides === side ? 'both' : side),
+      'data-side': side,
+      onClick: () => onPick(side),
     })
   }
 }

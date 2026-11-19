@@ -21,30 +21,14 @@ describe('SideSwitch', () => {
     expect(button('After').title).toBe('Show After only')
   })
 
-  it('picks a side that is not shown alone', () => {
+  it('tells which side was clicked', () => {
     const { onPick, button } = sideSwitch()
 
     button('After').click()
-
-    expect(onPick).toHaveBeenCalledWith('new')
-  })
-
-  it('picks both sides when the pressed side is clicked again', () => {
-    const { control, onPick, button } = sideSwitch()
-    control.show('new')
-
-    button('After').click()
-
-    expect(onPick).toHaveBeenCalledWith('both')
-  })
-
-  it('switches straight to the other side', () => {
-    const { control, onPick, button } = sideSwitch()
-    control.show('new')
-
     button('Before').click()
 
-    expect(onPick).toHaveBeenCalledWith('old')
+    expect(onPick).toHaveBeenNthCalledWith(1, 'new')
+    expect(onPick).toHaveBeenNthCalledWith(2, 'old')
   })
 
   it('presses the shown side and offers both sides on it', () => {
@@ -58,15 +42,22 @@ describe('SideSwitch', () => {
     expect(button('After').title).toBe('Show After only')
   })
 
-  it('focuses the pressed side only', () => {
+  it('presses neither side when both are shown again', () => {
+    const { control, button } = sideSwitch()
+    control.show('new')
+
+    control.show('both')
+
+    expect(button('Before').getAttribute('aria-pressed')).toBe('false')
+    expect(button('After').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('focuses a side', () => {
     const { control, button } = sideSwitch()
     document.body.append(control.element)
 
-    control.focusPressed()
-    expect(document.activeElement).toBe(document.body)
+    control.focus('new')
 
-    control.show('new')
-    control.focusPressed()
     expect(document.activeElement).toBe(button('After'))
     control.element.remove()
   })

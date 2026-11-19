@@ -7,13 +7,12 @@ import { h } from '../../platform/utils/dom'
 import { enableFocusZoom } from '../../platform/utils/focusZoom'
 import { filePathLabel } from '../../platform/utils/fileLabel'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
-import { ZoomControls, type PanelView, type Zoomable } from '../../platform/ui/ZoomControls'
+import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 import { ChangeControls } from './ChangeControls'
 import { ChangeNavigator } from './ChangeNavigator'
-import { DiffNotices, type DiffSide } from './DiffNotices'
-import { DiffPane } from './DiffPane'
-import { SideSwitch } from './SideSwitch'
-import type { ShownSides } from './sides'
+import { DiffNotices } from './DiffNotices'
+import type { DiffPane } from './DiffPane'
+import { DiffSides } from './DiffSides'
 import { ViewerCanvas } from './ViewerCanvas'
 
 export interface DiffPanelOptions extends DiffLoaders {
@@ -32,19 +31,19 @@ const NO_CHANGES: DiagramDiff = { added: [], removed: [], changed: [], moved: []
 const ONE_SCREEN_AROUND_THE_VIEWPORT = '100% 0px'
 
 export class DiffPanel implements PanelHandle, Zoomable {
-  private readonly oldPane = new DiffPane('old')
-  private readonly newPane = new DiffPane('new')
+  private readonly sides = new DiffSides(() => this.sidesChanged())
+  private readonly oldPane = this.sides.oldPane
+  private readonly newPane = this.sides.newPane
   private readonly plainCanvas = new ViewerCanvas<DiffableViewer>()
   private readonly plainButton = this.viewButton('Plain')
   private readonly diffButton = this.viewButton('Diff')
   private readonly changeControls = new ChangeControls()
-  private readonly zoomControls = new ZoomControls(this)
-  private readonly sideSwitch = new SideSwitch((sides) => this.showSides(sides))
-  private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, [
-    this.oldPane.element,
-    this.newPane.element,
-    this.sideSwitch.element,
-  ])
+  private readonly zoomControls = new ZoomControls(this, (view) => {
+    if (!this.destroyed) {
+      this.sides.followPanelView(view)
+    }
+  })
+  private readonly diffGrid = h('div', { class: 'diagit-diff-grid' }, this.sides.elements)
   private readonly plainGrid = h('div', { class: 'diagit-diff-grid' }, [
     h('div', { class: 'diagit-diff-pane diagit-diff-single' }, [this.plainCanvas.element]),
   ])
@@ -64,8 +63,6 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.diagramArea,
   ])
   private modelView: ModelView = 'plain'
-  private shownSides: ShownSides = 'both'
-  private requestedSides: DiffSide | null = null
   private diff: DiagramDiff | null = null
   private viewPickedByUser = false
   private base: LoadedModel | null = null
@@ -89,8 +86,10 @@ export class DiffPanel implements PanelHandle, Zoomable {
     } else {
       this.zoomControls.allowExpanding(this.root)
     }
-    this.offerEnlargingPanes()
-    this.zoomControls.onPanelViewChange((view) => this.panelViewChanged(view))
+    const largerView = this.zoomControls.largerView
+    if (largerView) {
+      this.sides.offerEnlarging(largerView, () => this.zoomControls.enlarge())
+    }
   }
 
   mount(container: HTMLElement): this {
@@ -145,51 +144,10 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.root.remove()
   }
 
-  private get panes(): DiffPane[] {
-    return [this.oldPane, this.newPane]
-  }
-
-  private offerEnlargingPanes(): void {
-    const largerView = this.zoomControls.largerView
-    if (!largerView) {
-      return
-    }
-    for (const pane of this.panes) {
-      pane.offerEnlarging(largerView, () => this.enlarge(pane.side))
-    }
-  }
-
-  private enlarge(side: DiffSide): void {
-    this.requestedSides = side
-    void this.zoomControls.enlarge().finally(() => {
-      this.requestedSides = null
-    })
-  }
-
-  private panelViewChanged(view: PanelView): void {
+  private sidesChanged(): void {
     if (this.destroyed) {
       return
     }
-    if (view === 'inline') {
-      this.requestedSides = null
-      this.showSides('both')
-      return
-    }
-    if (this.requestedSides) {
-      this.showSides(this.requestedSides)
-      this.requestedSides = null
-      this.sideSwitch.focusPressed()
-    }
-  }
-
-  private showSides(sides: ShownSides): void {
-    if (this.destroyed || sides === this.shownSides) {
-      return
-    }
-    this.shownSides = sides
-    this.oldPane.shown = sides !== 'new'
-    this.newPane.shown = sides !== 'old'
-    this.sideSwitch.show(sides)
     this.showChanges()
     if (this.modelView === 'diff') {
       this.fit()
@@ -221,10 +179,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   private trackZoomLevel(): void {
     this.stopTrackingZoom?.()
-    const viewer =
-      this.modelView === 'diff'
-        ? ([this.newPane, this.oldPane].find((pane) => pane.shown && pane.viewer)?.viewer ?? null)
-        : this.plainCanvas.viewer
+    const viewer = this.modelView === 'diff' ? this.sides.leadingViewer : this.plainCanvas.viewer
     if (!viewer) {
       this.stopTrackingZoom = null
       this.zoomControls.hide()
@@ -237,12 +192,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   private visibleViewers(): (DiffableViewer | null)[] {
     return this.modelView === 'diff'
-      ? this.shownPanes().map((pane) => pane.viewer)
+      ? this.sides.shownPanes.map((pane) => pane.viewer)
       : [this.plainCanvas.viewer]
-  }
-
-  private shownPanes(): DiffPane[] {
-    return this.panes.filter((pane) => pane.shown)
   }
 
   private applyInteractive(): void {
@@ -333,10 +284,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
     if (!this.diff) {
       return
     }
-    const panes = this.shownPanes()
-    const [onlyPane] = panes
-    const diff = panes.length === 1 && onlyPane ? onlyPane.changesOn(this.diff) : this.diff
-    const viewers = panes.map((pane) => pane.viewer)
+    const diff = this.sides.changesShown(this.diff)
+    const viewers = this.sides.shownPanes.map((pane) => pane.viewer)
     this.changeControls.showDiff(diff, ChangeNavigator.forDiff(diff, viewers))
   }
 

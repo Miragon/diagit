@@ -1,4 +1,4 @@
-import type { DiffSide } from './DiffNotices'
+export type DiffSide = 'old' | 'new'
 
 export type ShownSides = DiffSide | 'both'
 

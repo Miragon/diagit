@@ -352,9 +352,9 @@ describe('DiffPanel', () => {
   describe('one side alone', () => {
     const DIFF = { added: ['A'], removed: ['R'], changed: ['C'], moved: [] }
     const sideButton = (container: HTMLElement, name: string) =>
-      container
-        .querySelector<HTMLElement>('.diagit-side-switch')!
-        .querySelector<HTMLButtonElement>(`button:nth-child(${name === 'Before' ? 1 : 2})`)!
+      [...container.querySelectorAll<HTMLButtonElement>('.diagit-side-switch button')].find(
+        (button) => button.textContent === name,
+      )!
     const shownSides = (container: HTMLElement) =>
       diffPanes(container)
         .filter((pane) => !pane.hidden)
@@ -363,8 +363,8 @@ describe('DiffPanel', () => {
       [...container.querySelectorAll('.diagit-legend-chip')].map((chip) => chip.textContent)
     const isExpanded = () => document.querySelector('dialog.diagit-expanded') !== null
 
-    async function diffOf(options: { onOwnPage?: boolean; fullScreen?: boolean } = {}) {
-      if (options.fullScreen !== false) {
+    async function diffOf(options: { onOwnPage?: boolean; fullScreenAllowed?: boolean } = {}) {
+      if (options.fullScreenAllowed !== false) {
         FakeFullScreen.install()
       }
       const differ = new FakeDiffer(DIFF, ['A', 'R', 'C'])
@@ -400,7 +400,7 @@ describe('DiffPanel', () => {
     })
 
     it('offers no side button on its own page where full screen is not allowed', async () => {
-      const { container } = await diffOf({ onOwnPage: true, fullScreen: false })
+      const { container } = await diffOf({ onOwnPage: true, fullScreenAllowed: false })
 
       expect(container.querySelector('.diagit-pane-enlarge')).toBeNull()
     })
@@ -413,6 +413,22 @@ describe('DiffPanel', () => {
       expect(isExpanded()).toBe(true)
       expect(shownSides(container)).toEqual(['After'])
       expect(sideButton(container, 'After').getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('moves the focus to the picked side once the dialog opened from a pane', async () => {
+      const { container } = await diffOf()
+
+      buttonLabelled(container, 'Expand Before').click()
+
+      expect(document.activeElement).toBe(sideButton(container, 'Before'))
+    })
+
+    it('keeps the focus on Collapse when expanded from the zoom island', async () => {
+      const { container } = await diffOf()
+
+      buttonLabelled(container, 'Expand').click()
+
+      expect(document.activeElement).toBe(buttonLabelled(container, 'Expand'))
     })
 
     it('expands with both sides from the zoom island', async () => {

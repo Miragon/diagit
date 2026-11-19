@@ -5,9 +5,9 @@ import { h } from '../../platform/utils/dom'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
 import type { NoticeDetails } from '../../platform/ui/Notice'
 import type { LargerView } from '../../platform/ui/ZoomControls'
-import type { DiffNotices, DiffSide } from './DiffNotices'
+import type { DiffNotices } from './DiffNotices'
 import { MARKER } from './markers'
-import { SIDE_LABEL } from './sides'
+import { SIDE_LABEL, type DiffSide } from './sides'
 import { ViewerCanvas } from './ViewerCanvas'
 
 type ChangeCategory = keyof DiagramDiff
@@ -82,14 +82,13 @@ export class DiffPane {
   }
 
   changesOn(diff: DiagramDiff): DiagramDiff {
-    const marked = CATEGORIES_MARKED_ON[this.side]
-    const keep = (category: ChangeCategory) => (marked.includes(category) ? diff[category] : [])
-    return {
-      added: keep('added'),
-      removed: keep('removed'),
-      changed: keep('changed'),
-      moved: keep('moved'),
+    const changes = { ...diff }
+    for (const category of Object.keys(changes) as ChangeCategory[]) {
+      if (!CATEGORIES_MARKED_ON[this.side].includes(category)) {
+        changes[category] = []
+      }
     }
+    return changes
   }
 
   destroy(): void {
