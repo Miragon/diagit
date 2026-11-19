@@ -53,6 +53,8 @@ On top of that, one [WebdriverIO](https://webdriver.io) suite loads the **real
 built extension** into a browser and runs the same specs on **Chrome, Edge and
 Firefox** (`packages/extension/e2e`). It serves GitHub-shaped fixture pages from a
 local server (no live github.com) and asserts the diagram actually renders.
+`accessibility.e2e.ts` runs [axe-core](https://github.com/dequelabs/axe-core) over the
+panels (light and dark) and the standalone viewer and fails on any WCAG 2.2 AA violation.
 
 ```bash
 # 1. build the extension in E2E mode (its view router also matches localhost)
