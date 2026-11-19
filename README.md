@@ -4,6 +4,8 @@
 [![Firefox Add-ons](https://img.shields.io/amo/v/diagit?label=Firefox%20Add-ons&logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/diagit/)
 [![Edge Add-ons](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fpphcelcgicmpdkkbginmkdogceepigen&query=%24.version&prefix=v&label=Edge%20Add-ons&logo=microsoftedge&logoColor=white&color=blue)](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)
 [![Chrome users](https://img.shields.io/chrome-web-store/users/bjphfmmlciflmdcnpfpbnkmgnkiabfdh?label=Chrome%20users&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/diagit/bjphfmmlciflmdcnpfpbnkmgnkiabfdh)
+[![Firefox users](https://img.shields.io/amo/users/diagit?label=Firefox%20users&logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/diagit/)
+[![Edge users](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fpphcelcgicmpdkkbginmkdogceepigen&query=%24.activeInstallCount&label=Edge%20users&logo=microsoftedge&logoColor=white&color=blue)](https://microsoftedge.microsoft.com/addons/detail/pphcelcgicmpdkkbginmkdogceepigen)
 [![GitHub stars](https://img.shields.io/github/stars/Miragon/diagit?style=flat&logo=github)](https://github.com/Miragon/diagit/stargazers)
 [![CI](https://github.com/Miragon/diagit/actions/workflows/ci.yml/badge.svg)](https://github.com/Miragon/diagit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/Miragon/diagit)](LICENSE)
