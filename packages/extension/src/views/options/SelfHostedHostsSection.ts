@@ -1,7 +1,6 @@
 import { Server, Trash2 } from 'lucide'
 import { browser } from 'wxt/browser'
-import type { HostAccess } from '../../git-hosts/self-hosted/HostAccess'
-import type { SelfHostedHost } from '../../git-hosts/self-hosted/SelfHostedHostStore'
+import type { HostAccess, SelfHostedHost } from '../../git-hosts/self-hosted/HostAccess'
 import { h } from '../../platform/utils/dom'
 import { errorMessage } from '../../platform/utils/errorMessage'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
