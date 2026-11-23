@@ -35,7 +35,7 @@ export class BackgroundWorker {
     return new BackgroundWorker(
       HostAccess.forHosts(hostRegistry),
       hostRegistry,
-      new FetchProxy(hostRegistry.authPolicies(), new FetchScope()),
+      new FetchProxy(hostRegistry.authPolicies(), new FetchScope(hostRegistry.fetchRules())),
       new ViewScriptInjector(hostRegistry.allViewScripts()),
       new TrustedSender(browser.runtime.id),
       import.meta.env.FIREFOX,

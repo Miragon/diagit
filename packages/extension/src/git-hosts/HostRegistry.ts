@@ -1,5 +1,5 @@
 import { originToPattern } from '../platform/utils/origin'
-import type { AuthPolicy, GitHost, PageUrl } from './GitHost'
+import type { AuthPolicy, FetchRules, GitHost, PageUrl } from './GitHost'
 
 export class HostRegistry {
   constructor(
@@ -46,5 +46,9 @@ export class HostRegistry {
 
   authPolicies(): AuthPolicy[] {
     return this.hosts.flatMap((host) => (host.authPolicy ? [host.authPolicy] : []))
+  }
+
+  fetchRules(): FetchRules[] {
+    return this.hosts.flatMap((host) => (host.fetchRules ? [host.fetchRules] : []))
   }
 }

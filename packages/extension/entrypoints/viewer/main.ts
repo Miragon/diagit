@@ -7,7 +7,7 @@ import { FetchProxy } from '../../src/background/FetchProxy'
 import { FetchScope } from '../../src/background/FetchScope'
 import { GithubHost } from '../../src/git-hosts/github/GithubHost'
 import { GitlabHost } from '../../src/git-hosts/gitlab/GitlabHost'
-import { githubHost, githubTokens } from '../../src/git-hosts/hosts'
+import { githubHost, githubTokens, hostRegistry } from '../../src/git-hosts/hosts'
 import { notationDetector } from '../../src/notations/NotationDetector'
 import { NOTATION_CATALOG } from '../../src/notations/notationCatalog'
 import { allNotations } from '../../src/notations/allNotations'
@@ -30,11 +30,12 @@ const reportContext = {
   where: 'Standalone viewer',
   environment: ExtensionEnvironment.current().describe(),
 }
-const linkedModels = new LinkedModelReader(new FetchProxy(NO_AUTH_POLICIES, new FetchScope()))
+const fetchScope = new FetchScope(hostRegistry.fetchRules())
+const linkedModels = new LinkedModelReader(new FetchProxy(NO_AUTH_POLICIES, fetchScope))
 
 app.append(new ViewerHeader().element)
 if (diffPage && diffOrigin && diffPath) {
-  const fetchProxy = new FetchProxy([githubHost.authPolicy], new FetchScope())
+  const fetchProxy = new FetchProxy([githubHost.authPolicy], fetchScope)
   const http = new PageHttpClient(fetchProxy, diffOrigin)
   const gitlab = new GitlabHost(http)
   const github = new GithubHost(http, githubTokens)

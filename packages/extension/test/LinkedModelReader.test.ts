@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { FetchProxy } from '../src/background/FetchProxy'
 import { FetchScope } from '../src/background/FetchScope'
+import { hostRegistry } from '../src/git-hosts/hosts'
 import { LinkedModelReader } from '../src/views/standalone-viewer/LinkedModelReader'
 
 vi.mock('wxt/browser', () => ({ browser: {} }))
@@ -15,9 +16,12 @@ function readerWith(fetch: typeof globalThis.fetch, grantedPatterns: string[] = 
   const contains = vi.fn(async ({ origins }: { origins: string[] }) =>
     origins.every((origin) => grantedPatterns.includes(origin)),
   )
-  const reader = new LinkedModelReader(new FetchProxy([], new FetchScope(), fetch), () => ({
-    contains,
-  }))
+  const reader = new LinkedModelReader(
+    new FetchProxy([], new FetchScope(hostRegistry.fetchRules()), fetch),
+    () => ({
+      contains,
+    }),
+  )
   return { reader, contains }
 }
 
@@ -51,7 +55,10 @@ describe('LinkedModelReader.mayRead', () => {
 
   it('refuses when the browser cannot answer', async () => {
     const contains = vi.fn().mockRejectedValue(new Error('Invalid url pattern'))
-    const reader = new LinkedModelReader(new FetchProxy([], new FetchScope()), () => ({ contains }))
+    const reader = new LinkedModelReader(
+      new FetchProxy([], new FetchScope(hostRegistry.fetchRules())),
+      () => ({ contains }),
+    )
 
     expect(await reader.mayRead(RAW_FILE)).toBe(false)
   })
