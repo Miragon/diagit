@@ -1,6 +1,6 @@
 import { SettingsStore } from './SettingsStore'
 
-export const DIAGRAM_VIEWS_KEY = 'diagramViews'
+const DIAGRAM_VIEWS_KEY = 'diagramViews'
 
 export interface DiagramViews {
   pageCount: number
@@ -16,6 +16,12 @@ export class DiagramViewsLocalStorage {
     } catch (err) {
       console.error('[diagit] could not save the diagram view to local storage', err)
     }
+  }
+
+  onChange(listener: (views: DiagramViews | undefined) => void): () => void {
+    return this.store.onChange(DIAGRAM_VIEWS_KEY, (views) =>
+      listener(views as DiagramViews | undefined),
+    )
   }
 
   private async countPage(page: string): Promise<void> {

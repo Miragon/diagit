@@ -1,7 +1,7 @@
 import { Star, ThumbsUp } from 'lucide'
 import { browser } from 'wxt/browser'
 import type { HostPage, ShadowPanel } from '../page/HostPage'
-import { DIAGRAM_VIEWS_KEY, type DiagramViews } from '../settings/DiagramViewsLocalStorage'
+import { DiagramViewsLocalStorage, type DiagramViews } from '../settings/DiagramViewsLocalStorage'
 import { SettingsStore } from '../settings/SettingsStore'
 import { Toast, type ToastAction } from '../ui/Toast'
 import { diagitRepository } from '../DiagitRepository'
@@ -25,8 +25,9 @@ export class StarPrompt {
   ) {}
 
   start(): void {
-    const stopWatchingViews = this.store.onChange(DIAGRAM_VIEWS_KEY, (views) =>
-      this.onDiagramViews(views as DiagramViews | undefined).catch((err) =>
+    const diagramViews = new DiagramViewsLocalStorage(this.store)
+    const stopWatchingViews = diagramViews.onChange((views) =>
+      this.onDiagramViews(views).catch((err) =>
         console.error('[diagit] could not show the star prompt', err),
       ),
     )
