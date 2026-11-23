@@ -5,6 +5,7 @@ import { FetchError } from '../../src/platform/messaging/HttpClient'
 import { FakeDiffer } from '../fakes/FakeDiffer'
 import { FakeFullScreen } from '../fakes/FakeFullScreen'
 import { FakeIntersectionObserver } from '../fakes/FakeIntersectionObserver'
+import { FakeResizeObserver } from '../fakes/FakeResizeObserver'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 const LOADING_LABEL = 'Loading diagram…'
@@ -73,6 +74,7 @@ afterEach(() => {
   panel = null
   document.body.innerHTML = ''
   FakeIntersectionObserver.reset()
+  FakeResizeObserver.reset()
   vi.unstubAllGlobals()
 })
 
@@ -102,17 +104,52 @@ describe('DiffPanel', () => {
       expect(container.querySelector('.diagit-toolbar .diagit-zoom')).toBeNull()
     })
 
-    it('hides while no version is rendered', async () => {
+    it('keeps its shape with disabled controls while the models load', () => {
+      const container = mount(new FakeDiffer(), () => new Promise<string | null>(() => {}))
+
+      expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+      expect(zoomButton(container, 'Zoom in').disabled).toBe(true)
+    })
+
+    it('hides when no version could be rendered', async () => {
       const container = mount(new FakeDiffer(), downloadFailed)
       const zoom = container.querySelector<HTMLElement>('.diagit-zoom')!
 
-      expect(zoom.hidden).toBe(true)
       await vi.waitFor(() =>
         expect(plainPane(container).textContent).toContain('New version could not be loaded'),
       )
       buttonNamed(container, 'Diff').click()
       await vi.waitFor(() => expect(diffPanes(container)[0]!.textContent).toContain('could not'))
-      expect(zoom.hidden).toBe(true)
+      await vi.waitFor(() => expect(zoom.hidden).toBe(true))
+    })
+
+    it('keeps its shape with disabled controls while the versions render', async () => {
+      const differ = new FakeDiffer()
+      vi.spyOn(differ, 'createViewer').mockImplementation(() => new Promise(() => {}))
+      const container = mount(
+        differ,
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+
+      await vi.waitFor(() => expect(differ.createViewer).toHaveBeenCalledTimes(2))
+      expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(false)
+      expect(zoomButton(container, 'Zoom in').disabled).toBe(true)
+    })
+
+    it('leaves room for the bpmn.io logo from the start when the notation draws it', () => {
+      const withLogo = Object.assign(new FakeDiffer(), { showsBpmnIoLogo: true })
+      const container = mount(withLogo, () => new Promise<string | null>(() => {}))
+
+      const zoom = container.querySelector('.diagit-zoom')!
+      expect(zoom.classList.contains('beside-bpmn-io-logo')).toBe(true)
+    })
+
+    it('keeps the corner free when the notation draws no logo', () => {
+      const container = mount(new FakeDiffer(), () => new Promise<string | null>(() => {}))
+
+      const zoom = container.querySelector('.diagit-zoom')!
+      expect(zoom.classList.contains('beside-bpmn-io-logo')).toBe(false)
     })
 
     it('shows once a version is rendered', async () => {
@@ -475,6 +512,29 @@ describe('DiffPanel', () => {
       sideButton(container, 'After').click()
 
       expect(oldViewer.markers).not.toContainEqual({ id: 'R', marker: MARKER.active })
+    })
+
+    it('keeps the change it stepped to when the panel changes size', async () => {
+      vi.stubGlobal('ResizeObserver', FakeResizeObserver)
+      const { container, newViewer } = await diffOf()
+      buttonLabelled(container, 'Next change').click()
+      const fitsBefore = newViewer.fits
+
+      FakeResizeObserver.resizeAll()
+
+      expect(newViewer.fits).toBe(fitsBefore)
+    })
+
+    it('fits again on resize after "Show all"', async () => {
+      vi.stubGlobal('ResizeObserver', FakeResizeObserver)
+      const { container, newViewer } = await diffOf()
+      buttonLabelled(container, 'Next change').click()
+      buttonNamed(container, 'Show all').click()
+      const fitsBefore = newViewer.fits
+
+      FakeResizeObserver.resizeAll()
+
+      expect(newViewer.fits).toBe(fitsBefore + 1)
     })
 
     it('fits only the shown side when switching, and both when going back', async () => {
@@ -870,6 +930,52 @@ describe('DiffPanel', () => {
     )
   })
 
+  describe('while the models load', () => {
+    const neverArrives = () => new Promise<string | null>(() => {})
+    const isLoading = (pane: Element) => !!pane.querySelector('.diagit-diff-loading')
+
+    it('already shows the Diff layout', () => {
+      const container = mount(new FakeDiffer(), neverArrives)
+
+      expect(buttonNamed(container, 'Diff').getAttribute('aria-pressed')).toBe('true')
+      expect(diffPanes(container).every(isLoading)).toBe(true)
+    })
+
+    it('holds a placeholder where the legend will be', () => {
+      const container = mount(new FakeDiffer(), neverArrives)
+
+      const placeholder = changeControls(container).querySelector('.diagit-diff-legend-placeholder')
+      expect(placeholder?.getAttribute('aria-hidden')).toBe('true')
+    })
+
+    it('reveals both versions and the legend together', async () => {
+      const differ = new FakeDiffer()
+      const createViewer = differ.createViewer.bind(differ)
+      let finishNewVersion!: () => void
+      const newVersionRendering = new Promise<void>((done) => (finishNewVersion = done))
+      vi.spyOn(differ, 'createViewer').mockImplementation(async (canvas) => {
+        if (differ.viewers.length === 1) {
+          await newVersionRendering
+        }
+        return createViewer(canvas)
+      })
+      const container = mount(
+        differ,
+        async () => '<old/>',
+        async () => '<new/>',
+      )
+      await vi.waitFor(() => expect(differ.viewers).toHaveLength(1))
+
+      expect(diffPanes(container).every(isLoading)).toBe(true)
+      expect(total(container)).toBeUndefined()
+
+      finishNewVersion()
+
+      await vi.waitFor(() => expect(total(container)).toBe('No changes'))
+      expect(diffPanes(container).some(isLoading)).toBe(false)
+    })
+  })
+
   describe('the tab it opens on', () => {
     const activeTab = (container: HTMLElement) =>
       container.querySelector('.diagit-segmented [aria-pressed="true"]')?.textContent
@@ -884,8 +990,24 @@ describe('DiffPanel', () => {
         async () => '<new/>',
       )
 
-      await vi.waitFor(() => expect(activeTab(container)).toBe('Diff'))
-      expect(createViewer).toHaveBeenCalledTimes(2)
+      await vi.waitFor(() => expect(createViewer).toHaveBeenCalledTimes(2))
+      expect(activeTab(container)).toBe('Diff')
+    })
+
+    it('starts on Plain when the host already says the file is new', () => {
+      const container = document.createElement('div')
+      document.body.append(container)
+      panel = new DiffPanel({
+        differ: new FakeDiffer(),
+        loadOld: () => new Promise<string | null>(() => {}),
+        loadNew: () => new Promise<string | null>(() => {}),
+        hasNoOldVersion: true,
+        label: 'BPMN',
+        filePath: 'processes/order.bpmn',
+        reportContext: FAKE_REPORT_CONTEXT,
+      }).mount(container)
+
+      expect(activeTab(container)).toBe('Plain')
     })
 
     it('stays on Plain for an added file', async () => {

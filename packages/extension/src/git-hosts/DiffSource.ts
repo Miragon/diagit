@@ -19,6 +19,7 @@ export interface ChangedFile extends DiffPanelSlot {
 export interface DiffLoaders {
   loadOld(): Promise<string | null>
   loadNew(): Promise<string | null>
+  hasNoOldVersion?: boolean
 }
 
 export interface DiffFileBlock extends ChangedFile, DiffLoaders {}

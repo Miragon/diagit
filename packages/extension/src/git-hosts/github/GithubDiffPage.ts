@@ -41,6 +41,7 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
     const hasNoOldSide = change?.status === 'added' || !data.baseSha
     const hasNoNewSide = change?.status === 'removed'
     return {
+      hasNoOldVersion: hasNoOldSide,
       loadOld: () =>
         hasNoOldSide
           ? Promise.resolve(null)

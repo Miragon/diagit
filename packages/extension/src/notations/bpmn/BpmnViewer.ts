@@ -48,6 +48,10 @@ export class BpmnViewer implements DiffableViewer {
     fitWithPadding(this.canvas)
   }
 
+  resized(): void {
+    this.canvas.resized()
+  }
+
   zoomBy(factor: number): void {
     this.canvas.zoom(this.canvas.zoom() * factor)
   }

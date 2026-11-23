@@ -6,6 +6,7 @@ import { fileLabel } from '../../platform/utils/fileLabel'
 import { lucideIcon } from '../../platform/utils/lucideIcon'
 import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
+import { AutoFit } from '../../platform/ui/AutoFit'
 
 export interface LinkedModelSource {
   mayRead(url: string): Promise<boolean>
@@ -32,7 +33,8 @@ export class StandaloneViewerPage implements Zoomable {
   private readonly stage: HTMLElement
   private readonly panel: HTMLElement
   private readonly loadedAssetCss = new Set<Notation>()
-  private readonly zoomControls = new ZoomControls(this)
+  private readonly zoomControls = new ZoomControls(this, () => this.autoFit?.fit())
+  private autoFit: AutoFit | null = null
   private viewer: DiagramViewer | null = null
   private stopTrackingZoom: (() => void) | null = null
   private openCount = 0
@@ -79,7 +81,7 @@ export class StandaloneViewerPage implements Zoomable {
   mount(app: HTMLElement): void {
     app.append(this.panel)
     this.listen()
-    new ResizeObserver(() => this.viewer?.fit()).observe(this.stage)
+    this.autoFit = new AutoFit(this.stage, () => [this.viewer])
   }
 
   async openLink(url: string): Promise<void> {
@@ -102,15 +104,17 @@ export class StandaloneViewerPage implements Zoomable {
   }
 
   zoomBy(factor: number): void {
+    this.autoFit?.userMovedView()
     this.viewer?.zoomBy(factor)
   }
 
   resetZoom(): void {
+    this.autoFit?.userMovedView()
     ZoomControls.resetZoomOf(this.viewer)
   }
 
   fit(): void {
-    this.viewer?.fit()
+    this.autoFit?.fit()
   }
 
   private listen(): void {
@@ -153,6 +157,7 @@ export class StandaloneViewerPage implements Zoomable {
       return
     }
     this.loadAssetCss(notation)
+    this.zoomControls.leaveRoomForBpmnIoLogo(notation.descriptor.showsBpmnIoLogo === true)
     let xml: string
     try {
       xml = await readContent()
@@ -199,7 +204,7 @@ export class StandaloneViewerPage implements Zoomable {
     this.panel.classList.remove('has-error')
     this.panel.classList.add('has-diagram')
     this.viewer?.setInteractive(true)
-    this.viewer?.fit()
+    this.autoFit?.fit()
     this.trackZoomLevel()
   }
 

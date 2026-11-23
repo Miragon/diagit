@@ -35,6 +35,7 @@ const PR = {
   file: 'flows/order.bpmn',
   baseSha: 'base0000000000000000000000000000000000000',
   headSha: 'head1111111111111111111111111111111111111',
+  fileStatus: 'modified',
 } as const
 
 const SUBPROCESS_PR = {
@@ -46,7 +47,15 @@ const SUBPROCESS_PR = {
 
 const UNKNOWN_LAYOUT_PR = { ...PR, repo: 'relayout' } as const
 
-const PULL_REQUESTS = [PR, SUBPROCESS_PR, UNKNOWN_LAYOUT_PR]
+const ADDED_FILE_PR = {
+  ...PR,
+  number: '3',
+  baseSha: 'base3333333333333333333333333333333333333',
+  headSha: 'head3333333333333333333333333333333333333',
+  fileStatus: 'added',
+} as const
+
+const PULL_REQUESTS = [PR, SUBPROCESS_PR, UNKNOWN_LAYOUT_PR, ADDED_FILE_PR]
 
 const FIXTURE_BY_REF: Record<string, string> = {
   [SUBPROCESS_PR.baseSha]: 'collapsed-subprocess-before.bpmn',
@@ -66,6 +75,7 @@ const REPO_HOME = `/${PR.owner}/${PR.repo}`
 const RENAMED_REPO_SEGMENT = `/${PR.owner}/renamed/`
 const REPO_SEGMENT = `/${PR.owner}/${PR.repo}/`
 const UNKNOWN_LAYOUT_REPO_SEGMENT = `/${UNKNOWN_LAYOUT_PR.owner}/${UNKNOWN_LAYOUT_PR.repo}/`
+const LATE_CODE_REPO_SEGMENT = `/${PR.owner}/late/`
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -122,7 +132,12 @@ export interface FixtureServer {
   close(): Promise<void>
 }
 
+export const RAW_LATENCY_SETTING = '/__e2e/raw-latency'
+export const RAW_STATUS_SETTING = '/__e2e/raw-status'
+
 export function startFixtureServer(port: number): Promise<FixtureServer> {
+  let rawLatencyMs = 0
+  let rawStatus = 200
   const server: Server = createServer((req, res) => {
     const path = decodeURIComponent((req.url ?? '/').split('?')[0] ?? '/')
 
@@ -160,7 +175,7 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
           res,
           200,
           MIME['.json']!,
-          JSON.stringify([{ filename: pr.file, status: 'modified' }]),
+          JSON.stringify([{ filename: pr.file, status: pr.fileStatus }]),
         )
       }
     }
@@ -179,9 +194,25 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
       )
     }
 
+    if (path === RAW_LATENCY_SETTING) {
+      rawLatencyMs = Number(new URL(req.url ?? '/', 'http://localhost').searchParams.get('ms') ?? 0)
+      return send(res, 200, 'text/plain', `raw latency ${rawLatencyMs} ms`)
+    }
+    if (path === RAW_STATUS_SETTING) {
+      rawStatus = Number(
+        new URL(req.url ?? '/', 'http://localhost').searchParams.get('code') ?? 200,
+      )
+      return send(res, 200, 'text/plain', `raw status ${rawStatus}`)
+    }
+
     // Raw file content (blob viewer + PR base/head loaders).
     if (path.includes('/raw/')) {
-      return send(res, 200, MIME[extname(path)] ?? MIME['.bpmn']!, rawDiagram(path))
+      const respond =
+        rawStatus === 200
+          ? () => send(res, 200, MIME[extname(path)] ?? MIME['.bpmn']!, rawDiagram(path))
+          : () => send(res, rawStatus, 'text/plain', `status ${rawStatus}`)
+      setTimeout(respond, rawLatencyMs)
+      return
     }
 
     // GitHub-shaped host pages.
@@ -191,7 +222,9 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
     if (path.includes('/blob/')) {
       const page = path.startsWith(UNKNOWN_LAYOUT_REPO_SEGMENT)
         ? 'blob-unknown-layout.html'
-        : 'blob.html'
+        : path.startsWith(LATE_CODE_REPO_SEGMENT)
+          ? 'blob-late-code.html'
+          : 'blob.html'
       return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, page)))
     }
     if (path.includes('/pull/')) {

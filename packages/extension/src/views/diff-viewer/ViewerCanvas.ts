@@ -12,7 +12,11 @@ export type CreateViewer<Viewer extends DiagramViewer> = (
 ) => Promise<Viewer>
 
 export class ViewerCanvas<Viewer extends DiagramViewer> {
-  readonly element = h('div', { class: 'diagit-diff-canvas' }, [this.label(LOADING_LABEL)])
+  private readonly loadingLabel = h('div', {
+    class: 'diagit-diff-empty diagit-diff-loading',
+    text: LOADING_LABEL,
+  })
+  readonly element = h('div', { class: 'diagit-diff-canvas' }, [this.loadingLabel])
   viewer: Viewer | null = null
 
   async render(
@@ -21,9 +25,8 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
     emptyLabel: string,
     unreadable: (err: unknown) => NoticeDetails,
   ): Promise<Viewer | null> {
-    this.element.replaceChildren()
     if (!xml) {
-      this.element.append(this.label(emptyLabel))
+      this.element.replaceChildren(this.label(emptyLabel))
       return null
     }
     try {
@@ -32,6 +35,10 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
       this.showFailure(unreadable(err))
     }
     return this.viewer
+  }
+
+  reveal(): void {
+    this.loadingLabel.remove()
   }
 
   showFailure(failure: NoticeDetails): void {

@@ -119,7 +119,7 @@
   box-shadow: var(--cd-shadow-1);
 }
 
-:has(.bjs-powered-by) > .diagit-zoom {
+.diagit-zoom.beside-bpmn-io-logo {
   --bpmn-io-logo-inset: 15px;
   --bpmn-io-logo-width: 53px;
   --bpmn-io-logo-height: 21px;
@@ -161,9 +161,7 @@
 
 .diagit-canvas {
   position: relative;
-  /* Static height; the diagram is fit into it. bpmn-js/dmn-js zoom-to-fit
-     handles large models, drag-to-pan + the zoom controls handle the rest. */
-  height: 600px;
+  height: clamp(360px, 70vh, 600px);
   width: 100%;
   border-bottom: 1px solid var(--border);
   background: var(--canvas-bg);
@@ -212,14 +210,6 @@
   outline-offset: -2px;
 }
 
-.diagit-file-panel .diagit-canvas:has(> .diagit-notice) {
-  height: auto;
-}
-
-.diagit-file-panel .diagit-canvas > .diagit-notice[data-layout='pane'] {
-  position: static;
-}
-
 .diagit-placeholder {
   position: absolute;
   inset: 0;
@@ -229,6 +219,46 @@
   color: var(--fg-muted);
   font-size: 14px;
   pointer-events: none;
+}
+
+.diagit-canvas > *,
+.diagit-diff-canvas > * {
+  transition: opacity var(--cd-motion-base) var(--cd-ease-out);
+}
+
+.diagit-canvas:has(> .diagit-placeholder) > :not(.diagit-placeholder),
+.diagit-diff-canvas:has(> .diagit-diff-loading) > :not(.diagit-diff-loading) {
+  opacity: 0;
+}
+
+.diagit-skeleton {
+  display: inline-block;
+  height: 12px;
+  border-radius: var(--cd-radius-sm);
+  background: var(--cd-ui-linie);
+  animation: diagit-skeleton-pulse 1.2s var(--cd-ease) infinite alternate;
+}
+
+.diagit-zoom-level-placeholder {
+  width: 32px;
+  vertical-align: middle;
+}
+
+@keyframes diagit-skeleton-pulse {
+  to {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagit-skeleton {
+    animation: none;
+  }
+
+  .diagit-canvas > *,
+  .diagit-diff-canvas > * {
+    transition: none;
+  }
 }
 
 /* Keep bpmn-js / dmn-js labels in the text role; the Miragon renderers colour their own. */

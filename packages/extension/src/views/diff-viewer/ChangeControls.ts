@@ -13,9 +13,16 @@ const LEGEND_LABEL: Record<ChangeCategory, string> = {
   moved: 'Moved',
 }
 
+interface NavigationListener {
+  steppedToChange(): void
+  showedAll(): void
+}
+
 export class ChangeControls {
   readonly element = h('div', { class: 'diagit-diff-changes' })
   private navigator: ChangeNavigator | null = null
+
+  constructor(private readonly navigation: NavigationListener) {}
 
   showDiff(diff: DiagramDiff, navigator: ChangeNavigator): void {
     this.releaseNavigator()
@@ -33,12 +40,18 @@ export class ChangeControls {
     const previous = this.iconButton(
       'Previous change',
       ChevronLeft,
-      step(() => navigator.previous()),
+      step(() => {
+        navigator.previous()
+        this.navigation.steppedToChange()
+      }),
     )
     const next = this.iconButton(
       'Next change',
       ChevronRight,
-      step(() => navigator.next()),
+      step(() => {
+        navigator.next()
+        this.navigation.steppedToChange()
+      }),
     )
     previous.disabled = !navigator.hasChanges
     next.disabled = !navigator.hasChanges
@@ -60,11 +73,30 @@ export class ChangeControls {
             class: 'btn btn-ghost',
             type: 'button',
             text: 'Show all',
-            onClick: step(() => navigator.showAll()),
+            onClick: step(() => {
+              navigator.showAll()
+              this.navigation.showedAll()
+            }),
           }),
         ],
       ),
     )
+  }
+
+  showLoading(): void {
+    this.releaseNavigator()
+    this.element.replaceChildren(
+      h(
+        'div',
+        { class: 'diagit-diff-legend-placeholder', 'aria-hidden': 'true' },
+        Array.from({ length: 4 }, () => h('span', { class: 'diagit-skeleton' })),
+      ),
+    )
+  }
+
+  clear(): void {
+    this.releaseNavigator()
+    this.element.replaceChildren()
   }
 
   showDiffUnavailable(): void {

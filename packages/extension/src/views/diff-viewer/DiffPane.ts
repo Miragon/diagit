@@ -71,6 +71,10 @@ export class DiffPane {
     this.canvas.showFailure(failure)
   }
 
+  reveal(): void {
+    this.canvas.reveal()
+  }
+
   showDiff(diff: DiagramDiff): void {
     for (const category of CATEGORIES_MARKED_ON[this.side]) {
       for (const id of diff[category]) {

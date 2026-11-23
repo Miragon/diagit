@@ -5,4 +5,5 @@ export const DMN: NotationDescriptor = {
   label: 'DMN',
   extensions: ['dmn'],
   diffable: false,
+  showsBpmnIoLogo: true,
 }

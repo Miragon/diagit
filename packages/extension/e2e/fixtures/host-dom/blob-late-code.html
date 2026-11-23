@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>order.bpmn · octo/late</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+      }
+      /* Give the code area a real box so it lays out like the real site. */
+      [data-testid='code-lines-container'] {
+        display: block;
+        min-height: 240px;
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="repo-content-pjax-container">
+      <template id="code-view">
+        <section aria-labelledby="file-name-id-wide">
+          <div class="file-header">
+            <h2 id="file-name-id-wide">order.bpmn</h2>
+          </div>
+          <div data-testid="code-lines-container">
+            <div class="react-code-lines">&lt;bpmn:definitions/&gt;</div>
+          </div>
+        </section>
+      </template>
+    </div>
+    <script>
+      setTimeout(() => {
+        const container = document.getElementById('repo-content-pjax-container')
+        container.append(document.getElementById('code-view').content.cloneNode(true))
+        document.body.dataset.codeRenderedAt = String(performance.now())
+      }, 800)
+    </script>
+  </body>
+</html>

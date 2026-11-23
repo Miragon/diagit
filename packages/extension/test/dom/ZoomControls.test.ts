@@ -30,6 +30,28 @@ describe('ZoomControls', () => {
     expect(controls.element.hidden).toBe(true)
   })
 
+  it('keeps its final shape with disabled controls while the diagram loads', () => {
+    const { controls, button } = controlsFor()
+
+    controls.showLoading()
+
+    expect(controls.element.hidden).toBe(false)
+    expect(button('Zoom in').hidden).toBe(false)
+    expect(button('Zoom in').disabled).toBe(true)
+    expect(button('Reset zoom').disabled).toBe(true)
+    expect(button('Reset zoom').querySelector('.diagit-skeleton')).not.toBeNull()
+  })
+
+  it('enables the controls once the diagram is rendered', () => {
+    const { controls, button } = controlsFor()
+    controls.showLoading()
+
+    controls.showLevel(1)
+
+    expect(button('Zoom in').disabled).toBe(false)
+    expect(button('Reset zoom').textContent).toBe('100%')
+  })
+
   it('resets, fits and zooms the target', () => {
     const { target, controls, button } = controlsFor()
     controls.showLevel(1)

@@ -10,7 +10,7 @@ import type { ReportContext } from '../../platform/DiagitRepository'
 
 const MOUNT_RETRIES = 12
 const RETRY_INTERVAL_MS = 500
-const RECHECK_DEBOUNCE_MS = 200
+const RECHECK_DEBOUNCE_MS = 50
 
 type MountOutcome = 'settled' | 'code-not-rendered-yet'
 

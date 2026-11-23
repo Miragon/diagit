@@ -9,6 +9,7 @@ export interface DiagramDiff {
 
 export interface DiagramViewer {
   fit(): void
+  resized(): void
   zoomBy(factor: number): void
   zoomLevel(): number | null
   onViewChange(listener: () => void): () => void
@@ -26,6 +27,7 @@ export interface DiffableViewer extends DiagramViewer {
 
 export interface DiagramDiffer {
   readonly css: string
+  readonly showsBpmnIoLogo: boolean
   diff(oldXml: string, newXml: string): Promise<DiagramDiff>
   createViewer(canvas: HTMLElement, xml: string): Promise<DiffableViewer>
 }

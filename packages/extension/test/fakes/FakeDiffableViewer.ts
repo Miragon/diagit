@@ -38,6 +38,8 @@ export class FakeDiffableViewer implements DiffableViewer {
     this.fits += 1
   }
 
+  resized(): void {}
+
   zoomBy(factor: number): void {
     if (this.level !== null) {
       this.level *= factor

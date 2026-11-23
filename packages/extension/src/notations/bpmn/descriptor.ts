@@ -5,4 +5,5 @@ export const BPMN: NotationDescriptor = {
   label: 'BPMN',
   extensions: ['bpmn'],
   diffable: true,
+  showsBpmnIoLogo: true,
 }
