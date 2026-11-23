@@ -10,7 +10,7 @@ import { GithubDeviceFlow } from './GithubDeviceFlow'
 import { GithubDiffScanner } from './GithubDiffScanner'
 import { GithubPullRequestPage } from './GithubPullRequestPage'
 import { GithubRestApi } from './GithubRestApi'
-import { GITHUB_PUBLIC_ORIGIN, GithubRoutes } from './GithubRoutes'
+import { GITHUB_FETCH_RULES, GITHUB_PUBLIC_ORIGIN, GithubRoutes } from './GithubRoutes'
 import { githubSelectors } from './githubSelectors'
 import { GithubTokenRefresher } from './GithubTokenRefresher'
 import type { GithubTokenStore } from './GithubTokenStore'
@@ -21,6 +21,7 @@ export class GithubHost implements GitHost {
   readonly publicOrigin = GITHUB_PUBLIC_ORIGIN
   readonly routes = new GithubRoutes()
   readonly authPolicy: GithubApiAuth
+  readonly fetchRules = GITHUB_FETCH_RULES
   readonly blobPage: BlobPage
   readonly pullRequestDiff: DiffSource
   readonly commitDiff: DiffSource

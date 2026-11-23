@@ -15,6 +15,7 @@ export class GitlabHost implements GitHost {
   readonly label = 'GitLab'
   readonly publicOrigin = GITLAB_PUBLIC_ORIGIN
   readonly authPolicy = null
+  readonly fetchRules = null
   readonly routes = new GitlabRoutes()
   readonly blobPage: BlobPage
   readonly mergeRequestDiff: DiffSource

@@ -117,4 +117,8 @@ describe('HostRegistry contributions', () => {
   it('collects the auth policy of every host that has one', () => {
     expect(hostRegistry.authPolicies()).toEqual([githubHost.authPolicy])
   })
+
+  it('collects the fetch rules of every host that has some', () => {
+    expect(hostRegistry.fetchRules()).toEqual([githubHost.fetchRules])
+  })
 })

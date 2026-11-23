@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FetchProxy } from '../src/background/FetchProxy'
 import { FetchScope } from '../src/background/FetchScope'
+import { hostRegistry } from '../src/git-hosts/hosts'
 import type { AuthPolicy } from '../src/git-hosts/GitHost'
 
 const tokenForApi: AuthPolicy = {
@@ -33,7 +34,7 @@ function opaqueRedirect(url: string): Response {
 }
 
 function proxyWith(fetch: typeof globalThis.fetch, policies: AuthPolicy[] = []): FetchProxy {
-  return new FetchProxy(policies, new FetchScope(), fetch)
+  return new FetchProxy(policies, new FetchScope(hostRegistry.fetchRules()), fetch)
 }
 
 describe('FetchProxy', () => {

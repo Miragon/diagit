@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { FetchScope } from '../src/background/FetchScope'
+import { hostRegistry } from '../src/git-hosts/hosts'
 
-const scope = new FetchScope()
+const scope = new FetchScope(hostRegistry.fetchRules())
 
 describe('FetchScope.grantFor (which urls a page may have fetched)', () => {
   it('allows the origin of the page without auth', () => {

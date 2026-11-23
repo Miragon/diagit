@@ -259,7 +259,8 @@ Imports point down: `views` / `background` → `notations` / `git-hosts` → `pl
 Create `src/git-hosts/<host>/` with a class implementing `GitHost`, register it in
 `src/git-hosts/hosts.ts`, and add one entrypoint per view script it declares
 (`<host>-blob.content.ts`, …). Add its API origin to `host_permissions` in
-`wxt.config.ts` when it is cross-origin.
+`wxt.config.ts` when it is cross-origin. Its `fetchRules` tell the background worker which API
+the host's pages may call with auth and where a raw-file redirect may end; `null` when it has none.
 
 ### Adding a notation
 

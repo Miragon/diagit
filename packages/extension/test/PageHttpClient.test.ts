@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { FetchProxy } from '../src/background/FetchProxy'
 import { FetchScope } from '../src/background/FetchScope'
+import { hostRegistry } from '../src/git-hosts/hosts'
 import type { AuthPolicy } from '../src/git-hosts/GitHost'
 import { FetchError } from '../src/platform/messaging/HttpClient'
 import { PageHttpClient } from '../src/platform/messaging/PageHttpClient'
@@ -25,7 +26,10 @@ function answering(status: number, text = '{"sha":"abc"}') {
 }
 
 function clientOn(pageOrigin: string, fetch: typeof globalThis.fetch): PageHttpClient {
-  return new PageHttpClient(new FetchProxy([tokenForApi], new FetchScope(), fetch), pageOrigin)
+  return new PageHttpClient(
+    new FetchProxy([tokenForApi], new FetchScope(hostRegistry.fetchRules()), fetch),
+    pageOrigin,
+  )
 }
 
 describe('PageHttpClient', () => {
