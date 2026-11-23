@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/Miragon/diagit/compare/v0.8.0...v0.9.0) (2026-11-19)
+
+
+### Features
+
+* draw Camunda 7 transaction boundaries like the other Miragon tools ([#246](https://github.com/Miragon/diagit/issues/246)) ([2dbddf4](https://github.com/Miragon/diagit/commit/2dbddf4458710ecd5896c18ed4da6869a841f228))
+
+
+### Bug Fixes
+
+* **deps:** Bump the npm-minor-patch group with 15 updates ([#249](https://github.com/Miragon/diagit/issues/249)) ([a748e16](https://github.com/Miragon/diagit/commit/a748e169df2cb7e2752b52a9113f42cc50c5a843))
+
 ## [0.8.0](https://github.com/Miragon/diagit/compare/v0.7.1...v0.8.0) (2026-11-19)
 
 
