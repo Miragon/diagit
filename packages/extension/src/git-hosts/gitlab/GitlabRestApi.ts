@@ -3,7 +3,7 @@ import { fetchAllPages } from '../../platform/utils/fetchAllPages'
 import type { PageUrl } from '../GitHost'
 import type { GitlabRoutes, MergeRequestRef } from './GitlabRoutes'
 
-export interface MergeRequestChange {
+export interface GitlabChange {
   new_path?: string
   old_path?: string
   new_file?: boolean
@@ -11,12 +11,12 @@ export interface MergeRequestChange {
   renamed_file?: boolean
 }
 
-export interface MergeRequestData {
+export interface GitlabDiffData {
   origin: string
   projectPath: string
   baseSha: string
   headSha: string
-  changeByPath: Map<string, MergeRequestChange>
+  changeByPath: Map<string, GitlabChange>
 }
 
 interface MergeRequestResponse {
@@ -34,10 +34,10 @@ export class GitlabRestApi {
     private readonly routes: GitlabRoutes,
   ) {}
 
-  async loadMergeRequest(location: PageUrl, ref: MergeRequestRef): Promise<MergeRequestData> {
+  async loadMergeRequest(location: PageUrl, ref: MergeRequestRef): Promise<GitlabDiffData> {
     const mergeRequestApi = this.routes.mergeRequestApi(location.origin, ref)
     const mergeRequest = await this.http.fetchJson<MergeRequestResponse>(mergeRequestApi)
-    const changes = await fetchAllPages<MergeRequestChange>(this.http, `${mergeRequestApi}/diffs`)
+    const changes = await fetchAllPages<GitlabChange>(this.http, `${mergeRequestApi}/diffs`)
     return {
       origin: location.origin,
       projectPath: ref.projectPath,
@@ -47,30 +47,26 @@ export class GitlabRestApi {
     }
   }
 
-  async loadCommit(
-    location: PageUrl,
-    ref: Pick<MergeRequestRef, 'projectPath'>,
-    sha: string,
-  ): Promise<MergeRequestData> {
-    const commitApi = this.routes.commitApi(location.origin, ref.projectPath, sha)
+  async loadCommit(location: PageUrl, projectPath: string, sha: string): Promise<GitlabDiffData> {
+    const commitApi = this.routes.commitApi(location.origin, projectPath, sha)
     const commit = await this.http.fetchJson<CommitResponse>(commitApi)
-    const changes = await fetchAllPages<MergeRequestChange>(this.http, `${commitApi}/diff`)
+    const changes = await fetchAllPages<GitlabChange>(this.http, `${commitApi}/diff`)
     const rootCommitHasNoBase = ''
     return {
       origin: location.origin,
-      projectPath: ref.projectPath,
+      projectPath,
       baseSha: commit.parent_ids[0] ?? rootCommitHasNoBase,
       headSha: commit.id,
       changeByPath: this.indexByPath(changes),
     }
   }
 
-  rawFile(data: MergeRequestData, path: string, ref: string): Promise<string> {
+  rawFile(data: GitlabDiffData, path: string, ref: string): Promise<string> {
     return this.http.fetchText(this.routes.rawFileUrl(data.origin, data.projectPath, path, ref))
   }
 
-  private indexByPath(changes: MergeRequestChange[]): Map<string, MergeRequestChange> {
-    const changeByPath = new Map<string, MergeRequestChange>()
+  private indexByPath(changes: GitlabChange[]): Map<string, GitlabChange> {
+    const changeByPath = new Map<string, GitlabChange>()
     for (const change of changes) {
       if (change.new_path) {
         changeByPath.set(change.new_path, change)

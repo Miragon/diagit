@@ -2,6 +2,13 @@ import { browser } from 'wxt/browser'
 import { originToPattern } from '../../platform/utils/origin'
 
 const VIEW_ROUTER = 'view-router'
+const VIEW_SCRIPTS_REGISTERED_BEFORE_THE_VIEW_ROUTER = [
+  'gitlab-blob',
+  'gitlab-mr',
+  'github-blob',
+  'github-pr',
+  'github-commit',
+]
 
 interface RegisteredScript {
   id: string
@@ -22,7 +29,6 @@ export interface ScriptingApi {
 
 export class ScriptRegistrar {
   constructor(
-    private readonly scriptsRegisteredByEarlierVersions: readonly string[],
     private readonly scripting: () => ScriptingApi = () => browser.scripting as ScriptingApi,
   ) {}
 
@@ -53,7 +59,7 @@ export class ScriptRegistrar {
   }
 
   private async registeredScriptIds(origin: string): Promise<string[]> {
-    const ids = [VIEW_ROUTER, ...this.scriptsRegisteredByEarlierVersions].map((script) =>
+    const ids = [VIEW_ROUTER, ...VIEW_SCRIPTS_REGISTERED_BEFORE_THE_VIEW_ROUTER].map((script) =>
       this.scriptId(origin, script),
     )
     const registered = await this.scripting()

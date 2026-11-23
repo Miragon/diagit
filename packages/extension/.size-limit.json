@@ -25,7 +25,7 @@
     "path": [
       ".output/chrome-mv3/content-scripts/github-pr.js",
       ".output/chrome-mv3/content-scripts/github-commit.js",
-      ".output/chrome-mv3/content-scripts/gitlab-mr.js"
+      ".output/chrome-mv3/content-scripts/gitlab-diff.js"
     ],
     "limit": "2.35 MB",
     "gzip": false,

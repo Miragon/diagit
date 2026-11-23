@@ -57,6 +57,79 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+describe('GitLab commit diff', () => {
+  const commitPage = {
+    ...location,
+    pathname: '/group/project/-/commit/c0ffee0',
+  } as Location
+  const commitApi = 'https://gitlab.com/api/v4/projects/group%2Fproject/repository/commits/c0ffee0'
+
+  function respondWithCommit(change: Record<string, unknown>): FakeHttpClient {
+    return new FakeHttpClient().respondWith({
+      [commitApi]: { id: 'c0ffee0full', parent_ids: ['ppp'] },
+      [`${commitApi}/diff?per_page=100&page=1`]: [change],
+      [`${rawFiles}/flows%2Fold.bpmn/raw?ref=ppp&lfs=true`]: '<parent-old-path/>',
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ppp&lfs=true`]: '<parent/>',
+      [`${rawFiles}/flows%2Forder.bpmn/raw?ref=c0ffee0full&lfs=true`]: '<commit/>',
+    })
+  }
+
+  it('compares a commit page with the first parent in the Rapid Diffs view', async () => {
+    const http = respondWithCommit({ old_path: 'flows/order.bpmn', new_path: 'flows/order.bpmn' })
+
+    const [block] = await new GitlabHost(http).diff.collect(commitPage, withRapidDiffFile())
+
+    expect(await block!.loadOld()).toBe('<parent/>')
+    expect(await block!.loadNew()).toBe('<commit/>')
+  })
+
+  it('finds a renamed file by its new path in the server-rendered commit view', async () => {
+    const http = respondWithCommit({
+      old_path: 'flows/old.bpmn',
+      new_path: 'flows/order.bpmn',
+      renamed_file: true,
+    })
+    document.body.innerHTML = `
+      <div class="diff-file">
+        <div class="file-title"><span class="file-title-name" title="flows/order.bpmn">flows/old.bpmn → flows/order.bpmn</span></div>
+        <div class="diff-content"></div>
+      </div>`
+
+    const [block] = await new GitlabHost(http).diff.collect(commitPage, document)
+
+    expect(block!.path).toBe('flows/order.bpmn')
+    expect(await block!.loadOld()).toBe('<parent-old-path/>')
+    expect(await block!.loadNew()).toBe('<commit/>')
+  })
+
+  it('shows no old version for a file the commit added', async () => {
+    const http = respondWithCommit({ new_path: 'flows/order.bpmn', new_file: true })
+
+    const [block] = await new GitlabHost(http).diff.collect(commitPage, withRapidDiffFile())
+
+    expect(block!.hasNoOldVersion).toBe(true)
+    expect(await block!.loadOld()).toBeNull()
+  })
+
+  it('names the commit when its data cannot be loaded', async () => {
+    const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 404', 404))
+
+    const failure = await new GitlabHost(http).diff
+      .collect(commitPage, withRapidDiffFile())
+      .catch((err: unknown) => err)
+
+    expect(failure).toBeInstanceOf(DiffDataError)
+    expect((failure as DiffDataError).help.title).toBe('Commit data could not be loaded')
+  })
+
+  it('keeps the merge request and the commit page apart', () => {
+    const diff = new GitlabHost(new FakeHttpClient()).diff
+
+    expect(diff.pageKey(commitPage)).toBe('group/project@c0ffee0')
+    expect(diff.pageKey(location)).toBe('group/project!7')
+  })
+})
+
 describe('GitLab merge-request diff', () => {
   it('wires a renamed BPMN file to its old path on the base and its new path on the head', async () => {
     const http = new FakeHttpClient().respondWith({
@@ -68,7 +141,7 @@ describe('GitLab merge-request diff', () => {
       [`${rawFiles}/flows%2Forder.bpmn/raw?ref=bbb&lfs=true`]: '<new/>',
     })
 
-    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, withFileBox())
+    const [block] = await new GitlabHost(http).diff.collect(location, withFileBox())
 
     expect(block).toMatchObject({ path: 'flows/order.bpmn', append: 'first' })
     expect(await block!.loadOld()).toBe('<old/>')
@@ -84,7 +157,7 @@ describe('GitLab merge-request diff', () => {
       [`${rawFiles}/flows%2Fold.bpmn/raw?ref=aaa&lfs=true`]: '<old/>',
       [`${rawFiles}/flows%2Forder.bpmn/raw?ref=bbb&lfs=true`]: '<new/>',
     })
-    const diff = new GitlabHost(http).mergeRequestDiff
+    const diff = new GitlabHost(http).diff
 
     const loaders = await diff.loadersFor(location, 'flows/order.bpmn')
 
@@ -105,7 +178,7 @@ describe('GitLab merge-request diff', () => {
     })
     const commitView = { ...location, search: '?commit_id=ccc' } as Location
 
-    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(commitView, withFileBox())
+    const [block] = await new GitlabHost(http).diff.collect(commitView, withFileBox())
 
     expect(await block!.loadOld()).toBe('<parent/>')
     expect(await block!.loadNew()).toBe('<commit/>')
@@ -115,10 +188,7 @@ describe('GitLab merge-request diff', () => {
   it('ignores files that are not diffable diagrams', async () => {
     const http = new FakeHttpClient()
 
-    const blocks = await new GitlabHost(http).mergeRequestDiff.collect(
-      location,
-      withFileBox('README.md'),
-    )
+    const blocks = await new GitlabHost(http).diff.collect(location, withFileBox('README.md'))
 
     expect(blocks).toEqual([])
     expect(http.requests).toEqual([])
@@ -126,7 +196,7 @@ describe('GitLab merge-request diff', () => {
 
   it('surfaces a failed load as a DiffDataError and backs off before retrying', async () => {
     const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 401', 401))
-    const diff = new GitlabHost(http).mergeRequestDiff
+    const diff = new GitlabHost(http).diff
     const doc = withFileBox()
 
     const err = await diff.collect(location, doc).catch((e: unknown) => e)
@@ -145,7 +215,7 @@ describe('GitLab merge-request diff', () => {
     })
     const doc = withFileBox('flows/order.bpmn', `<${DIFF_PANEL_TAG}></${DIFF_PANEL_TAG}>`)
 
-    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, doc)
+    const [block] = await new GitlabHost(http).diff.collect(location, doc)
 
     expect(block!.isCollapsed()).toBe(true)
   })
@@ -156,10 +226,7 @@ describe('GitLab merge-request diff', () => {
       [`${api}/diffs?per_page=100&page=1`]: [],
     })
 
-    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(
-      location,
-      withRapidDiffFile(),
-    )
+    const [block] = await new GitlabHost(http).diff.collect(location, withRapidDiffFile())
 
     expect(block).toMatchObject({ path: 'flows/order.bpmn', append: 'first' })
     expect(block!.anchor.dataset.testid).toBe('rd-diff-file-body')
@@ -180,7 +247,7 @@ describe('GitLab merge-request diff', () => {
       rapidDiffFileMarkup(validFileData),
     ].join('')
 
-    const blocks = await new GitlabHost(http).mergeRequestDiff.collect(location, document)
+    const blocks = await new GitlabHost(http).diff.collect(location, document)
 
     expect(blocks.map((block) => block.path)).toEqual(['flows/fallback.bpmn', 'flows/order.bpmn'])
   })
@@ -193,7 +260,7 @@ describe('GitLab merge-request diff', () => {
     const doc = withRapidDiffFile('flows/order.bpmn', false)
     giveBox(doc.querySelector('table')!)
 
-    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, doc)
+    const [block] = await new GitlabHost(http).diff.collect(location, doc)
 
     expect(block!.isCollapsed()).toBe(true)
   })
@@ -206,7 +273,7 @@ describe('GitLab merge-request diff', () => {
     const doc = withRapidDiffFile('flows/order.bpmn', true)
     giveBox(doc.querySelector('table')!)
 
-    const [block] = await new GitlabHost(http).mergeRequestDiff.collect(location, doc)
+    const [block] = await new GitlabHost(http).diff.collect(location, doc)
 
     expect(block!.isCollapsed()).toBe(false)
   })
@@ -228,7 +295,7 @@ describe('GitLab merge-request diff', () => {
     it('lists them when the page shows a diagram path the scanner missed', async () => {
       const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
 
-      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+      const paths = await new GitlabHost(http).diff.unrecognizedFiles(
         location,
         withUnknownFileMarkup('flows/order.bpmn'),
       )
@@ -239,7 +306,7 @@ describe('GitLab merge-request diff', () => {
     it('leaves out the files the scanner recognised', async () => {
       const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
 
-      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+      const paths = await new GitlabHost(http).diff.unrecognizedFiles(
         location,
         withFileBox('flows/order.bpmn'),
       )
@@ -250,7 +317,7 @@ describe('GitLab merge-request diff', () => {
     it('does not call the API when the page mentions no diagram at all', async () => {
       const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
 
-      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+      const paths = await new GitlabHost(http).diff.unrecognizedFiles(
         location,
         withUnknownFileMarkup('README.md'),
       )
@@ -261,7 +328,7 @@ describe('GitLab merge-request diff', () => {
 
     it('does not retry a failed load just to look for unrecognised files', async () => {
       const http = new FakeHttpClient().failEverythingWith(new FetchError('HTTP 403', 403))
-      const diff = new GitlabHost(http).mergeRequestDiff
+      const diff = new GitlabHost(http).diff
       const doc = withUnknownFileMarkup('flows/order.bpmn')
       await diff.unrecognizedFiles(location, doc).catch(() => undefined)
       vi.spyOn(Date, 'now').mockReturnValue(1_000_000 + 3_600_000)
@@ -274,7 +341,7 @@ describe('GitLab merge-request diff', () => {
       const http = new FakeHttpClient().respondWith(metadataWithOrderAndReadme)
       const overview = { ...location, pathname: '/group/project/-/merge_requests/7' }
 
-      const paths = await new GitlabHost(http).mergeRequestDiff.unrecognizedFiles(
+      const paths = await new GitlabHost(http).diff.unrecognizedFiles(
         overview,
         withUnknownFileMarkup('flows/order.bpmn'),
       )

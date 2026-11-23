@@ -34,6 +34,22 @@ describe('GitlabRoutes', () => {
     expect(mergeRequestAt(`${diffs}?commit_id=c0ffee0&start_sha=aaaaaaa`)).toBeNull()
   })
 
+  it('parses project path and sha from a commit page only', () => {
+    const commitAt = (path: string) => routes.commit(new URL(path, 'https://gitlab.com'))
+
+    expect(commitAt('/group/sub/proj/-/commit/60e9c21c66')).toEqual({
+      projectPath: 'group/sub/proj',
+      sha: '60e9c21c66',
+      key: 'group/sub/proj@60e9c21c66',
+    })
+    expect(commitAt('/g/p/-/commit/60e9c21c66/?view=parallel')?.sha).toBe('60e9c21c66')
+    expect(commitAt('/g/p/-/commit/60e9c21c66/pipelines')).toBeNull()
+    expect(commitAt('/g/p/-/commit/60e9c21c66.diff')).toBeNull()
+    expect(commitAt('/g/p/-/commit/60e9c21c66.patch')).toBeNull()
+    expect(commitAt('/g/p/-/commits/main')).toBeNull()
+    expect(commitAt('/g/p/-/commit/main')).toBeNull()
+  })
+
   it('builds an encoded raw-file API url', () => {
     expect(routes.rawFileUrl('https://gitlab.com', 'group/proj', 'a/b.bpmn', 'abc123')).toBe(
       'https://gitlab.com/api/v4/projects/group%2Fproj/repository/files/a%2Fb.bpmn/raw?ref=abc123&lfs=true',

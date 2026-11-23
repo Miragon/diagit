@@ -46,7 +46,7 @@ beforeEach(() => {
   store = new SelfHostedHostStore(new SettingsStore(() => storage))
   access = new HostAccess(
     store,
-    new ScriptRegistrar(hostRegistry.allViewScripts(), () => scripting),
+    new ScriptRegistrar(() => scripting),
     hostRegistry,
     () => browserApi,
   )
@@ -88,6 +88,17 @@ describe('HostAccess.grant', () => {
     await access.grant([pattern])
 
     expect(browserApi.tabs.query).not.toHaveBeenCalled()
+  })
+})
+
+describe('HostAccess.grant after an update', () => {
+  it('replaces the per-view scripts an earlier version registered with the view router', async () => {
+    const earlierScriptId = `bpmn-io-browser-plugin:${origin}:gitlab-mr`
+    scripting.registered.add(earlierScriptId)
+
+    await access.grant([pattern])
+
+    expect(scripting.registered).toEqual(new Set([viewRouterId]))
   })
 })
 

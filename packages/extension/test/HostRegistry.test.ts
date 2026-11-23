@@ -19,7 +19,7 @@ describe('HostRegistry.viewScriptsFor', () => {
 
   it('loads no diff script on merge request versions it cannot compare', () => {
     const mergeRequest = 'https://gitlab.com/g/p/-/merge_requests/1/diffs'
-    expect(scriptsAt(`${mergeRequest}?commit_id=c0ffee0`)).toEqual(['gitlab-mr'])
+    expect(scriptsAt(`${mergeRequest}?commit_id=c0ffee0`)).toEqual(['gitlab-diff'])
     expect(scriptsAt(`${mergeRequest}?diff_id=3&start_sha=c0ffee0`)).toEqual([])
   })
 
@@ -36,7 +36,11 @@ describe('HostRegistry.viewScriptsFor', () => {
 
   it('loads the GitLab scripts on gitlab.com', () => {
     expect(scriptsAt('https://gitlab.com/g/p/-/blob/main/order.bpmn')).toEqual(['gitlab-blob'])
-    expect(scriptsAt('https://gitlab.com/g/sub/p/-/merge_requests/42/diffs')).toEqual(['gitlab-mr'])
+    expect(scriptsAt('https://gitlab.com/g/sub/p/-/merge_requests/42/diffs')).toEqual([
+      'gitlab-diff',
+    ])
+    expect(scriptsAt('https://gitlab.com/g/sub/p/-/commit/c0ffee0')).toEqual(['gitlab-diff'])
+    expect(scriptsAt('https://gitlab.com/g/p/-/commits/main')).toEqual([])
     expect(scriptsAt('https://gitlab.com/g/p/-/blob/main/README.md')).toEqual([])
     expect(scriptsAt('https://gitlab.com/g/p/-/tree/main')).toEqual([])
     expect(scriptsAt('https://gitlab.com/g/p')).toEqual([])
@@ -51,7 +55,8 @@ describe('HostRegistry.viewScriptsFor', () => {
 
   it('tells the flavour of a self-hosted instance from its route shape', () => {
     expect(scriptsAt('https://git.example.com/g/p/-/blob/main/order.bpmn')).toEqual(['gitlab-blob'])
-    expect(scriptsAt('https://git.example.com/g/p/-/merge_requests/3')).toEqual(['gitlab-mr'])
+    expect(scriptsAt('https://git.example.com/g/p/-/merge_requests/3')).toEqual(['gitlab-diff'])
+    expect(scriptsAt('https://git.example.com/g/p/-/commit/c0ffee0')).toEqual(['gitlab-diff'])
     expect(scriptsAt('https://git.example.com/g/p/-/tree/main')).toEqual([])
     expect(scriptsAt('https://ghe.example.com/o/r/blob/main/order.bpmn')).toEqual(['github-blob'])
     expect(scriptsAt('https://ghe.example.com/o/r/pull/3/files')).toEqual(['github-pr'])
@@ -100,7 +105,7 @@ describe('HostRegistry contributions', () => {
   it('lists every view script once, matching the content-script entrypoints', () => {
     expect(hostRegistry.allViewScripts()).toEqual([
       'gitlab-blob',
-      'gitlab-mr',
+      'gitlab-diff',
       'github-blob',
       'github-pr',
       'github-commit',

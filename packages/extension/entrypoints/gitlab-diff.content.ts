@@ -12,9 +12,9 @@ export default defineContentScript({
     const reportContext = reportContextOn(
       gitlabHost,
       location,
-      'merge request',
+      gitlabHost.diffPageType(location),
       ExtensionEnvironment.current(),
     )
-    new DiffController(new HostPage(ctx), gitlabHost.mergeRequestDiff, reportContext).start()
+    new DiffController(new HostPage(ctx), gitlabHost.diff, reportContext).start()
   },
 })

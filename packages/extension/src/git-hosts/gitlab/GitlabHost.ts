@@ -1,9 +1,11 @@
 import { CachedDiffSource } from '../CachedDiffSource'
 import { FileHeaderLocator } from '../FileHeaderLocator'
+import { FirstMatchingDiffSource } from '../FirstMatchingDiffSource'
 import type { DiffSource } from '../DiffSource'
 import type { HttpClient } from '../../platform/messaging/HttpClient'
 import { BlobPage } from '../BlobPage'
 import type { GitHost, PageUrl, PageView } from '../GitHost'
+import { GitlabCommitPage } from './GitlabCommitPage'
 import { GitlabDiffScanner } from './GitlabDiffScanner'
 import { GitlabMergeRequestPage } from './GitlabMergeRequestPage'
 import { GitlabRestApi } from './GitlabRestApi'
@@ -18,11 +20,13 @@ export class GitlabHost implements GitHost {
   readonly fetchRules = null
   readonly routes = new GitlabRoutes()
   readonly blobPage: BlobPage
-  readonly mergeRequestDiff: DiffSource
+  readonly diff: DiffSource
   readonly views: readonly PageView[]
 
   constructor(http: HttpClient) {
     const api = new GitlabRestApi(http, this.routes)
+    const scanner = new GitlabDiffScanner()
+    const fileHeaders = new FileHeaderLocator(gitlabSelectors.diff.regionsThatOnlyMentionFiles)
     this.blobPage = new BlobPage(
       {
         blobSegment: '/-/blob/',
@@ -32,14 +36,18 @@ export class GitlabHost implements GitHost {
       },
       http,
     )
-    this.mergeRequestDiff = new CachedDiffSource(
-      new GitlabMergeRequestPage(this.routes, api, new GitlabDiffScanner()),
-      new FileHeaderLocator(gitlabSelectors.diff.regionsThatOnlyMentionFiles),
-    )
+    this.diff = new FirstMatchingDiffSource([
+      new CachedDiffSource(new GitlabMergeRequestPage(this.routes, api, scanner), fileHeaders),
+      new CachedDiffSource(new GitlabCommitPage(this.routes, api, scanner), fileHeaders),
+    ])
     this.views = [
       { script: 'gitlab-blob', rendersOn: (url) => this.blobPage.showsDiagram(url) },
-      { script: 'gitlab-mr', rendersOn: (url) => this.routes.mergeRequest(url) !== null },
+      { script: 'gitlab-diff', rendersOn: (url) => this.diff.pageKey(url) !== null },
     ]
+  }
+
+  diffPageType(url: PageUrl): string {
+    return this.routes.commit(url) ? 'commit' : 'merge request'
   }
 
   recognizesSelfHosted(url: PageUrl): boolean {

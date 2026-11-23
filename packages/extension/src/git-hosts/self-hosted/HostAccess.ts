@@ -21,14 +21,13 @@ export interface BrowserAccessApi {
 
 export interface HostCatalog {
   isSupportedUrl(url: string): boolean
-  allViewScripts(): string[]
 }
 
 export class HostAccess {
   static forHosts(hosts: HostCatalog): HostAccess {
     return new HostAccess(
       new SelfHostedHostStore(new SettingsStore()),
-      new ScriptRegistrar(hosts.allViewScripts()),
+      new ScriptRegistrar(),
       hosts,
     )
   }
@@ -36,7 +35,7 @@ export class HostAccess {
   constructor(
     private readonly store: SelfHostedHostStore,
     private readonly registrar: ScriptRegistrar,
-    private readonly hosts: Pick<HostCatalog, 'isSupportedUrl'>,
+    private readonly hosts: HostCatalog,
     private readonly browserApi: () => BrowserAccessApi = () => browser as BrowserAccessApi,
   ) {}
 
