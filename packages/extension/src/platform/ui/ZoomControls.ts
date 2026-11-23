@@ -125,12 +125,20 @@ export class ZoomControls {
     this.expandDialog?.close()
   }
 
+  showLoading(): void {
+    this.hasNothingToShow = false
+    this.showZoomParts({ visible: true, enabled: false })
+    this.levelButton.replaceChildren(
+      h('span', { class: 'diagit-skeleton diagit-zoom-level-placeholder', 'aria-hidden': 'true' }),
+    )
+    this.levelButton.setAttribute('aria-label', RESET_ZOOM)
+    this.element.hidden = false
+  }
+
   showLevel(level: number | null): void {
     this.hasNothingToShow = false
     const zoomable = level !== null && Number.isFinite(level)
-    for (const part of this.zoomParts) {
-      part.hidden = !zoomable
-    }
+    this.showZoomParts({ visible: zoomable, enabled: true })
     this.element.hidden = !zoomable && !this.fullScreenButton && !this.expandButton
     if (!zoomable) {
       return
@@ -144,6 +152,15 @@ export class ZoomControls {
     this.showLevel(null)
     this.hasNothingToShow = true
     this.element.hidden = this.view === 'inline'
+  }
+
+  private showZoomParts({ visible, enabled }: { visible: boolean; enabled: boolean }): void {
+    for (const part of this.zoomParts) {
+      part.hidden = !visible
+      if (part instanceof HTMLButtonElement) {
+        part.disabled = !enabled
+      }
+    }
   }
 
   private toggledExpanded(expanded: boolean): void {

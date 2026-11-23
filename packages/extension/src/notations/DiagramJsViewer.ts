@@ -53,6 +53,10 @@ export class DiagramJsViewer implements DiagramViewer {
     fitWithPadding(this.canvas)
   }
 
+  resized(): void {
+    this.canvas.resized()
+  }
+
   zoomBy(factor: number): void {
     this.canvas.zoom(this.canvas.zoom() * factor)
   }

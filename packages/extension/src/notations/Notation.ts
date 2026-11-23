@@ -9,6 +9,7 @@ export interface DiagramDiff {
 
 export interface DiagramViewer {
   fit(): void
+  resized(): void
   zoomBy(factor: number): void
   zoomLevel(): number | null
   onViewChange(listener: () => void): () => void

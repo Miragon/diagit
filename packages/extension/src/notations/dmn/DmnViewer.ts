@@ -42,6 +42,10 @@ export class DmnViewer implements DiagramViewer {
     }
   }
 
+  resized(): void {
+    this.activeCanvas()?.resized()
+  }
+
   zoomBy(factor: number): void {
     const canvas = this.activeCanvas()
     canvas?.zoom(canvas.zoom() * factor)

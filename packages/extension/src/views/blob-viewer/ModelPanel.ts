@@ -8,6 +8,7 @@ import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
 import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
+import { AutoFit } from '../../platform/ui/AutoFit'
 
 const CODE_STILL_SHOWN = 'The code below still shows the file.'
 
@@ -25,13 +26,13 @@ export class ModelPanel implements PanelHandle, Zoomable {
     text: 'Loading diagram…',
   })
   private readonly canvas = h('div', { class: 'diagit-canvas' }, [this.placeholder])
-  private readonly zoomControls = new ZoomControls(this)
+  private readonly zoomControls = new ZoomControls(this, () => this.autoFit?.fit())
   private readonly wrap: HTMLElement
   private viewer: DiagramViewer | null = null
   private stopTrackingZoom: (() => void) | null = null
   private destroyed = false
   private retried = false
-  private resizeObserver: ResizeObserver | null = null
+  private autoFit: AutoFit | null = null
   private detachFocusZoom: (() => void) | null = null
 
   constructor(private readonly options: ModelPanelOptions) {
@@ -51,15 +52,17 @@ export class ModelPanel implements PanelHandle, Zoomable {
   }
 
   zoomBy(factor: number): void {
+    this.autoFit?.userMovedView()
     this.viewer?.zoomBy(factor)
   }
 
   resetZoom(): void {
+    this.autoFit?.userMovedView()
     ZoomControls.resetZoomOf(this.viewer)
   }
 
   fit(): void {
-    this.viewer?.fit()
+    this.autoFit?.fit()
   }
 
   destroy(): void {
@@ -68,8 +71,8 @@ export class ModelPanel implements PanelHandle, Zoomable {
     this.stopTrackingZoom = null
     this.detachFocusZoom?.()
     this.detachFocusZoom = null
-    this.resizeObserver?.disconnect()
-    this.resizeObserver = null
+    this.autoFit?.stop()
+    this.autoFit = null
     this.viewer?.destroy()
     this.viewer = null
     this.zoomControls.collapse()
@@ -83,7 +86,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   private async load(): Promise<void> {
     this.canvas.replaceChildren(this.placeholder)
-    this.zoomControls.hide()
+    this.zoomControls.showLoading()
     let xml: string
     try {
       xml = await this.options.loadXml()
@@ -121,8 +124,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
     this.detachFocusZoom = enableFocusZoom(this.canvas, (active) =>
       this.viewer?.setInteractive(active),
     )
-    this.resizeObserver = new ResizeObserver(() => this.viewer?.fit())
-    this.resizeObserver.observe(this.canvas)
+    this.autoFit = new AutoFit(this.canvas, () => [this.viewer])
   }
 
   private trackZoomLevel(viewer: DiagramViewer): void {

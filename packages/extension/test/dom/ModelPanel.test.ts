@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ModelPanel } from '../../src/views/blob-viewer/ModelPanel'
 import { FakeDiffableViewer } from '../fakes/FakeDiffableViewer'
 import { FakeFullScreen } from '../fakes/FakeFullScreen'
+import { FakeResizeObserver } from '../fakes/FakeResizeObserver'
 import { FakeNotation } from '../fakes/FakeNotation'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
@@ -145,6 +146,51 @@ describe('ModelPanel', () => {
     expect(readout.textContent).toBe('100%')
   })
 
+  describe('when the panel changes size', () => {
+    afterEach(() => {
+      FakeResizeObserver.reset()
+      vi.unstubAllGlobals()
+    })
+
+    function resizablePanel() {
+      vi.stubGlobal('ResizeObserver', FakeResizeObserver)
+      const viewer = new FakeDiffableViewer()
+      const notation = new FakeNotation()
+      vi.spyOn(notation, 'createViewer').mockResolvedValue(viewer)
+      const container = mountPanel(
+        new ModelPanel({
+          notation,
+          filePath: 'flows/order.bpmn',
+          loadXml: async () => '<bpmn/>',
+          reportContext: FAKE_REPORT_CONTEXT,
+        }),
+      )
+      return { container, viewer }
+    }
+
+    it('fits the diagram again', async () => {
+      const { container, viewer } = resizablePanel()
+      await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
+      const fitsBefore = viewer.fits
+
+      FakeResizeObserver.resizeAll()
+
+      expect(viewer.fits).toBe(fitsBefore + 1)
+    })
+
+    it('keeps the zoom the user chose', async () => {
+      const { container, viewer } = resizablePanel()
+      await vi.waitFor(() => expect(container.querySelector('.diagit-placeholder')).toBeNull())
+      container.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!.click()
+      const fitsBefore = viewer.fits
+
+      FakeResizeObserver.resizeAll()
+
+      expect(viewer.fits).toBe(fitsBefore)
+      expect(viewer.zoomLevel()).toBeCloseTo(1.2)
+    })
+  })
+
   it('hides the zoom buttons while the diagram has no zoomable canvas', async () => {
     const viewer = new FakeDiffableViewer()
     viewer.level = null
@@ -245,15 +291,24 @@ describe('ModelPanel', () => {
       expect(container.querySelector<HTMLElement>('.diagit-zoom-fit')!.hidden).toBe(true)
     })
 
-    it('hides the island while the diagram loads and after a download error', async () => {
+    it('keeps the island with disabled controls while the diagram loads', () => {
+      const { container } = fullScreenPanel(
+        new FakeDiffableViewer(),
+        () => new Promise<string>(() => {}),
+      )
+      const zoom = container.querySelector<HTMLElement>('.diagit-zoom')!
+
+      expect(zoom.hidden).toBe(false)
+      expect(container.querySelector<HTMLButtonElement>('.diagit-zoom-fit')!.disabled).toBe(true)
+    })
+
+    it('hides the island after a download error', async () => {
       const { container } = fullScreenPanel(new FakeDiffableViewer(), async () => {
         throw new Error('offline')
       })
-      const zoom = container.querySelector<HTMLElement>('.diagit-zoom')!
 
-      expect(zoom.hidden).toBe(true)
       await vi.waitFor(() => expect(container.querySelector('.diagit-notice')).not.toBeNull())
-      expect(zoom.hidden).toBe(true)
+      expect(container.querySelector<HTMLElement>('.diagit-zoom')!.hidden).toBe(true)
     })
   })
 })

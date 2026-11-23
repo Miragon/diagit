@@ -67,6 +67,22 @@ export class ChangeControls {
     )
   }
 
+  showLoading(): void {
+    this.releaseNavigator()
+    this.element.replaceChildren(
+      h(
+        'div',
+        { class: 'diagit-diff-legend-placeholder', 'aria-hidden': 'true' },
+        Array.from({ length: 4 }, () => h('span', { class: 'diagit-skeleton' })),
+      ),
+    )
+  }
+
+  clear(): void {
+    this.releaseNavigator()
+    this.element.replaceChildren()
+  }
+
   showDiffUnavailable(): void {
     this.releaseNavigator()
     this.element.replaceChildren(

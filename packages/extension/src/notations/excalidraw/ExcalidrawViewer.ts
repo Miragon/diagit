@@ -57,6 +57,8 @@ export class ExcalidrawViewer implements DiagramViewer {
     this.applyTransform()
   }
 
+  resized(): void {}
+
   zoomBy(factor: number): void {
     this.zoomAround(factor, this.canvas.clientWidth / 2, this.canvas.clientHeight / 2)
   }
