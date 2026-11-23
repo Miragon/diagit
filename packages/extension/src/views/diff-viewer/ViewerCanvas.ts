@@ -17,7 +17,11 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
     text: LOADING_LABEL,
   })
   readonly element = h('div', { class: 'diagit-diff-canvas' }, [this.loadingLabel])
-  viewer: Viewer | null = null
+  private current: Viewer | null = null
+
+  get viewer(): Viewer | null {
+    return this.current
+  }
 
   async render(
     createViewer: CreateViewer<Viewer>,
@@ -30,11 +34,11 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
       return null
     }
     try {
-      this.viewer = await createViewer(this.element, xml)
+      this.current = await createViewer(this.element, xml)
     } catch (err) {
       this.showFailure(unreadable(err))
     }
-    return this.viewer
+    return this.current
   }
 
   reveal(): void {
@@ -52,8 +56,8 @@ export class ViewerCanvas<Viewer extends DiagramViewer> {
   }
 
   destroy(): void {
-    this.viewer?.destroy()
-    this.viewer = null
+    this.current?.destroy()
+    this.current = null
   }
 
   private label(text: string): HTMLElement {
