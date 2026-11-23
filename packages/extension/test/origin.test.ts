@@ -4,6 +4,7 @@ import {
   originToPattern,
   patternToOrigin,
   webOrigin,
+  webUrl,
 } from '../src/platform/utils/origin'
 
 describe('normalizeOrigin', () => {
@@ -53,5 +54,19 @@ describe('webOrigin', () => {
     expect(webOrigin('not a url')).toBeNull()
     expect(webOrigin('about:blank')).toBeNull()
     expect(webOrigin('chrome-extension://abc/viewer.html')).toBeNull()
+  })
+})
+
+describe('webUrl', () => {
+  it('parses an http(s) url', () => {
+    expect(webUrl('https://github.com/o/r?x=1')?.pathname).toBe('/o/r')
+    expect(webUrl('http://localhost:4567/a')?.host).toBe('localhost:4567')
+  })
+
+  it('returns null for relative, malformed and non-web urls', () => {
+    expect(webUrl('/o/r')).toBeNull()
+    expect(webUrl('not a url')).toBeNull()
+    expect(webUrl('file:///etc/passwd')).toBeNull()
+    expect(webUrl('chrome-extension://abc/viewer.html')).toBeNull()
   })
 })
