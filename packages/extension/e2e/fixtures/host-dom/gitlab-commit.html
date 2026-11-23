@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Update order process (c0ffee00) · Commits · octo / flows · GitLab</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+      }
+      /* A real box so the scanner reads the file as expanded, not collapsed. */
+      .rd-diff-file-body {
+        display: block;
+        min-height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- GitLab's commit page with Rapid Diffs (gitlab.com, 2026), trimmed to the
+         adapter's hooks: a `diff-file` element whose `data-file-data` JSON holds the
+         paths, and an open `details[data-file-body]` with the
+         `[data-testid="rd-diff-file-body"]` code table. The commit adapter loads the
+         parent and the changed files from `/api/v4`. -->
+    <article class="rd-app" data-rapid-diffs="">
+      <div data-diffs-list="">
+        <diff-file
+          class="rd-diff-file-component"
+          data-file-data='{"viewer":"text_inline","old_path":"flows/order.bpmn","new_path":"flows/order.bpmn"}'
+          data-testid="rd-diff-file"
+          id="0c0ffee0"
+        >
+          <article aria-labelledby="0c0ffee0-heading" class="rd-diff-file">
+            <div class="rd-diff-file-header-sticky">
+              <header aria-label="Diff file controls" class="rd-diff-file-header">
+                <h2 class="rd-diff-file-title" id="0c0ffee0-heading">
+                  <a class="rd-diff-file-link" href="/octo/flows/-/blob/c0ffee0/flows/order.bpmn"
+                    >flows/<wbr />order.bpmn</a
+                  >
+                </h2>
+              </header>
+            </div>
+            <details class="rd-diff-file-details" data-file-body="" open="">
+              <summary></summary>
+              <div class="rd-diff-file-body" data-testid="rd-diff-file-body">
+                <table class="rd-text-view-root">
+                  <caption>
+                    Changes for flows/order.bpmn: 1 added line, 1 removed line.
+                  </caption>
+                  <tbody class="rd-text-view-content">
+                    <tr>
+                      <td class="rd-line-content">&lt;bpmn:definitions/&gt;</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </article>
+        </diff-file>
+      </div>
+    </article>
+  </body>
+</html>

@@ -6,6 +6,8 @@ import { SelfHostedHostStore, type SelfHostedHost } from './SelfHostedHostStore'
 
 export type { SelfHostedHost }
 
+const RENAMED_VIEW_SCRIPTS = ['gitlab-mr']
+
 interface Tab {
   id?: number
   url?: string
@@ -28,7 +30,7 @@ export class HostAccess {
   static forHosts(hosts: HostCatalog): HostAccess {
     return new HostAccess(
       new SelfHostedHostStore(new SettingsStore()),
-      new ScriptRegistrar(hosts.allViewScripts()),
+      new ScriptRegistrar([...hosts.allViewScripts(), ...RENAMED_VIEW_SCRIPTS]),
       hosts,
     )
   }

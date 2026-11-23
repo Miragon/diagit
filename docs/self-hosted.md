@@ -6,7 +6,7 @@ Turn Diagit on for a self-hosted GitLab or GitHub Enterprise instance. Each doma
 
 ## 1. Allow the domain
 
-Open a model file or a merge request on your instance and click the Diagit icon in the browser toolbar. The browser asks whether Diagit may read the domain. Allow it.
+Open a model file, a merge request or a commit on your instance and click the Diagit icon in the browser toolbar. The browser asks whether Diagit may read the domain. Allow it.
 
 You can also right-click the page and choose **Enable Diagit on this domain**.
 

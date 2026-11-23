@@ -9,11 +9,13 @@
  *   2. GitHub-shaped host pages — a repository landing page, a blob file view (also
  *      in a layout the viewer cannot place itself in), a
  *      pull-request "Files changed" view (also in a layout the diff adapter does not
- *      recognise) and a single-commit diff view — from
+ *      recognise) and a single-commit diff view — and a GitLab-shaped single-commit
+ *      view (localhost counts as self-hosted GitLab by its `/-/` route), from
  *      `fixtures/host-dom/`.
  *   3. The data those pages make the extension fetch: the raw `.bpmn`/`.dmn`
  *      bytes (blob + base/head) and the PR/commit REST metadata the diff adapters
- *      read from `/api/v3` (the non-github.com / Enterprise code path).
+ *      read from `/api/v3` (the non-github.com / Enterprise code path) and `/api/v4`
+ *      (GitLab).
  */
 
 import { createServer, type Server } from 'node:http'
@@ -69,6 +71,13 @@ const COMMIT = {
   sha: 'c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00',
   parentSha: 'dead0000dead0000dead0000dead0000dead0000',
   file: 'flows/order.bpmn',
+} as const
+
+/** The GitLab commit the GitLab fixture page describes. */
+const GITLAB_COMMIT = {
+  projectApi: `/api/v4/projects/${COMMIT.owner}/${COMMIT.repo}`,
+  page: `/${COMMIT.owner}/${COMMIT.repo}/-/commit/${COMMIT.sha}`,
+  file: COMMIT.file,
 } as const
 
 const REPO_HOME = `/${PR.owner}/${PR.repo}`
@@ -194,6 +203,28 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
       )
     }
 
+    // GitLab REST metadata for the commit diff adapter (`/api/v4`, project path decoded).
+    const gitlabCommitApi = `${GITLAB_COMMIT.projectApi}/repository/commits/${COMMIT.sha}`
+    if (path === gitlabCommitApi) {
+      return send(
+        res,
+        200,
+        MIME['.json']!,
+        JSON.stringify({ id: COMMIT.sha, parent_ids: [COMMIT.parentSha] }),
+      )
+    }
+    if (path === `${gitlabCommitApi}/diff`) {
+      return send(
+        res,
+        200,
+        MIME['.json']!,
+        JSON.stringify([{ old_path: GITLAB_COMMIT.file, new_path: GITLAB_COMMIT.file }]),
+      )
+    }
+    if (path === `${GITLAB_COMMIT.projectApi}/repository/files/${GITLAB_COMMIT.file}/raw`) {
+      return send(res, 200, MIME['.bpmn']!, rawDiagram(path))
+    }
+
     if (path === RAW_LATENCY_SETTING) {
       rawLatencyMs = Number(new URL(req.url ?? '/', 'http://localhost').searchParams.get('ms') ?? 0)
       return send(res, 200, 'text/plain', `raw latency ${rawLatencyMs} ms`)
@@ -232,6 +263,9 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
         ? 'pr-unknown-layout.html'
         : 'pr.html'
       return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, page)))
+    }
+    if (path === GITLAB_COMMIT.page) {
+      return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, 'gitlab-commit.html')))
     }
     if (path.includes('/commit/')) {
       return send(res, 200, MIME['.html']!, readFileSync(join(hostDom, 'commit.html')))

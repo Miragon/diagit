@@ -40,7 +40,7 @@ if (diffPage && diffOrigin && diffPath) {
   const gitlab = new GitlabHost(http)
   const github = new GithubHost(http, githubTokens)
   const page = new StandaloneDiffPage(
-    [gitlab.mergeRequestDiff, github.pullRequestDiff, github.commitDiff],
+    [gitlab.diff, github.pullRequestDiff, github.commitDiff],
     allNotations,
     linkedModels,
     reportContext,

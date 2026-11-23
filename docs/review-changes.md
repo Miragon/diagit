@@ -16,6 +16,7 @@ Diagit adds its panel above the text diff of every changed `.bpmn` file on these
 | GitHub and GitHub Enterprise  | Pull request, **Files changed** |
 | GitHub and GitHub Enterprise  | A single commit                 |
 | GitLab and self-hosted GitLab | Merge request, **Changes**      |
+| GitLab and self-hosted GitLab | A single commit                 |
 
 The text diff below stays where it is. Diagit only adds to the page.
 
