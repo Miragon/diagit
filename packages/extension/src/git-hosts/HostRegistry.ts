@@ -1,4 +1,4 @@
-import { originToPattern } from '../platform/utils/origin'
+import { originToPattern, webUrl } from '../platform/utils/origin'
 import type { AuthPolicy, FetchRules, GitHost, PageUrl } from './GitHost'
 
 export class HostRegistry {
@@ -24,16 +24,8 @@ export class HostRegistry {
   }
 
   isSupportedUrl(url: string): boolean {
-    let parsed: URL
-    try {
-      parsed = new URL(url)
-    } catch {
-      return false
-    }
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return false
-    }
-    return this.viewScriptsFor(parsed).length > 0
+    const parsed = webUrl(url)
+    return parsed !== null && this.viewScriptsFor(parsed).length > 0
   }
 
   allViewScripts(): string[] {
