@@ -42,6 +42,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
       this.zoomControls.element,
     ])
     this.zoomControls.allowExpanding(this.wrap)
+    this.zoomControls.leaveRoomForBpmnIoLogo(options.notation.descriptor.showsBpmnIoLogo === true)
   }
 
   mount(container: HTMLElement): this {

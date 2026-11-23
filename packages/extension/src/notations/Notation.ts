@@ -27,6 +27,7 @@ export interface DiffableViewer extends DiagramViewer {
 
 export interface DiagramDiffer {
   readonly css: string
+  readonly showsBpmnIoLogo: boolean
   diff(oldXml: string, newXml: string): Promise<DiagramDiff>
   createViewer(canvas: HTMLElement, xml: string): Promise<DiffableViewer>
 }

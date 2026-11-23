@@ -51,6 +51,7 @@ export class GitlabMergeRequestPage implements DiffPage<MergeRequestRef, MergeRe
     const change = data.changeByPath.get(path)
     const oldPath = change?.old_path || path
     return {
+      hasNoOldVersion: change?.new_file === true,
       loadOld: () =>
         change?.new_file ? Promise.resolve(null) : this.api.rawFile(data, oldPath, data.baseSha),
       loadNew: () =>

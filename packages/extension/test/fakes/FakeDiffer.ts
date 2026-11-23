@@ -3,6 +3,7 @@ import { FakeDiffableViewer } from './FakeDiffableViewer'
 
 export class FakeDiffer implements DiagramDiffer {
   readonly css = ''
+  readonly showsBpmnIoLogo = false
   readonly viewers: FakeDiffableViewer[] = []
 
   constructor(

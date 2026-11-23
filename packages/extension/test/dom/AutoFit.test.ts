@@ -56,6 +56,27 @@ describe('AutoFit', () => {
     expect(diagram.fit).not.toHaveBeenCalled()
   })
 
+  it('keeps the view once the diagram zoomed or scrolled with the wheel', () => {
+    const diagram = viewer()
+    const { button } = autoFitOver([diagram])
+    button.addEventListener('wheel', (event) => event.preventDefault())
+
+    button.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true }))
+    FakeResizeObserver.resizeAll()
+
+    expect(diagram.fit).not.toHaveBeenCalled()
+  })
+
+  it('still fits after a wheel the diagram left to the page', () => {
+    const diagram = viewer()
+    const { area } = autoFitOver([diagram])
+
+    area.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true }))
+    FakeResizeObserver.resizeAll()
+
+    expect(diagram.fit).toHaveBeenCalledOnce()
+  })
+
   it('still fits after a press on a button in the area', () => {
     const diagram = viewer()
     const { button } = autoFitOver([diagram])

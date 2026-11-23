@@ -35,6 +35,7 @@ const PR = {
   file: 'flows/order.bpmn',
   baseSha: 'base0000000000000000000000000000000000000',
   headSha: 'head1111111111111111111111111111111111111',
+  fileStatus: 'modified',
 } as const
 
 const SUBPROCESS_PR = {
@@ -46,7 +47,15 @@ const SUBPROCESS_PR = {
 
 const UNKNOWN_LAYOUT_PR = { ...PR, repo: 'relayout' } as const
 
-const PULL_REQUESTS = [PR, SUBPROCESS_PR, UNKNOWN_LAYOUT_PR]
+const ADDED_FILE_PR = {
+  ...PR,
+  number: '3',
+  baseSha: 'base3333333333333333333333333333333333333',
+  headSha: 'head3333333333333333333333333333333333333',
+  fileStatus: 'added',
+} as const
+
+const PULL_REQUESTS = [PR, SUBPROCESS_PR, UNKNOWN_LAYOUT_PR, ADDED_FILE_PR]
 
 const FIXTURE_BY_REF: Record<string, string> = {
   [SUBPROCESS_PR.baseSha]: 'collapsed-subprocess-before.bpmn',
@@ -166,7 +175,7 @@ export function startFixtureServer(port: number): Promise<FixtureServer> {
           res,
           200,
           MIME['.json']!,
-          JSON.stringify([{ filename: pr.file, status: 'modified' }]),
+          JSON.stringify([{ filename: pr.file, status: pr.fileStatus }]),
         )
       }
     }

@@ -67,6 +67,10 @@ export class ZoomControls {
     this.showLevel(null)
   }
 
+  leaveRoomForBpmnIoLogo(logoShown: boolean): void {
+    this.element.classList.toggle('beside-bpmn-io-logo', logoShown)
+  }
+
   static resetZoomOf(viewer: ZoomedViewer | null): void {
     const level = viewer?.zoomLevel()
     if (viewer && level) {

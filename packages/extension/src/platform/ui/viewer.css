@@ -119,7 +119,7 @@
   box-shadow: var(--cd-shadow-1);
 }
 
-:has(.bjs-powered-by) > .diagit-zoom {
+.diagit-zoom.beside-bpmn-io-logo {
   --bpmn-io-logo-inset: 15px;
   --bpmn-io-logo-width: 53px;
   --bpmn-io-logo-height: 21px;

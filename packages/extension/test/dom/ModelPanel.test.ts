@@ -34,6 +34,20 @@ function reportedConsole(container: HTMLElement): string | null {
 }
 
 describe('ModelPanel', () => {
+  it('leaves room for the bpmn.io logo from the start for a BPMN file', () => {
+    const container = mountPanel(
+      new ModelPanel({
+        notation: new FakeNotation(),
+        filePath: 'flows/order.bpmn',
+        loadXml: () => new Promise<string>(() => {}),
+        reportContext: FAKE_REPORT_CONTEXT,
+      }),
+    )
+
+    const zoom = container.querySelector('.diagit-zoom')!
+    expect(zoom.classList.contains('beside-bpmn-io-logo')).toBe(true)
+  })
+
   it('shows a pane notice inside the canvas when the file cannot be downloaded', async () => {
     const container = mountPanel(
       new ModelPanel({

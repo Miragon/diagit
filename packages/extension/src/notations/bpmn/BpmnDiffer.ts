@@ -5,6 +5,7 @@ import { BpmnViewer } from './BpmnViewer'
 
 export class BpmnDiffer implements DiagramDiffer {
   readonly css = BPMN_PANEL_CSS
+  readonly showsBpmnIoLogo = true
   private readonly models = new BpmnModelDiffer()
 
   diff(oldXml: string, newXml: string): Promise<DiagramDiff> {

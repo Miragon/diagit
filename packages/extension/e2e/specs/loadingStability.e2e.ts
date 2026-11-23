@@ -11,13 +11,24 @@ const PR_DIFF = {
   host: 'diagit-diff',
   rendered: '.diagit-diff-legend',
 }
-type PanelPage = typeof FILE_PAGE
+const PR_ADDED_FILE = {
+  path: '/octo/flows/pull/3/files',
+  host: 'diagit-diff',
+  rendered: '.djs-element',
+}
+interface PanelPage {
+  path: string
+  host: string
+  rendered: string
+  columnWidth?: number
+}
 const FILE_PAGE_WITH_LATE_CODE = '/octo/late/blob/main/order.bpmn'
 
 const SLOW_DOWNLOAD_MS = 1_500
 const SETTLE_AFTER_RENDER_MS = 500
 const NARROW_COLUMN = { width: 800, height: 1000 }
 const WIDE_COLUMN = { width: 1400, height: 1000 }
+const STACKED_PANES_COLUMN_WIDTH = 400
 const LAYOUT_SHIFT_BUDGET = 0.01
 const TIME_TO_DIAGRAM_BUDGET_MS = 1_000
 const PANEL_AFTER_CODE_BUDGET_MS = 100
@@ -52,6 +63,9 @@ async function p75Of(metric: string, sample: () => Promise<number>): Promise<num
 async function movementWhileLoading(page: PanelPage): Promise<PanelMovement> {
   await setRawLatency(SLOW_DOWNLOAD_MS)
   await browser.url(page.path)
+  if (page.columnWidth) {
+    await narrowTheFilesColumn(page.columnWidth)
+  }
   await $(page.host).waitForExist({ timeout: 20_000 })
   return browser.execute(
     async (hostTag, renderedSelector, settleMs) => {
@@ -88,6 +102,12 @@ async function movementWhileLoading(page: PanelPage): Promise<PanelMovement> {
     page.rendered,
     SETTLE_AFTER_RENDER_MS,
   )
+}
+
+async function narrowTheFilesColumn(width: number): Promise<void> {
+  await browser.execute((columnWidth) => {
+    document.querySelector<HTMLElement>('#files')!.style.width = `${columnWidth}px`
+  }, width)
 }
 
 async function timeToDiagram(page: PanelPage): Promise<number> {
@@ -155,6 +175,16 @@ describe('Loading stability (Chromium only, Firefox reports no layout shifts)', 
   it('keeps the diff panel still while the diagrams load in a narrow column', async () => {
     await browser.setWindowSize(NARROW_COLUMN.width, NARROW_COLUMN.height)
     expectStill(await movementWhileLoading(PR_DIFF))
+  })
+
+  it('keeps the diff panel still with the versions stacked in a very narrow column', async () => {
+    await browser.setWindowSize(NARROW_COLUMN.width, NARROW_COLUMN.height)
+    expectStill(await movementWhileLoading({ ...PR_DIFF, columnWidth: STACKED_PANES_COLUMN_WIDTH }))
+  })
+
+  it('keeps the panel of an added file still in a narrow column', async () => {
+    await browser.setWindowSize(NARROW_COLUMN.width, NARROW_COLUMN.height)
+    expectStill(await movementWhileLoading(PR_ADDED_FILE))
   })
 })
 

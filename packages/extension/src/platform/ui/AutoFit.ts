@@ -16,6 +16,10 @@ export class AutoFit {
       capture: true,
       signal: this.listeners.signal,
     })
+    area.addEventListener('wheel', (event) => this.scrolledIn(event), {
+      passive: true,
+      signal: this.listeners.signal,
+    })
     this.resizeObserver.observe(area)
   }
 
@@ -38,6 +42,13 @@ export class AutoFit {
   private pressedIn(event: Event): void {
     const pressedAButton = event.target instanceof Element && event.target.closest('button')
     if (!pressedAButton) {
+      this.userMovedView()
+    }
+  }
+
+  private scrolledIn(event: Event): void {
+    const viewerHandledTheWheel = event.defaultPrevented
+    if (viewerHandledTheWheel) {
       this.userMovedView()
     }
   }

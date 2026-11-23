@@ -157,6 +157,7 @@ export class StandaloneViewerPage implements Zoomable {
       return
     }
     this.loadAssetCss(notation)
+    this.zoomControls.leaveRoomForBpmnIoLogo(notation.descriptor.showsBpmnIoLogo === true)
     let xml: string
     try {
       xml = await readContent()

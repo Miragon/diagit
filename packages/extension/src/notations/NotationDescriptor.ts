@@ -3,4 +3,5 @@ export interface NotationDescriptor {
   readonly label: string
   readonly extensions: readonly string[]
   readonly diffable: boolean
+  readonly showsBpmnIoLogo?: boolean
 }
