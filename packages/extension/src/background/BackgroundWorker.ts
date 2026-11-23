@@ -9,7 +9,8 @@ import type {
   FetchTextResponse,
   OpenOptionsRequest,
 } from '../platform/messaging/messages'
-import { originToPattern, webOrigin } from '../platform/utils/origin'
+import { originToPattern } from '../platform/utils/origin'
+import { WebOrigin } from '../platform/WebOrigin'
 import { FetchProxy } from './FetchProxy'
 import { FetchScope } from './FetchScope'
 import { TrustedSender, type MessageSender, type SenderPage } from './TrustedSender'
@@ -147,7 +148,7 @@ export class BackgroundWorker {
     params: Record<string, string>,
     page: SenderPage,
   ): Promise<boolean> {
-    if (page.incognito || webOrigin(url) !== page.origin) {
+    if (page.incognito || !page.origin.equals(WebOrigin.of(url))) {
       return false
     }
     const viewer = `${browser.runtime.getURL('/viewer.html')}?${new URLSearchParams(params)}`

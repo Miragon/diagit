@@ -3,6 +3,7 @@ import { browser } from 'wxt/browser'
 import { localWebExtAlertHtml } from 'webext-alert'
 import addPermissionToggle from 'webext-permission-toggle'
 import { BackgroundWorker } from '../src/background/BackgroundWorker'
+import { WebOrigin } from '../src/platform/WebOrigin'
 
 vi.mock('webext-alert', () => ({ localWebExtAlertHtml: vi.fn() }))
 vi.mock('webext-permission-toggle', () => ({ default: vi.fn() }))
@@ -30,7 +31,7 @@ vi.mock('wxt/browser', () => {
 
 const SELF_HOSTED_FILE = 'https://git.example.com/group/repo/-/blob/main/order.bpmn'
 
-const TRUSTED_TAB = { tabId: 1, origin: 'https://github.com', incognito: false }
+const TRUSTED_TAB = { tabId: 1, origin: WebOrigin.known('https://github.com'), incognito: false }
 
 const OPEN_TAB_IDS = [3, 4]
 const PUBLIC_PATTERNS = ['https://github.com/*', 'https://gitlab.com/*']

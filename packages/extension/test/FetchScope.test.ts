@@ -1,19 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { FetchScope } from '../src/background/FetchScope'
 import { hostRegistry } from '../src/git-hosts/hosts'
+import { WebOrigin } from '../src/platform/WebOrigin'
 
 const scope = new FetchScope(hostRegistry.fetchRules())
+const page = (origin: string) => WebOrigin.known(origin)
 
 describe('FetchScope.grantFor (which urls a page may have fetched)', () => {
   it('allows the origin of the page without auth', () => {
     expect(
-      scope.grantFor('https://github.com', 'https://github.com/o/r/raw/main/a.bpmn'),
+      scope.grantFor(page('https://github.com'), 'https://github.com/o/r/raw/main/a.bpmn'),
     ).toMatchObject({
       withAuth: false,
     })
     expect(
       scope.grantFor(
-        'https://gitlab.com',
+        page('https://gitlab.com'),
         'https://gitlab.com/api/v4/projects/g%2Fp/merge_requests/2',
       ),
     ).toMatchObject({ withAuth: false })
@@ -21,79 +23,89 @@ describe('FetchScope.grantFor (which urls a page may have fetched)', () => {
 
   it('allows a github.com page to call api.github.com with auth', () => {
     expect(
-      scope.grantFor('https://github.com', 'https://api.github.com/repos/o/r/pulls/1'),
+      scope.grantFor(page('https://github.com'), 'https://api.github.com/repos/o/r/pulls/1'),
     ).toMatchObject({ withAuth: true })
   })
 
   it('allows an Enterprise or self-hosted page its own API, never with auth', () => {
     expect(
-      scope.grantFor('https://ghe.corp.example', 'https://ghe.corp.example/api/v3/repos/o/r'),
+      scope.grantFor(page('https://ghe.corp.example'), 'https://ghe.corp.example/api/v3/repos/o/r'),
     ).toMatchObject({ withAuth: false })
     expect(
-      scope.grantFor('http://localhost:4567', 'http://localhost:4567/api/v3/repos/octo/flows'),
+      scope.grantFor(
+        page('http://localhost:4567'),
+        'http://localhost:4567/api/v3/repos/octo/flows',
+      ),
     ).toMatchObject({ withAuth: false })
   })
 
   it('refuses other origins', () => {
-    expect(scope.grantFor('https://gitlab.com', 'https://api.github.com/repos/o/r')).toBeNull()
     expect(
-      scope.grantFor('https://ghe.corp.example', 'https://api.github.com/repos/o/r'),
+      scope.grantFor(page('https://gitlab.com'), 'https://api.github.com/repos/o/r'),
     ).toBeNull()
-    expect(scope.grantFor('https://github.com', 'https://evil.example/steal')).toBeNull()
     expect(
-      scope.grantFor('https://github.com', 'https://raw.githubusercontent.com/o/r/a'),
+      scope.grantFor(page('https://ghe.corp.example'), 'https://api.github.com/repos/o/r'),
     ).toBeNull()
-    expect(scope.grantFor('https://github.com', 'https://api.github.com.evil.example/x')).toBeNull()
-    expect(scope.grantFor('http://localhost:4567', 'http://localhost:9999/api/v3')).toBeNull()
-    expect(scope.grantFor('https://github.com', 'http://github.com/o/r/raw/a')).toBeNull()
+    expect(scope.grantFor(page('https://github.com'), 'https://evil.example/steal')).toBeNull()
+    expect(
+      scope.grantFor(page('https://github.com'), 'https://raw.githubusercontent.com/o/r/a'),
+    ).toBeNull()
+    expect(
+      scope.grantFor(page('https://github.com'), 'https://api.github.com.evil.example/x'),
+    ).toBeNull()
+    expect(scope.grantFor(page('http://localhost:4567'), 'http://localhost:9999/api/v3')).toBeNull()
+    expect(scope.grantFor(page('https://github.com'), 'http://github.com/o/r/raw/a')).toBeNull()
   })
 
   it('refuses malformed and non-web urls', () => {
-    expect(scope.grantFor('https://github.com', 'not a url')).toBeNull()
-    expect(scope.grantFor('https://github.com', '/o/r/raw/a.bpmn')).toBeNull()
-    expect(scope.grantFor('null', 'data:text/plain,x')).toBeNull()
-    expect(scope.grantFor('null', 'file:///etc/passwd')).toBeNull()
+    expect(scope.grantFor(page('https://github.com'), 'not a url')).toBeNull()
+    expect(scope.grantFor(page('https://github.com'), '/o/r/raw/a.bpmn')).toBeNull()
+    expect(scope.grantFor(page('https://github.com'), 'data:text/plain,x')).toBeNull()
+    expect(scope.grantFor(page('https://github.com'), 'file:///etc/passwd')).toBeNull()
   })
 })
 
 describe('FetchScope.grantFor (which fetches may follow redirects)', () => {
   it('lets a raw file of the page origin follow its redirect', () => {
     expect(
-      scope.grantFor('https://github.com', 'https://github.com/o/r/raw/main/a.bpmn?plain=1'),
+      scope.grantFor(page('https://github.com'), 'https://github.com/o/r/raw/main/a.bpmn?plain=1'),
     ).toEqual({ withAuth: false, followsRedirects: true })
     expect(
-      scope.grantFor('https://ghe.corp.example', 'https://ghe.corp.example/o/r/raw/main/a.bpmn'),
+      scope.grantFor(
+        page('https://ghe.corp.example'),
+        'https://ghe.corp.example/o/r/raw/main/a.bpmn',
+      ),
     ).toEqual({ withAuth: false, followsRedirects: true })
   })
 
   it('refuses redirects for every other fetch', () => {
-    expect(scope.grantFor('https://github.com', 'https://github.com/o/r/blob/main/a.bpmn')).toEqual(
-      { withAuth: false, followsRedirects: false },
-    )
-    expect(scope.grantFor('https://github.com', 'https://api.github.com/repos/o/r')).toEqual({
+    expect(
+      scope.grantFor(page('https://github.com'), 'https://github.com/o/r/blob/main/a.bpmn'),
+    ).toEqual({ withAuth: false, followsRedirects: false })
+    expect(scope.grantFor(page('https://github.com'), 'https://api.github.com/repos/o/r')).toEqual({
       withAuth: true,
       followsRedirects: false,
     })
     expect(
-      scope.grantFor('https://gitlab.com', 'https://gitlab.com/g/p/-/raw/main/a.bpmn'),
+      scope.grantFor(page('https://gitlab.com'), 'https://gitlab.com/g/p/-/raw/main/a.bpmn'),
     ).toEqual({ withAuth: false, followsRedirects: false })
   })
 })
 
 describe('FetchScope.allowsResponseFrom (where a redirected fetch may end up)', () => {
   it('allows every url the page may fetch', () => {
-    expect(scope.allowsResponseFrom('https://gitlab.com', 'https://gitlab.com/g/renamed')).toBe(
-      true,
-    )
     expect(
-      scope.allowsResponseFrom('https://github.com', 'https://api.github.com/repositories/1'),
+      scope.allowsResponseFrom(page('https://gitlab.com'), 'https://gitlab.com/g/renamed'),
+    ).toBe(true)
+    expect(
+      scope.allowsResponseFrom(page('https://github.com'), 'https://api.github.com/repositories/1'),
     ).toBe(true)
   })
 
   it('allows a github.com page to end up on raw.githubusercontent.com', () => {
     expect(
       scope.allowsResponseFrom(
-        'https://github.com',
+        page('https://github.com'),
         'https://raw.githubusercontent.com/o/r/main/a.bpmn?token=abc',
       ),
     ).toBe(true)
@@ -101,9 +113,14 @@ describe('FetchScope.allowsResponseFrom (where a redirected fetch may end up)', 
 
   it('refuses raw.githubusercontent.com for other pages and any other origin', () => {
     expect(
-      scope.allowsResponseFrom('https://gitlab.com', 'https://raw.githubusercontent.com/o/r/a'),
+      scope.allowsResponseFrom(
+        page('https://gitlab.com'),
+        'https://raw.githubusercontent.com/o/r/a',
+      ),
     ).toBe(false)
-    expect(scope.allowsResponseFrom('https://github.com', 'https://evil.example/x')).toBe(false)
-    expect(scope.allowsResponseFrom('https://github.com', '')).toBe(false)
+    expect(scope.allowsResponseFrom(page('https://github.com'), 'https://evil.example/x')).toBe(
+      false,
+    )
+    expect(scope.allowsResponseFrom(page('https://github.com'), '')).toBe(false)
   })
 })

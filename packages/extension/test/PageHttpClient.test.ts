@@ -5,6 +5,7 @@ import { hostRegistry } from '../src/git-hosts/hosts'
 import type { AuthPolicy } from '../src/git-hosts/GitHost'
 import { FetchError } from '../src/platform/messaging/HttpClient'
 import { PageHttpClient } from '../src/platform/messaging/PageHttpClient'
+import { WebOrigin } from '../src/platform/WebOrigin'
 
 const tokenForApi: AuthPolicy = {
   headersFor: async (url) =>
@@ -28,7 +29,7 @@ function answering(status: number, text = '{"sha":"abc"}') {
 function clientOn(pageOrigin: string, fetch: typeof globalThis.fetch): PageHttpClient {
   return new PageHttpClient(
     new FetchProxy([tokenForApi], new FetchScope(hostRegistry.fetchRules()), fetch),
-    pageOrigin,
+    WebOrigin.known(pageOrigin),
   )
 }
 

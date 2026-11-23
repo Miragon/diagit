@@ -1,6 +1,7 @@
 import type { AuthPolicy } from '../git-hosts/GitHost'
 import type { FetchTextResponse } from '../platform/messaging/messages'
 import { errorMessage } from '../platform/utils/errorMessage'
+import type { WebOrigin } from '../platform/WebOrigin'
 import type { FetchGrant, FetchScope } from './FetchScope'
 
 type Fetch = typeof fetch
@@ -16,7 +17,7 @@ export class FetchProxy {
     private readonly fetch: Fetch = (...args) => globalThis.fetch(...args),
   ) {}
 
-  async fetchText(url: string, pageOrigin: string): Promise<FetchTextResponse> {
+  async fetchText(url: string, pageOrigin: WebOrigin): Promise<FetchTextResponse> {
     const grant = this.scope.grantFor(pageOrigin, url)
     if (!grant) {
       return { ok: false, error: `Refused to fetch ${url} for this page` }

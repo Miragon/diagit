@@ -93,6 +93,14 @@ describe('LinkedModelReader.fetchText', () => {
     await expect(reader.fetchText(RAW_FILE)).rejects.toThrow('Refused the redirect')
   })
 
+  it('refuses urls that are no web address without fetching', async () => {
+    const fetch = vi.fn()
+    const { reader } = readerWith(fetch)
+
+    await expect(reader.fetchText('file:///etc/passwd')).rejects.toThrow('Refused to fetch')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
   it('reports the HTTP status of a failed download', async () => {
     const fetch = vi.fn().mockResolvedValue(textResponse(RAW_FILE, '', 404))
     const { reader } = readerWith(fetch)
