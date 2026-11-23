@@ -4,6 +4,8 @@ import { SettingsStore } from '../../platform/settings/SettingsStore'
 import { ScriptRegistrar } from './ScriptRegistrar'
 import { SelfHostedHostStore, type SelfHostedHost } from './SelfHostedHostStore'
 
+export type { SelfHostedHost }
+
 interface Tab {
   id?: number
   url?: string

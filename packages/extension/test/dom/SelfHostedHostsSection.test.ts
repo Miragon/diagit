@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { SelfHostedHost } from '../../src/git-hosts/self-hosted/SelfHostedHostStore'
+import type { SelfHostedHost } from '../../src/git-hosts/self-hosted/HostAccess'
 import { SelfHostedHostsSection } from '../../src/views/options/SelfHostedHostsSection'
 
 vi.mock('wxt/browser', () => ({ browser: {} }))

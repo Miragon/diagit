@@ -261,6 +261,8 @@ Create `src/git-hosts/<host>/` with a class implementing `GitHost`, register it 
 (`<host>-blob.content.ts`, …). Add its API origin to `host_permissions` in
 `wxt.config.ts` when it is cross-origin. Its `fetchRules` tell the background worker which API
 the host's pages may call with auth and where a raw-file redirect may end; `null` when it has none.
+Code outside the host folder may use only the files listed in `GIT_HOST_PUBLIC_API` in
+`packages/extension/.dependency-cruiser.cjs`; add the host's class there.
 
 ### Adding a notation
 
