@@ -68,7 +68,7 @@ describe('GitLab commit diff', () => {
     return new FakeHttpClient().respondWith({
       [commitApi]: { id: 'c0ffee0full', parent_ids: ['ppp'] },
       [`${commitApi}/diff?per_page=100&page=1`]: [change],
-      [`${rawFiles}/flows%2Fold.bpmn/raw?ref=ppp&lfs=true`]: '<parent/>',
+      [`${rawFiles}/flows%2Fold.bpmn/raw?ref=ppp&lfs=true`]: '<parent-old-path/>',
       [`${rawFiles}/flows%2Forder.bpmn/raw?ref=ppp&lfs=true`]: '<parent/>',
       [`${rawFiles}/flows%2Forder.bpmn/raw?ref=c0ffee0full&lfs=true`]: '<commit/>',
     })
@@ -98,7 +98,7 @@ describe('GitLab commit diff', () => {
     const [block] = await new GitlabHost(http).diff.collect(commitPage, document)
 
     expect(block!.path).toBe('flows/order.bpmn')
-    expect(await block!.loadOld()).toBe('<parent/>')
+    expect(await block!.loadOld()).toBe('<parent-old-path/>')
     expect(await block!.loadNew()).toBe('<commit/>')
   })
 

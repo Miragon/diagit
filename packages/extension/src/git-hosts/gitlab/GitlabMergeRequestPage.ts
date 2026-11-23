@@ -21,7 +21,7 @@ export class GitlabMergeRequestPage extends GitlabDiffPage<MergeRequestRef> {
 
   load(location: PageUrl, page: MergeRequestRef): Promise<GitlabDiffData> {
     return page.commit
-      ? this.api.loadCommit(location, page, page.commit)
+      ? this.api.loadCommit(location, page.projectPath, page.commit)
       : this.api.loadMergeRequest(location, page)
   }
 }

@@ -47,18 +47,14 @@ export class GitlabRestApi {
     }
   }
 
-  async loadCommit(
-    location: PageUrl,
-    ref: Pick<MergeRequestRef, 'projectPath'>,
-    sha: string,
-  ): Promise<GitlabDiffData> {
-    const commitApi = this.routes.commitApi(location.origin, ref.projectPath, sha)
+  async loadCommit(location: PageUrl, projectPath: string, sha: string): Promise<GitlabDiffData> {
+    const commitApi = this.routes.commitApi(location.origin, projectPath, sha)
     const commit = await this.http.fetchJson<CommitResponse>(commitApi)
     const changes = await fetchAllPages<GitlabChange>(this.http, `${commitApi}/diff`)
     const rootCommitHasNoBase = ''
     return {
       origin: location.origin,
-      projectPath: ref.projectPath,
+      projectPath,
       baseSha: commit.parent_ids[0] ?? rootCommitHasNoBase,
       headSha: commit.id,
       changeByPath: this.indexByPath(changes),

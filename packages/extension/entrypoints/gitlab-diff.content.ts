@@ -9,11 +9,10 @@ export default defineContentScript({
   registration: 'runtime',
   cssInjectionMode: 'manual',
   main(ctx) {
-    const pageType = gitlabHost.routes.commit(location) ? 'commit' : 'merge request'
     const reportContext = reportContextOn(
       gitlabHost,
       location,
-      pageType,
+      gitlabHost.diffPageType(location),
       ExtensionEnvironment.current(),
     )
     new DiffController(new HostPage(ctx), gitlabHost.diff, reportContext).start()

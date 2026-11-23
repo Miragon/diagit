@@ -20,6 +20,6 @@ export class GitlabCommitPage extends GitlabDiffPage<CommitRef> {
   }
 
   load(location: PageUrl, page: CommitRef): Promise<GitlabDiffData> {
-    return this.api.loadCommit(location, page, page.sha)
+    return this.api.loadCommit(location, page.projectPath, page.sha)
   }
 }

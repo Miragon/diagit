@@ -46,6 +46,10 @@ export class GitlabHost implements GitHost {
     ]
   }
 
+  diffPageType(url: PageUrl): string {
+    return this.routes.commit(url) ? 'commit' : 'merge request'
+  }
+
   recognizesSelfHosted(url: PageUrl): boolean {
     return url.pathname.includes(GITLAB_ROUTE_MARKER)
   }
