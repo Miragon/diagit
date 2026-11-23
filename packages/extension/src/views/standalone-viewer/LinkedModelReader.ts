@@ -2,10 +2,11 @@ import { browser } from 'wxt/browser'
 import { FetchError } from '../../platform/messaging/HttpClient'
 import type { FetchTextResponse } from '../../platform/messaging/messages'
 import { originToPattern, webOrigin } from '../../platform/utils/origin'
+import { WebOrigin } from '../../platform/WebOrigin'
 import type { LinkedModelSource } from './StandaloneViewerPage'
 
 export interface SameOriginFetcher {
-  fetchText(url: string, pageOrigin: string): Promise<FetchTextResponse>
+  fetchText(url: string, pageOrigin: WebOrigin): Promise<FetchTextResponse>
 }
 
 interface HostPermissions {
@@ -31,7 +32,11 @@ export class LinkedModelReader implements LinkedModelSource {
   }
 
   async fetchText(url: string): Promise<string> {
-    const response = await this.fetcher.fetchText(url, webOrigin(url) ?? '')
+    const origin = WebOrigin.of(url)
+    if (!origin) {
+      throw new FetchError(`Refused to fetch ${url} for this page`)
+    }
+    const response = await this.fetcher.fetchText(url, origin)
     if (!response.ok) {
       throw new FetchError(response.error, response.status)
     }

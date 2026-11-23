@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { TrustedSender, type MessageSender } from '../src/background/TrustedSender'
+import { WebOrigin } from '../src/platform/WebOrigin'
 
 const senders = new TrustedSender('diagit-id')
 const githubTab = { id: 7, url: 'https://github.com/o/r/pull/1' }
@@ -15,7 +16,7 @@ describe('TrustedSender.pageOf', () => {
   it('returns the tab and origin of our own content script on the tab origin', () => {
     expect(senders.pageOf(chromeTopFrame)).toEqual({
       tabId: 7,
-      origin: 'https://github.com',
+      origin: WebOrigin.known('https://github.com'),
       incognito: false,
     })
   })
@@ -23,7 +24,7 @@ describe('TrustedSender.pageOf', () => {
   it('falls back to the frame url where the browser sends no origin', () => {
     expect(senders.pageOf(firefoxTopFrame)).toEqual({
       tabId: 7,
-      origin: 'https://github.com',
+      origin: WebOrigin.known('https://github.com'),
       incognito: false,
     })
   })
@@ -32,7 +33,7 @@ describe('TrustedSender.pageOf', () => {
     const prerendered = { ...chromeTopFrame, frameId: 42, documentLifecycle: 'prerender' }
     expect(senders.pageOf(prerendered)).toEqual({
       tabId: 7,
-      origin: 'https://github.com',
+      origin: WebOrigin.known('https://github.com'),
       incognito: false,
     })
   })

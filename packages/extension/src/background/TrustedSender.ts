@@ -1,4 +1,4 @@
-import { webOrigin } from '../platform/utils/origin'
+import { WebOrigin } from '../platform/WebOrigin'
 
 export interface MessageSender {
   id?: string
@@ -9,7 +9,7 @@ export interface MessageSender {
 
 export interface SenderPage {
   tabId: number
-  origin: string
+  origin: WebOrigin
   incognito: boolean
 }
 
@@ -25,17 +25,15 @@ export class TrustedSender {
     if (!this.isOwn(sender) || tab?.id == null || !tab.url) {
       return undefined
     }
-    const tabOrigin = webOrigin(tab.url)
-    if (!tabOrigin || this.frameOrigin(sender) !== tabOrigin) {
+    const tabOrigin = WebOrigin.of(tab.url)
+    if (!tabOrigin || !tabOrigin.equals(this.frameOrigin(sender))) {
       return undefined
     }
     return { tabId: tab.id, origin: tabOrigin, incognito: tab.incognito === true }
   }
 
-  private frameOrigin(sender: MessageSender): string | null {
-    if (sender.origin) {
-      return sender.origin
-    }
-    return sender.url ? webOrigin(sender.url) : null
+  private frameOrigin(sender: MessageSender): WebOrigin | null {
+    const frame = sender.origin ?? sender.url
+    return frame ? WebOrigin.of(frame) : null
   }
 }

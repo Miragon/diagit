@@ -1,14 +1,15 @@
 import { FetchError, type HttpClient } from './HttpClient'
 import type { FetchTextResponse } from './messages'
+import type { WebOrigin } from '../WebOrigin'
 
 export interface PageFetcher {
-  fetchText(url: string, pageOrigin: string): Promise<FetchTextResponse>
+  fetchText(url: string, pageOrigin: WebOrigin): Promise<FetchTextResponse>
 }
 
 export class PageHttpClient implements HttpClient {
   constructor(
     private readonly fetcher: PageFetcher,
-    private readonly pageOrigin: string,
+    private readonly pageOrigin: WebOrigin,
   ) {}
 
   async fetchText(url: string): Promise<string> {

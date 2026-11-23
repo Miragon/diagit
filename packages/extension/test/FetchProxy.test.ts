@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FetchProxy } from '../src/background/FetchProxy'
 import { FetchScope } from '../src/background/FetchScope'
 import { hostRegistry } from '../src/git-hosts/hosts'
+import { WebOrigin } from '../src/platform/WebOrigin'
 import type { AuthPolicy } from '../src/git-hosts/GitHost'
 
 const tokenForApi: AuthPolicy = {
@@ -11,8 +12,8 @@ const tokenForApi: AuthPolicy = {
     url.startsWith('https://api.github.com') ? { Authorization: 'Bearer renewed' } : undefined,
 }
 
-const githubPage = 'https://github.com'
-const gitlabPage = 'https://gitlab.com'
+const githubPage = WebOrigin.known('https://github.com')
+const gitlabPage = WebOrigin.known('https://gitlab.com')
 
 function textResponse(
   url: string,

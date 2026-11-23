@@ -1,5 +1,5 @@
 import type { FetchRules } from '../git-hosts/GitHost'
-import { webOrigin } from '../platform/utils/origin'
+import { WebOrigin } from '../platform/WebOrigin'
 
 export interface FetchGrant {
   withAuth: boolean
@@ -9,29 +9,30 @@ export interface FetchGrant {
 export class FetchScope {
   constructor(private readonly rules: readonly FetchRules[]) {}
 
-  grantFor(pageOrigin: string, targetUrl: string): FetchGrant | null {
-    const targetOrigin = webOrigin(targetUrl)
+  grantFor(pageOrigin: WebOrigin, targetUrl: string): FetchGrant | null {
+    const targetOrigin = WebOrigin.of(targetUrl)
     if (!targetOrigin) {
       return null
     }
-    if (targetOrigin === this.rulesFor(pageOrigin)?.authenticatedApiOrigin) {
+    if (targetOrigin.equals(this.rulesFor(pageOrigin)?.authenticatedApiOrigin)) {
       return { withAuth: true, followsRedirects: false }
     }
-    if (targetOrigin === pageOrigin) {
+    if (targetOrigin.equals(pageOrigin)) {
       return { withAuth: false, followsRedirects: this.isRawFile(targetUrl) }
     }
     return null
   }
 
-  allowsResponseFrom(pageOrigin: string, responseUrl: string): boolean {
+  allowsResponseFrom(pageOrigin: WebOrigin, responseUrl: string): boolean {
     if (this.grantFor(pageOrigin, responseUrl)) {
       return true
     }
-    return webOrigin(responseUrl) === this.rulesFor(pageOrigin)?.redirectTargetOrigin
+    const responseOrigin = WebOrigin.of(responseUrl)
+    return responseOrigin?.equals(this.rulesFor(pageOrigin)?.redirectTargetOrigin) ?? false
   }
 
-  private rulesFor(pageOrigin: string): FetchRules | undefined {
-    return this.rules.find((rules) => rules.pageOrigin === pageOrigin)
+  private rulesFor(pageOrigin: WebOrigin): FetchRules | undefined {
+    return this.rules.find((rules) => rules.pageOrigin.equals(pageOrigin))
   }
 
   private isRawFile(targetUrl: string): boolean {

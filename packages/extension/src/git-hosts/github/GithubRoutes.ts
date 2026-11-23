@@ -1,3 +1,4 @@
+import { WebOrigin } from '../../platform/WebOrigin'
 import type { FetchRules } from '../GitHost'
 
 export interface CommitRange {
@@ -30,9 +31,9 @@ const GITHUB_RAW_FILE_PATH = /^\/[^/]+\/[^/]+\/raw\//
 const ENTERPRISE_API_PATH = '/api/v3'
 
 export const GITHUB_FETCH_RULES: FetchRules = {
-  pageOrigin: GITHUB_PUBLIC_ORIGIN,
-  authenticatedApiOrigin: GITHUB_PUBLIC_API,
-  redirectTargetOrigin: GITHUB_RAW_CONTENT_ORIGIN,
+  pageOrigin: WebOrigin.known(GITHUB_PUBLIC_ORIGIN),
+  authenticatedApiOrigin: WebOrigin.known(GITHUB_PUBLIC_API),
+  redirectTargetOrigin: WebOrigin.known(GITHUB_RAW_CONTENT_ORIGIN),
   rawFilePath: GITHUB_RAW_FILE_PATH,
 }
 

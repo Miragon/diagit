@@ -14,7 +14,7 @@ import { allNotations } from '../../src/notations/allNotations'
 import { ExtensionEnvironment } from '../../src/platform/ExtensionEnvironment'
 import { PageHttpClient } from '../../src/platform/messaging/PageHttpClient'
 import { ViewerHeader } from '../../src/platform/ui/ViewerHeader'
-import { webOrigin } from '../../src/platform/utils/origin'
+import { WebOrigin } from '../../src/platform/WebOrigin'
 import { StandaloneDiffPage } from '../../src/views/diff-viewer/StandaloneDiffPage'
 import { LinkedModelReader } from '../../src/views/standalone-viewer/LinkedModelReader'
 import { StandaloneViewerPage } from '../../src/views/standalone-viewer/StandaloneViewerPage'
@@ -24,7 +24,7 @@ const NO_AUTH_POLICIES = [] as const
 const query = new URLSearchParams(location.search)
 const linkedModel = query.get('src')
 const diffPage = query.get('page')
-const diffOrigin = diffPage ? webOrigin(diffPage) : null
+const diffOrigin = diffPage ? WebOrigin.of(diffPage) : null
 const diffPath = query.get('path')
 const reportContext = {
   where: 'Standalone viewer',

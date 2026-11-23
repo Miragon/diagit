@@ -1,3 +1,5 @@
+import type { WebOrigin } from '../platform/WebOrigin'
+
 export type PageUrl = Pick<Location, 'origin' | 'hostname' | 'pathname' | 'search'>
 
 export interface PageView {
@@ -11,9 +13,9 @@ export interface AuthPolicy {
 }
 
 export interface FetchRules {
-  readonly pageOrigin: string
-  readonly authenticatedApiOrigin: string
-  readonly redirectTargetOrigin: string
+  readonly pageOrigin: WebOrigin
+  readonly authenticatedApiOrigin: WebOrigin
+  readonly redirectTargetOrigin: WebOrigin
   readonly rawFilePath: RegExp
 }
 
