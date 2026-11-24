@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ModelRejected } from '../../src/platform/ModelRejected'
 import { ModelPanel } from '../../src/views/blob-viewer/ModelPanel'
 import { FakeDiffableViewer } from '../fakes/FakeDiffableViewer'
 import { FakeFullScreen } from '../fakes/FakeFullScreen'
@@ -248,6 +249,27 @@ describe('ModelPanel', () => {
     expect(report.href).toContain('https://github.com/Miragon/diagit/issues/new')
     expect(new URL(report.href).searchParams.get('env')).toBe(FAKE_REPORT_CONTEXT.environment)
     expect(reportedConsole(container)).not.toContain('unparsable content')
+  })
+
+  it('explains a model without a layout and offers no report link', async () => {
+    const notation = new FakeNotation()
+    vi.spyOn(notation, 'createViewer').mockRejectedValue(new ModelRejected('no-layout'))
+    const container = mountPanel(
+      new ModelPanel({
+        notation,
+        filePath: 'flows/order.bpmn',
+        loadXml: async () => '<bpmn:definitions/>',
+        reportContext: FAKE_REPORT_CONTEXT,
+      }),
+    )
+
+    await vi.waitFor(() => expect(container.querySelector('.diagit-notice')).not.toBeNull())
+    expect(container.querySelector<HTMLElement>('.diagit-notice')!.dataset.tone).toBe('info')
+    expect(textOf(container, '.diagit-notice-title')).toBe('BPMN file has no diagram layout')
+    expect(textOf(container, '.diagit-notice-body')).toBe(
+      'It holds the model but no BPMN DI to draw it from. The code below still shows the file.',
+    )
+    expect(container.querySelector('.diagit-notice-report')).toBeNull()
   })
 
   describe('expanding and full screen', () => {

@@ -1,6 +1,7 @@
 import { CircleCheck, CircleX, Flag, Info, TriangleAlert, type IconNode } from 'lucide'
 import type { HostPage, PanelHandle, ShadowPanel, ShadowPanelOptions } from '../page/HostPage'
 import { diagitRepository, type ReportContext } from '../DiagitRepository'
+import { ModelRejected, type ModelRejection } from '../ModelRejected'
 import { BackgroundClient } from '../messaging/BackgroundClient'
 import { h } from '../utils/dom'
 import { unreadableModelReason } from '../utils/errorMessage'
@@ -40,6 +41,32 @@ const TONE_ICON: Record<NoticeTone, IconNode> = {
   success: CircleCheck,
 }
 
+const REJECTED_MODEL_NOTICE: Record<
+  ModelRejection,
+  (label: string, subject: string) => NoticeDetails
+> = {
+  'no-layout': (label, subject) => ({
+    tone: 'info',
+    title: `${subject} has no diagram layout`,
+    body: `It holds the model but no ${label} DI to draw it from.`,
+  }),
+  'no-content': (label, subject) => ({
+    tone: 'info',
+    title: `${subject} has nothing to draw`,
+    body: `It has no ${label} elements Diagit can show.`,
+  }),
+  malformed: (_label, subject) => ({
+    tone: 'warning',
+    title: `${subject} has syntax errors`,
+    body: 'Check it for merge conflict markers or cut-off content.',
+  }),
+  unsupported: (label, subject) => ({
+    tone: 'warning',
+    title: `${subject} uses a format Diagit cannot read`,
+    body: `It is not a ${label} model in a version Diagit supports.`,
+  }),
+}
+
 export class Notice implements PanelHandle {
   readonly element: HTMLElement
 
@@ -67,8 +94,12 @@ export class Notice implements PanelHandle {
     place: string,
     err: unknown,
     reportContext: ReportContext,
+    subject = `${label} file`,
   ): NoticeDetails {
-    const title = `${label} file could not be read`
+    if (err instanceof ModelRejected) {
+      return REJECTED_MODEL_NOTICE[err.reason](label, subject)
+    }
+    const title = `${subject} could not be read`
     return {
       tone: 'danger',
       title,

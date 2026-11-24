@@ -4,10 +4,13 @@ import { detectHostTheme, diagramColors } from '../../platform/utils/hostTheme'
 import { fitWithPadding } from '../../platform/utils/fitWithPadding'
 import { onViewboxChange } from '../../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
+import { ModelRejected } from '../../platform/ModelRejected'
 import type { DiffableViewer } from '../Notation'
 import { ExecutionPlatform } from './execution-platform/ExecutionPlatform'
 import { camundaModdleFor } from './utils/camundaModdle'
 import { dropInvalidDiColors } from './utils/diColors'
+
+const BPMN_NAMESPACE = 'http://www.omg.org/spec/BPMN/20100524/MODEL'
 
 export class BpmnViewer implements DiffableViewer {
   static async create(canvas: HTMLElement, xml: string): Promise<BpmnViewer> {
@@ -27,8 +30,9 @@ export class BpmnViewer implements DiffableViewer {
     try {
       await viewer.importXML(xml)
     } catch (err) {
+      const failure = BpmnViewer.rejectionOf(viewer, xml, err) ?? err
       viewer.destroy()
-      throw err
+      throw failure
     }
     if (ExecutionPlatform.detect(viewer.getDefinitions()).hasTransactionBoundaries) {
       viewer.get('transactionBoundaries').show()
@@ -36,6 +40,18 @@ export class BpmnViewer implements DiffableViewer {
     const bpmnViewer = new BpmnViewer(viewer)
     bpmnViewer.fitViewportUnlessContainerIsUnmeasured()
     return bpmnViewer
+  }
+
+  private static rejectionOf(
+    viewer: NavigatedViewer,
+    xml: string,
+    err: unknown,
+  ): ModelRejected | null {
+    const definitions = viewer.getDefinitions()
+    if (!definitions) {
+      return ModelRejected.ofUnparsedXml(xml, BPMN_NAMESPACE, err)
+    }
+    return definitions.diagrams?.length ? null : new ModelRejected('no-layout', { cause: err })
   }
 
   private readonly initialRoot

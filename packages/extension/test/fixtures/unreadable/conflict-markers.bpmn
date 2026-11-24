@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="order" isExecutable="true">
+<<<<<<< HEAD
+    <bpmn:startEvent id="start" name="Order received" />
+=======
+    <bpmn:startEvent id="start" name="Order placed" />
+>>>>>>> feature/rename-start
+  </bpmn:process>
+</bpmn:definitions>

@@ -73,4 +73,12 @@ describe('standalone viewer page', () => {
     await openFixture('sample.excalidraw')
     await expect($('.canvas img.excalidraw-image')).toBeDisplayed()
   })
+
+  it('explains a .bpmn file without a diagram layout and offers no report link', async () => {
+    await openFixture('no-di.bpmn')
+    const notice = $('.canvas > .diagit-notice')
+    await expect(notice).toHaveAttribute('data-tone', 'info')
+    await expect(notice.$('.diagit-notice-title')).toHaveText('BPMN file has no diagram layout')
+    await expect(notice.$('.diagit-notice-report')).not.toBeExisting()
+  })
 })
