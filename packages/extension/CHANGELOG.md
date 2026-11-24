@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/Miragon/diagit/compare/v0.9.0...v0.10.0) (2026-11-23)
+
+
+### Features
+
+* keep the panels steady while diagrams load ([#251](https://github.com/Miragon/diagit/issues/251)) ([978828b](https://github.com/Miragon/diagit/commit/978828bfd828d909cfedc645601dff68196751c7))
+* show the diff panel on single commit pages on GitLab ([#259](https://github.com/Miragon/diagit/issues/259)) ([eff4f42](https://github.com/Miragon/diagit/commit/eff4f42c9a72e23f807bce7313f8acf85c4415c1))
+
 ## [0.9.0](https://github.com/Miragon/diagit/compare/v0.8.0...v0.9.0) (2026-11-19)
 
 
