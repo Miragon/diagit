@@ -46,7 +46,7 @@ describe('BpmnViewer', () => {
   })
 
   it('rejects merge conflict markers as malformed', async () => {
-    const err = await rejectionOf(unreadableModel('conflict-markers.bpmn'))
+    const err = await rejectionOf(e2eModel('conflict-markers.bpmn'))
 
     expect(err).toBeInstanceOf(ModelRejected)
     expect((err as ModelRejected).reason).toBe('malformed')

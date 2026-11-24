@@ -5,6 +5,7 @@ import { fitWithPadding } from '../../platform/utils/fitWithPadding'
 import { onViewboxChange } from '../../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import { ModelRejected } from '../../platform/ModelRejected'
+import { rejectionOfUnparsedXml } from '../../platform/utils/modelSource'
 import type { DiffableViewer } from '../Notation'
 import { ExecutionPlatform } from './execution-platform/ExecutionPlatform'
 import { camundaModdleFor } from './utils/camundaModdle'
@@ -49,7 +50,7 @@ export class BpmnViewer implements DiffableViewer {
   ): ModelRejected | null {
     const definitions = viewer.getDefinitions()
     if (!definitions) {
-      return ModelRejected.ofUnparsedXml(xml, BPMN_NAMESPACE, err)
+      return rejectionOfUnparsedXml(xml, BPMN_NAMESPACE, err)
     }
     return definitions.diagrams?.length ? null : new ModelRejected('no-layout', { cause: err })
   }

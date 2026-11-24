@@ -2,7 +2,7 @@ import { NavigatedViewer } from '@miragon/value-chain-renderer'
 import rendererCss from '@miragon/value-chain-renderer/assets/value-chain.css?inline'
 import { loadDocument } from '@miragon/value-chain-schema-model'
 import { DiagramJsNotation } from '../DiagramJsNotation'
-import { parseJsonModel } from '../../platform/utils/parseJsonModel'
+import { parseJsonModel } from '../../platform/utils/modelSource'
 import type { ImportWarning } from '../DiagramJsViewer'
 import { VALUE_CHAIN } from './descriptor'
 

@@ -172,7 +172,7 @@ describe('StandaloneViewerPage', () => {
     expect(notice.dataset.layout).toBe('pane')
     expect(notice.getAttribute('role')).toBe('alert')
     expect(textOf(app, '.diagit-notice-title')).toBe('BPMN file could not be read')
-    expect(textOf(app, '.diagit-notice-body')).toBe('It is not a valid BPMN model.')
+    expect(textOf(app, '.diagit-notice-body')).toBe('Diagit could not draw it.')
     expect(textOf(app, '.diagit-notice-report')).toBe('Report problem')
     const report = app.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
     expect(new URL(report.href).searchParams.get('where')).toBe(FAKE_REPORT_CONTEXT.where)

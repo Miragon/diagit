@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseJsonModel } from '../src/platform/utils/parseJsonModel'
+import { parseJsonModel } from '../src/platform/utils/modelSource'
 import { ModelRejected } from '../src/platform/ModelRejected'
 
 const toCount = (data: unknown): number => {
@@ -38,5 +38,13 @@ describe('parseJsonModel', () => {
 
     expect(err.reason).toBe('unsupported')
     expect(err.cause).toEqual(new Error('Not a counter'))
+  })
+})
+
+describe('parseJsonModel with a host page served instead of the file', () => {
+  it('keeps the original parse error, so the user can report it', () => {
+    const page = '<!DOCTYPE html><html><body>Sign in</body></html>'
+
+    expect(() => parseJsonModel(page, toCount)).toThrow(SyntaxError)
   })
 })

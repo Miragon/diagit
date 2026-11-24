@@ -2,7 +2,7 @@ import { NavigatedViewer } from '@miragon/team-topologies-renderer'
 import rendererCss from '@miragon/team-topologies-renderer/assets/team-topologies.css?inline'
 import { parseDocument, type TtDocument } from '@miragon/team-topologies-schema-model'
 import { DiagramJsNotation } from '../DiagramJsNotation'
-import { parseJsonModel } from '../../platform/utils/parseJsonModel'
+import { parseJsonModel } from '../../platform/utils/modelSource'
 import type { ImportWarning } from '../DiagramJsViewer'
 import { TEAM_TOPOLOGIES } from './descriptor'
 

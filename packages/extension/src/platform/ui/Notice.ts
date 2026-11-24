@@ -103,7 +103,7 @@ export class Notice implements PanelHandle {
     return {
       tone: 'danger',
       title,
-      body: `It is not a valid ${label} model.`,
+      body: 'Diagit could not draw it.',
       reportUrl: diagitRepository.problemReportUrl(
         `${label} file not rendered ${place}`,
         `Diagit showed "${title}" ${place}.`,

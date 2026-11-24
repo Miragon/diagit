@@ -17,10 +17,10 @@ async function reasonOf(xml: string): Promise<string | undefined> {
 
 describe('DmnViewer import failures', () => {
   it('draws a model without a DRD layout as its decision table', async () => {
-    const viewer = await DmnViewer.create(
-      document.createElement('div'),
-      e2eModel('sample.dmn').replace(/<dmndi:DMNDI>[\s\S]*<\/dmndi:DMNDI>/, ''),
-    )
+    const withoutLayout = e2eModel('sample.dmn').replace(/<dmndi:DMNDI>[\s\S]*<\/dmndi:DMNDI>/, '')
+    expect(withoutLayout).not.toContain('<dmndi:DMNDI')
+
+    const viewer = await DmnViewer.create(document.createElement('div'), withoutLayout)
 
     viewer.destroy()
   })
@@ -30,7 +30,7 @@ describe('DmnViewer import failures', () => {
   })
 
   it('rejects merge conflict markers as malformed', async () => {
-    expect(await reasonOf(unreadableModel('conflict-markers.bpmn'))).toBe('malformed')
+    expect(await reasonOf(e2eModel('conflict-markers.bpmn'))).toBe('malformed')
   })
 
   it('rejects a BPMN model and a DMN 1.1 model as unsupported', async () => {

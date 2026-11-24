@@ -4,6 +4,7 @@ import { fitWithPadding, type FitCanvas } from '../../platform/utils/fitWithPadd
 import { onViewboxChange, type EventBus } from '../../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
 import { ModelRejected } from '../../platform/ModelRejected'
+import { rejectionOfUnparsedXml } from '../../platform/utils/modelSource'
 import type { DiagramViewer } from '../Notation'
 
 const DMN_NAMESPACE = 'https://www.omg.org/spec/DMN/20191111/MODEL/'
@@ -42,7 +43,7 @@ export class DmnViewer implements DiagramViewer {
     err: unknown,
   ): ModelRejected | null {
     if (!viewer.getDefinitions()) {
-      return ModelRejected.ofUnparsedXml(xml, DMN_NAMESPACE, err)
+      return rejectionOfUnparsedXml(xml, DMN_NAMESPACE, err)
     }
     return viewer.getViews().length ? null : new ModelRejected('no-content', { cause: err })
   }

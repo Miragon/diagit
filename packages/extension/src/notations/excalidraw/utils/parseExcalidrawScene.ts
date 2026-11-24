@@ -1,5 +1,5 @@
 import type { ExportSceneData } from '@excalidraw/utils'
-import { parseJsonModel } from '../../../platform/utils/parseJsonModel'
+import { parseJsonModel } from '../../../platform/utils/modelSource'
 
 type SceneFiles = NonNullable<ExportSceneData['files']>
 type SceneFile = SceneFiles[keyof SceneFiles]

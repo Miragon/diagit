@@ -81,4 +81,12 @@ describe('standalone viewer page', () => {
     await expect(notice.$('.diagit-notice-title')).toHaveText('BPMN file has no diagram layout')
     await expect(notice.$('.diagit-notice-report')).not.toBeExisting()
   })
+
+  it('explains a .bpmn file with merge conflict markers and offers no report link', async () => {
+    await openFixture('conflict-markers.bpmn')
+    const notice = $('.canvas > .diagit-notice')
+    await expect(notice).toHaveAttribute('data-tone', 'warning')
+    await expect(notice.$('.diagit-notice-title')).toHaveText('BPMN file has syntax errors')
+    await expect(notice.$('.diagit-notice-report')).not.toBeExisting()
+  })
 })

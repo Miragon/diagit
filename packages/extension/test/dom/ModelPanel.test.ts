@@ -241,7 +241,7 @@ describe('ModelPanel', () => {
     await vi.waitFor(() => expect(container.querySelector('.diagit-notice')).not.toBeNull())
     expect(textOf(container, '.diagit-notice-title')).toBe('BPMN file could not be read')
     expect(textOf(container, '.diagit-notice-body')).toBe(
-      'It is not a valid BPMN model. The code below still shows the file.',
+      'Diagit could not draw it. The code below still shows the file.',
     )
     expect(container.querySelector('.diagit-notice-actions button')).toBeNull()
     const report = container.querySelector<HTMLAnchorElement>('.diagit-notice-report')!
