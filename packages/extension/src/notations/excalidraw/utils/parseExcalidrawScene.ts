@@ -1,4 +1,5 @@
 import type { ExportSceneData } from '@excalidraw/utils'
+import { parseJsonModel } from '../../../platform/utils/modelSource'
 
 type SceneFiles = NonNullable<ExportSceneData['files']>
 type SceneFile = SceneFiles[keyof SceneFiles]
@@ -6,11 +7,15 @@ type SceneFile = SceneFiles[keyof SceneFiles]
 const EMBEDDED_IMAGE_DATA_URL = /^data:image\/[a-z+.-]+;base64,/
 
 export function parseExcalidrawScene(source: string): ExportSceneData {
-  const scene: unknown = JSON.parse(source)
-  if (!isExcalidrawScene(scene)) {
+  const scene = parseJsonModel(source, sceneOf)
+  return { ...scene, files: embeddedImagesOf(scene.files ?? {}) }
+}
+
+function sceneOf(data: unknown): ExportSceneData {
+  if (!isExcalidrawScene(data)) {
     throw new Error('Not an Excalidraw scene')
   }
-  return { ...scene, files: embeddedImagesOf(scene.files ?? {}) }
+  return data
 }
 
 function isExcalidrawScene(scene: unknown): scene is ExportSceneData {

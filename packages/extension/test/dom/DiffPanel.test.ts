@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DiffPanel } from '../../src/views/diff-viewer/DiffPanel'
 import { MARKER } from '../../src/views/diff-viewer/markers'
 import { FetchError } from '../../src/platform/messaging/HttpClient'
+import { ModelRejected } from '../../src/platform/ModelRejected'
 import { FakeDiffer } from '../fakes/FakeDiffer'
 import { FakeFullScreen } from '../fakes/FakeFullScreen'
 import { FakeIntersectionObserver } from '../fakes/FakeIntersectionObserver'
@@ -916,6 +917,20 @@ describe('DiffPanel', () => {
     expect(reportedConsole(newPane)).not.toContain('no diagram found')
     expect(failureIn(newPane).querySelector('[aria-label="Reload"]')).toBeNull()
     expect(container.textContent).not.toContain('render error')
+  })
+
+  it('explains a version without a layout and offers no report link', async () => {
+    const differ = new FakeDiffer()
+    vi.spyOn(differ, 'createViewer').mockRejectedValue(new ModelRejected('no-layout'))
+
+    const container = mount(differ, async () => '<bpmn:definitions/>')
+    const newPane = diffPanes(container)[1]!
+
+    await vi.waitFor(() =>
+      expect(newPane.textContent).toContain('New version has no diagram layout'),
+    )
+    expect(failureIn(newPane).dataset.tone).toBe('info')
+    expect(failureIn(newPane).querySelector('.diagit-notice-report')).toBeNull()
   })
 
   it('shows the notice on the Plain tab when it is opened after the Diff tab', async () => {

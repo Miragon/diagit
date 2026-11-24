@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd" id="definitions_legacy" name="Legacy" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="decision" name="Decision">
+    <decisionTable id="table">
+      <input id="input" label="Amount">
+        <inputExpression id="inputExpression" typeRef="integer"><text>amount</text></inputExpression>
+      </input>
+      <output id="output" name="approved" typeRef="boolean" />
+    </decisionTable>
+  </decision>
+</definitions>

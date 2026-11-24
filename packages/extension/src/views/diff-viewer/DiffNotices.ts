@@ -1,8 +1,7 @@
 import { RotateCw } from 'lucide'
 import { diagitRepository, type ReportContext } from '../../platform/DiagitRepository'
-import type { NoticeDetails } from '../../platform/ui/Notice'
+import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import { FetchError } from '../../platform/messaging/HttpClient'
-import { unreadableModelReason } from '../../platform/utils/errorMessage'
 import type { DiffSide } from './sides'
 
 const VERSION_NAME: Record<DiffSide, string> = { old: 'Old', new: 'New' }
@@ -31,17 +30,14 @@ export class DiffNotices {
   }
 
   notRendered(side: DiffSide, err: unknown): NoticeDetails {
-    const title = `${VERSION_NAME[side]} version could not be read`
-    return {
-      tone: 'danger',
-      title,
-      reportUrl: diagitRepository.problemReportUrl(
-        `${this.label} file not rendered ${PLACE}`,
-        `Diagit showed "${title}" ${PLACE}.`,
-        this.reportContext,
-        unreadableModelReason(err),
-      ),
-    }
+    const { body: _barHasNoRoomForABody, ...notice } = Notice.unreadableModel(
+      this.label,
+      PLACE,
+      err,
+      this.reportContext,
+      `${VERSION_NAME[side]} version`,
+    )
+    return notice
   }
 
   private httpStatus(err: unknown): string | undefined {

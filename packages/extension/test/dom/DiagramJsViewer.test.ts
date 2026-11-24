@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { DiagramJsViewer, type DiagramJsDiagram } from '../../src/notations/DiagramJsViewer'
+import { ModelRejected } from '../../src/platform/ModelRejected'
 
 function fakeEventBus() {
   const listeners = new Map<string, Set<() => void>>()
@@ -41,12 +42,15 @@ describe('DiagramJsViewer', () => {
     expect(diagram.toggleZoomScroll).toHaveBeenCalledWith(false)
   })
 
-  it('reports the first import warning when nothing could be imported', async () => {
+  it('rejects the source as malformed when its parser could import nothing', async () => {
     const diagram = new FakeDiagram(1)
     const importSource = async () => [{ message: 'Line 1: unknown keyword' }]
-    await expect(DiagramJsViewer.create(diagram, importSource)).rejects.toThrow(
-      'Line 1: unknown keyword',
-    )
+
+    const err = await DiagramJsViewer.create(diagram, importSource).catch((err: unknown) => err)
+
+    expect(err).toBeInstanceOf(ModelRejected)
+    expect((err as ModelRejected).reason).toBe('malformed')
+    expect((err as ModelRejected).cause).toEqual(new Error('Line 1: unknown keyword'))
     expect(diagram.destroy).toHaveBeenCalled()
   })
 

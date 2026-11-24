@@ -3,8 +3,11 @@ import { detectHostTheme, diagramColors } from '../../platform/utils/hostTheme'
 import { fitWithPadding, type FitCanvas } from '../../platform/utils/fitWithPadding'
 import { onViewboxChange, type EventBus } from '../../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../../platform/utils/zoomScroll'
+import { ModelRejected } from '../../platform/ModelRejected'
+import { rejectionOfUnparsedXml } from '../../platform/utils/modelSource'
 import type { DiagramViewer } from '../Notation'
 
+const DMN_NAMESPACE = 'https://www.omg.org/spec/DMN/20191111/MODEL/'
 const DMN_FIT_PADDING = 64
 const VIEWS_CHANGED = 'views.changed'
 
@@ -25,12 +28,24 @@ export class DmnViewer implements DiagramViewer {
     try {
       await viewer.importXML(xml)
     } catch (err) {
+      const failure = DmnViewer.rejectionOf(viewer, xml, err) ?? err
       viewer.destroy()
-      throw err
+      throw failure
     }
     const dmnViewer = new DmnViewer(viewer)
     dmnViewer.fitViewportUnlessContainerIsUnmeasured()
     return dmnViewer
+  }
+
+  private static rejectionOf(
+    viewer: DmnNavigatedViewer,
+    xml: string,
+    err: unknown,
+  ): ModelRejected | null {
+    if (!viewer.getDefinitions()) {
+      return rejectionOfUnparsedXml(xml, DMN_NAMESPACE, err)
+    }
+    return viewer.getViews().length ? null : new ModelRejected('no-content', { cause: err })
   }
 
   private constructor(private readonly viewer: DmnNavigatedViewer) {}

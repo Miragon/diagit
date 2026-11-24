@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseExcalidrawScene } from '../src/notations/excalidraw/utils/parseExcalidrawScene'
+import { ModelRejected } from '../src/platform/ModelRejected'
 
 describe('parseExcalidrawScene', () => {
   it('returns the scene of a .excalidraw file', () => {
@@ -33,15 +34,23 @@ describe('parseExcalidrawScene', () => {
     expect(parseExcalidrawScene(source).files).toEqual({})
   })
 
-  it('rejects JSON that is not an Excalidraw scene', () => {
-    expect(() => parseExcalidrawScene('{"type":"excalidraw"}')).toThrow('Not an Excalidraw scene')
-    expect(() => parseExcalidrawScene('null')).toThrow('Not an Excalidraw scene')
-    expect(() => parseExcalidrawScene('{"type":"other","elements":[]}')).toThrow(
-      'Not an Excalidraw scene',
-    )
-  })
+  it.each(['{"type":"excalidraw"}', 'null', '{"type":"other","elements":[]}'])(
+    'rejects JSON that is not an Excalidraw scene as unsupported: %s',
+    (source) => {
+      expect(rejectionOf(source)).toBe('unsupported')
+    },
+  )
 
-  it('rejects text that is not JSON', () => {
-    expect(() => parseExcalidrawScene('not json')).toThrow(SyntaxError)
+  it('rejects text that is not JSON as malformed', () => {
+    expect(rejectionOf('not json')).toBe('malformed')
   })
 })
+
+function rejectionOf(source: string): string | undefined {
+  try {
+    parseExcalidrawScene(source)
+  } catch (err) {
+    return err instanceof ModelRejected ? err.reason : undefined
+  }
+  return undefined
+}

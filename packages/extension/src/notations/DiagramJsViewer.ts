@@ -1,6 +1,7 @@
 import { fitWithPadding, type FitCanvas } from '../platform/utils/fitWithPadding'
 import { onViewboxChange, type EventBus } from '../platform/utils/viewboxChange'
 import { toggleZoomScroll } from '../platform/utils/zoomScroll'
+import { ModelRejected } from '../platform/ModelRejected'
 import type { DiagramViewer } from './Notation'
 
 export interface DiagramJsDiagram {
@@ -43,7 +44,7 @@ export class DiagramJsViewer implements DiagramViewer {
     const [firstWarning] = warnings
     const importedElements = diagram.get<ElementRegistry>('elementRegistry').getAll().length
     if (firstWarning && importedElements <= ROOT_ELEMENT_ONLY) {
-      throw new Error(firstWarning.message)
+      throw new ModelRejected('malformed', { cause: new Error(firstWarning.message) })
     }
   }
 
