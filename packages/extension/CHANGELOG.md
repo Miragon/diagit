@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/Miragon/diagit/compare/v0.10.0...v0.10.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* release a diff panel when the host reuses its file box for another file ([#262](https://github.com/Miragon/diagit/issues/262)) ([fbf9b94](https://github.com/Miragon/diagit/commit/fbf9b940de4dd49701ce8674cb8543f79924f34b))
+
 ## [0.10.0](https://github.com/Miragon/diagit/compare/v0.9.0...v0.10.0) (2026-11-23)
 
 
