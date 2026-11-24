@@ -20,9 +20,15 @@ export class GitlabDiffScanner {
         append: 'first',
         fileRoot: root,
         isCollapsed: () => this.isCollapsed(root),
+        showsOtherFile: () => this.showsOtherFile(root, path),
       })
     })
     return files
+  }
+
+  private showsOtherFile(root: HTMLElement, scannedPath: string): boolean {
+    const currentPath = this.filePathOf(root)
+    return currentPath !== null && currentPath !== scannedPath
   }
 
   private isCollapsed(root: HTMLElement): boolean {

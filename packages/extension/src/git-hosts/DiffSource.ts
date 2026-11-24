@@ -14,6 +14,7 @@ interface DiffPanelSlot {
 export interface ChangedFile extends DiffPanelSlot {
   path: string
   isCollapsed(): boolean
+  showsOtherFile(): boolean
 }
 
 export interface DiffLoaders {

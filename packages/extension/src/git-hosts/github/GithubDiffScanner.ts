@@ -21,6 +21,7 @@ export class GithubDiffScanner {
         append: this.hasFramedCode(root) ? ('first' as const) : ('before' as const),
         fileRoot: root,
         isCollapsed: () => !isRendered(this.codeOf(root)),
+        showsOtherFile: () => this.showsOtherFile(root, path),
       }
     })
   }
@@ -45,6 +46,11 @@ export class GithubDiffScanner {
       (region) => !modern.some((root) => root.contains(region) || region.contains(root)),
     )
     return [...legacy, ...modern, ...regions]
+  }
+
+  private showsOtherFile(root: HTMLElement, scannedPath: string): boolean {
+    const currentPath = this.filePathOf(root)
+    return currentPath !== null && currentPath !== scannedPath
   }
 
   private filePathOf(root: HTMLElement): string | null {

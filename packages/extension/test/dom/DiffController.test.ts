@@ -51,6 +51,7 @@ function sourceShowing(
           append: 'before',
           fileRoot,
           isCollapsed: () => false,
+          showsOtherFile: () => false,
           loadOld: async () => null,
           loadNew: async () => null,
         },
@@ -169,6 +170,66 @@ describe('DiffController', () => {
     expect(fileRoot.querySelector(DIFF_PANEL_TAG)).toBeNull()
   })
 
+  describe('a file box the host reuses for another file while scrolling', () => {
+    function renderRecyclableFileBox(path: string): HTMLElement {
+      document.body.innerHTML = `<div class="file" data-path="${path}"><div class="code"></div></div>`
+      return document.querySelector<HTMLElement>('.file')!
+    }
+
+    function sourceReadingPathsFromPage(): DiffSource {
+      return {
+        pageKey: () => 'group/project!7',
+        unrecognizedFiles: async () => [],
+        loadersFor: async () => null,
+        async collect(_location, doc) {
+          return [...doc.querySelectorAll<HTMLElement>('.file')]
+            .map((fileRoot) => ({ fileRoot, path: fileRoot.dataset.path! }))
+            .filter(({ path }) => path.endsWith('.bpmn'))
+            .map(({ fileRoot, path }) => ({
+              path,
+              anchor: fileRoot.querySelector<HTMLElement>('.code')!,
+              append: 'before' as const,
+              fileRoot,
+              isCollapsed: () => false,
+              showsOtherFile: () => fileRoot.dataset.path !== path,
+              loadOld: async () => null,
+              loadNew: async () => null,
+            }))
+        },
+      }
+    }
+
+    function reuseFor(fileRoot: HTMLElement, path: string): void {
+      fileRoot.dataset.path = path
+      fileRoot.querySelector('.code')!.replaceChildren(document.createElement('table'))
+    }
+
+    it('removes the panel once the box shows a file that is no diagram', async () => {
+      const fileRoot = renderRecyclableFileBox('flows/order.bpmn')
+      start(sourceReadingPathsFromPage())
+      await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).not.toBeNull())
+
+      reuseFor(fileRoot, 'src/guard.spec.ts')
+
+      await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).toBeNull())
+    })
+
+    it('shows the diagram of the file the box shows now', async () => {
+      const fileRoot = renderRecyclableFileBox('flows/order.bpmn')
+      start(sourceReadingPathsFromPage())
+      await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).not.toBeNull())
+      const orderPanel = fileRoot.querySelector(DIFF_PANEL_TAG)
+
+      reuseFor(fileRoot, 'flows/invoice.bpmn')
+
+      await vi.waitFor(() => {
+        const panels = fileRoot.querySelectorAll(DIFF_PANEL_TAG)
+        expect(panels).toHaveLength(1)
+        expect(panels[0]).not.toBe(orderPanel)
+      })
+    })
+  })
+
   it('leaves files of a notation without diff support alone', async () => {
     const fileRoot = renderFileBox()
     start(sourceShowing(fileRoot, Promise.resolve(), 'rules/decide.dmn'))
@@ -201,6 +262,7 @@ describe('DiffController', () => {
               append: 'before',
               fileRoot,
               isCollapsed: () => false,
+              showsOtherFile: () => false,
             },
           ],
         )
@@ -248,6 +310,7 @@ describe('DiffController', () => {
               append: 'before',
               fileRoot,
               isCollapsed: () => false,
+              showsOtherFile: () => false,
             },
           ],
         )

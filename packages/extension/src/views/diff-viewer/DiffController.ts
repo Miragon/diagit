@@ -21,10 +21,15 @@ const RERUN_DEBOUNCE_MS = 300
 const COLLAPSE_DEBOUNCE_MS = 150
 const FILE_ROOT_CHANGES: MutationObserverInit = { attributes: true, childList: true, subtree: true }
 
+interface ShownPanel {
+  file: ChangedFile
+  stopTracking: () => void
+}
+
 export class DiffController {
   private readonly mounting = new WeakSet<Element>()
   private readonly erroring = new WeakSet<Element>()
-  private readonly shownOnPage = new Map<ShadowPanel<PanelHandle>, () => void>()
+  private readonly shownOnPage = new Map<ShadowPanel<PanelHandle>, ShownPanel>()
   private shownPageKey: string | null = null
   private readonly unrecognizedNotices: UnrecognizedFileNotices
 
@@ -49,7 +54,7 @@ export class DiffController {
     if (!this.isShowing(pageKey)) {
       this.showPage(pageKey)
     }
-    this.releaseDetached()
+    this.releaseDetachedOrReused()
     if (!pageKey) {
       this.unrecognizedNotices.removeAll()
       return
@@ -123,7 +128,7 @@ export class DiffController {
       },
       err.noticeDetails(label, this.reportContext),
     )
-    this.keepOnPage(panel, pageKey)
+    this.keepOnPage(panel, file, pageKey)
   }
 
   private async mount(block: DiffFileBlock, differ: DiagramDiffer, pageKey: string): Promise<void> {
@@ -144,7 +149,7 @@ export class DiffController {
           onRendered: () => void this.diagramViews.save(this.page.location.pathname),
         }).mount(container),
     })
-    this.keepOnPage(panel, pageKey, this.mirrorCollapse(panel, block))
+    this.keepOnPage(panel, block, pageKey, this.mirrorCollapse(panel, block))
   }
 
   private isShowing(pageKey: string | null): boolean {
@@ -152,16 +157,16 @@ export class DiffController {
   }
 
   private showPage(pageKey: string | null): void {
-    for (const [shown, stopTracking] of this.shownOnPage) {
+    for (const [shown, { stopTracking }] of this.shownOnPage) {
       this.release(shown, stopTracking)
     }
     this.shownOnPage.clear()
     this.shownPageKey = pageKey
   }
 
-  private releaseDetached(): void {
-    for (const [shown, stopTracking] of this.shownOnPage) {
-      if (shown.shadowHost.isConnected) {
+  private releaseDetachedOrReused(): void {
+    for (const [shown, { file, stopTracking }] of this.shownOnPage) {
+      if (shown.shadowHost.isConnected && !file.showsOtherFile()) {
         continue
       }
       this.shownOnPage.delete(shown)
@@ -171,11 +176,12 @@ export class DiffController {
 
   private keepOnPage(
     shown: ShadowPanel<PanelHandle>,
+    file: ChangedFile,
     pageKey: string,
     stopTracking: () => void = () => {},
   ): void {
     if (this.isShowing(pageKey) && shown.shadowHost.isConnected) {
-      this.shownOnPage.set(shown, stopTracking)
+      this.shownOnPage.set(shown, { file, stopTracking })
     } else {
       this.release(shown, stopTracking)
     }
