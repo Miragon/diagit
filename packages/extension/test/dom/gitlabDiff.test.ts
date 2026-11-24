@@ -208,6 +208,20 @@ describe('GitLab merge-request diff', () => {
     expect(http.requests).toHaveLength(1)
   })
 
+  it('notices when GitLab reuses the file box for another file while scrolling', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [],
+    })
+    const doc = withFileBox('flows/order.bpmn')
+    const [block] = await new GitlabHost(http).diff.collect(location, doc)
+    expect(block!.showsOtherFile()).toBe(false)
+
+    block!.fileRoot.setAttribute('data-path', 'src/guard.spec.ts')
+
+    expect(block!.showsOtherFile()).toBe(true)
+  })
+
   it('treats a file whose content area only holds our own panel as collapsed', async () => {
     const http = new FakeHttpClient().respondWith({
       [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
