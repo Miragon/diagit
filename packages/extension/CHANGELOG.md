@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/Miragon/diagit/compare/v0.10.1...v0.11.0) (2026-11-24)
+
+
+### Features
+
+* tell broken or layout-less models apart from Diagit failures ([#265](https://github.com/Miragon/diagit/issues/265)) ([a97ac95](https://github.com/Miragon/diagit/commit/a97ac95cedfff88425240fc8e50a41e76f15796a))
+
 ## [0.10.1](https://github.com/Miragon/diagit/compare/v0.10.0...v0.10.1) (2026-11-24)
 
 
