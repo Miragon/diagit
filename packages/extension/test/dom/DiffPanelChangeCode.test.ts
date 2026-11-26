@@ -144,14 +144,14 @@ describe('DiffPanel: the code of the selected change', () => {
     expect(codeToggle.element.getAttribute('aria-controls')).toBe(changeCode(container).id)
   })
 
-  it('shows an added element in one column over the full width, named by its id', async () => {
+  it('keeps both columns for an added element, empty on the Before side, named by its id', async () => {
     const { container } = await loaded()
 
     next(container)
 
     expect(barText(container)).toBe('Task_new | User task')
-    expect(xml(container).dataset.columns).toBe('1')
-    expect(lines(container)).toEqual(['added:<bpmn:userTask id="Task_new" />'])
+    expect(xml(container).dataset.columns).toBe('2')
+    expect(lines(container)).toEqual(['gap:', 'added:<bpmn:userTask id="Task_new" />'])
   })
 
   it('says only the layout changed for a moved element', async () => {

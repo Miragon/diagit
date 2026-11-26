@@ -1,7 +1,7 @@
 import type { ChangeDetail, DiagramDiff } from '../../notations/Notation'
 import { h } from '../../platform/utils/dom'
 import type { DiffSide } from './sides'
-import { XmlLineDiff, type XmlLine } from './XmlLineDiff'
+import { XmlLineDiff, type XmlLine, type XmlLinePair } from './XmlLineDiff'
 
 export interface SelectedChange {
   id: string
@@ -17,7 +17,7 @@ const WORD_START = /(?<=[a-z])(?=[A-Z])/
 
 /**
  * The bar under the diagram and, for a selected change, its XML without layout: before and
- * after on the columns of the panes, or one column for an added or removed element.
+ * after on the columns of the panes, also for an added or removed element.
  */
 export class ChangeCode {
   private readonly bar = h('div', { class: 'diagit-change-code-bar' })
@@ -74,10 +74,10 @@ export class ChangeCode {
     if (before === null && after === null) {
       return []
     }
-    if (before === null || after === null) {
-      return [this.linesOf(after ?? before!, after !== null ? 'added' : 'removed')]
-    }
-    const pairs = this.lineDiff.pairs(before, after)
+    const pairs =
+      before !== null && after !== null
+        ? this.lineDiff.pairs(before, after)
+        : this.pairsOfOneSide(before, after)
     const oldColumn = pairs.map(([line]) => line)
     const newColumn = pairs.map(([, line]) => line)
     const shown = change.shownSides
@@ -88,8 +88,13 @@ export class ChangeCode {
     return [oldColumn, newColumn]
   }
 
-  private linesOf(xml: string, kind: XmlLine['kind']): XmlLine[] {
-    return xml.split('\n').map((text) => ({ kind, text }))
+  /** An added or removed element keeps both columns: the side it is missing from stays empty. */
+  private pairsOfOneSide(before: string | null, after: string | null): XmlLinePair[] {
+    const gap: XmlLine = { kind: 'gap', text: '' }
+    if (after !== null) {
+      return after.split('\n').map((text) => [gap, { kind: 'added', text }])
+    }
+    return (before ?? '').split('\n').map((text) => [{ kind: 'removed', text }, gap])
   }
 
   private renderColumns(columns: XmlLine[][]): void {
