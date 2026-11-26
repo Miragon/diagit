@@ -474,15 +474,3 @@
 .diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='removed']::before {
   color: var(--cd-ui-danger);
 }
-
-.diagit-diff-position-slot {
-  display: inline-grid;
-}
-
-.diagit-diff-position-slot > * {
-  grid-area: 1 / 1;
-}
-
-.diagit-diff-position-sizer {
-  visibility: hidden;
-}

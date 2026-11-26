@@ -211,14 +211,17 @@ describe('DiffPanel: the code of the selected change', () => {
     expect(hostCodeHidden).toBe(false)
   })
 
-  it('keeps the place of the position, so the arrows do not move while stepping', async () => {
+  it('puts the position before the arrows, so the arrows do not move while stepping', async () => {
     const { container } = await loaded()
-    const slot = container.querySelector<HTMLElement>('.diagit-diff-position-slot')!
-    const sizers = [...slot.querySelectorAll('.diagit-diff-position-sizer')]
+    const nav = [...container.querySelector('.diagit-diff-nav')!.children]
 
-    expect(sizers.map((sizer) => sizer.textContent)).toEqual(['3 changes', '3 of 3'])
-    expect(sizers.every((sizer) => sizer.getAttribute('aria-hidden') === 'true')).toBe(true)
-    expect(slot.querySelector('.diagit-diff-position')!.textContent).toBe('3 changes')
+    expect(nav.map((part) => part.getAttribute('aria-label') ?? part.textContent)).toEqual([
+      '3 changes',
+      'Previous change',
+      'Next change',
+      '·',
+      'Show all',
+    ])
   })
 
   it('counts the review comments that the code of the change hides', async () => {
