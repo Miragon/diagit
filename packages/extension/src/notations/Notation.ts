@@ -25,10 +25,23 @@ export interface DiffableViewer extends DiagramViewer {
   resetView(): void
 }
 
+/** One changed element as code, without layout: `null` on the side it is missing from. */
+export interface ChangeDetail {
+  type: string
+  name: string | null
+  before: string | null
+  after: string | null
+}
+
+export interface DiagramComparison {
+  readonly diff: DiagramDiff
+  detail(id: string): ChangeDetail | null
+}
+
 export interface DiagramDiffer {
   readonly css: string
   readonly showsBpmnIoLogo: boolean
-  diff(oldXml: string, newXml: string): Promise<DiagramDiff>
+  compare(oldXml: string, newXml: string): Promise<DiagramComparison>
   createViewer(canvas: HTMLElement, xml: string): Promise<DiffableViewer>
 }
 

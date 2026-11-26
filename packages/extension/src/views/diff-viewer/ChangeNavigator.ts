@@ -26,6 +26,10 @@ export class ChangeNavigator {
     return this.index < 0 ? null : this.index + 1
   }
 
+  get selectedId(): string | null {
+    return this.index < 0 ? null : this.ids[this.index]!
+  }
+
   next(): void {
     this.go(1)
   }

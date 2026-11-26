@@ -31,6 +31,9 @@ export class CodeToggle {
   private keptShown = false
   private hidingAllowed = true
   private hiddenCommentCount = 0
+  private panelShowsCode = false
+  private controlledElements: Element[] = []
+  private readonly listeners = new Set<() => void>()
 
   constructor(private readonly options: CodeToggleOptions) {
     this.shown = options.shown
@@ -41,6 +44,20 @@ export class CodeToggle {
 
   get codeShown(): boolean {
     return this.shown || !this.hidingAllowed
+  }
+
+  /** While the panel shows the code of a selected change itself, the host's code steps aside. */
+  showCodeInPanel(active: boolean): void {
+    if (this.panelShowsCode === active) {
+      return
+    }
+    this.panelShowsCode = active
+    this.apply()
+  }
+
+  onChange(listener: () => void): () => void {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
   }
 
   allowHiding(allowed: boolean): void {
@@ -71,9 +88,16 @@ export class CodeToggle {
   }
 
   controls(elements: Element[]): void {
+    this.controlledElements = elements
     if ('ariaControlsElements' in this.element) {
       this.element.ariaControlsElements = elements
     }
+  }
+
+  /** Also controls an element of the panel itself, which `aria-controls` can name by id. */
+  alsoControls(element: HTMLElement): void {
+    this.element.setAttribute('aria-controls', element.id)
+    this.controls([...this.controlledElements, element])
   }
 
   private toggle(): void {
@@ -87,11 +111,13 @@ export class CodeToggle {
     this.element.hidden = !this.hidingAllowed
     this.element.setAttribute('aria-pressed', String(this.shown))
     this.showHiddenCommentCount()
-    this.options.hideCode(!this.codeShown)
+    this.options.hideCode(!this.codeShown || this.panelShowsCode)
+    this.listeners.forEach((listener) => listener())
   }
 
   private showHiddenCommentCount(): void {
-    const hiddenCount = this.codeShown ? 0 : this.hiddenCommentCount
+    const hostCodeShown = this.codeShown && !this.panelShowsCode
+    const hiddenCount = hostCodeShown ? 0 : this.hiddenCommentCount
     this.hiddenComments.hidden = hiddenCount === 0
     this.hiddenComments.textContent = hiddenCount ? String(hiddenCount) : ''
     const commentNote = hiddenCount === 1 ? '1 review comment' : `${hiddenCount} review comments`

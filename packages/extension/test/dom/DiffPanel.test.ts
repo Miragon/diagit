@@ -533,7 +533,7 @@ describe('DiffPanel', () => {
       buttonLabelled(container, 'Next change').click()
       buttonLabelled(container, 'Next change').click()
       buttonLabelled(container, 'Next change').click()
-      expect(position(container)).toBe('')
+      expect(position(container)).toBe('2 changes')
       const fitsBefore = newViewer.fits
 
       FakeResizeObserver.resizeAll()
@@ -650,9 +650,9 @@ describe('DiffPanel', () => {
       const differ = new FakeDiffer(DIFF, ['A', 'R', 'C'])
       let deliverDiff!: () => void
       const diffArrives = new Promise<void>((done) => (deliverDiff = done))
-      vi.spyOn(differ, 'diff').mockImplementation(async () => {
+      vi.spyOn(differ, 'compare').mockImplementation(async () => {
         await diffArrives
-        return DIFF
+        return { diff: DIFF, detail: () => null }
       })
       const container = document.createElement('div')
       document.body.append(container)
@@ -748,7 +748,7 @@ describe('DiffPanel', () => {
     await vi.waitFor(() => expect(container.textContent).toContain('Added 1'))
 
     expect(container.querySelector('.diagit-diff-legend')?.getAttribute('title')).toBe(
-      'Added 1, Removed 1, Moved 1, 3 changes',
+      'Added 1, Removed 1, Moved 1',
     )
   })
 
@@ -773,8 +773,7 @@ describe('DiffPanel', () => {
       async () => '<old/>',
       async () => '<new/>',
     )
-    await vi.waitFor(() => expect(total(container)).toBe('3 changes'))
-    expect(position(container)).toBe('')
+    await vi.waitFor(() => expect(position(container)).toBe('3 changes'))
 
     buttonLabelled(container, 'Next change').click()
     expect(position(container)).toBe('1 of 3')
@@ -783,8 +782,7 @@ describe('DiffPanel', () => {
     buttonLabelled(container, 'Previous change').click()
     expect(position(container)).toBe('1 of 3')
     buttonNamed(container, 'Show all').click()
-    expect(position(container)).toBe('')
-    expect(total(container)).toBe('3 changes')
+    expect(position(container)).toBe('3 changes')
     buttonLabelled(container, 'Previous change').click()
     expect(position(container)).toBe('3 of 3')
   })
@@ -922,7 +920,7 @@ describe('DiffPanel', () => {
 
   it('says the changes could not be computed when the diff fails', async () => {
     const differ = new FakeDiffer()
-    vi.spyOn(differ, 'diff').mockRejectedValue(new Error('unsupported element'))
+    vi.spyOn(differ, 'compare').mockRejectedValue(new Error('unsupported element'))
 
     const container = mount(
       differ,

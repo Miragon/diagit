@@ -49,6 +49,8 @@ The arrows for the previous and the next change in the toolbar select one change
 
 **Code** at the end of the toolbar hides the text diff below the panel and shows it again. Diagit keeps your choice for each file until you close the page.
 
+What Code shows follows the selection. With no change selected, a bar under the diagram reads **All changes · Whole file** and the text diff below shows the whole file, with its review comments. Select a change with the arrows, and the bar names the element and its type, and below it Diagit shows only the XML of that element, without the layout (BPMNDI): before on the left, after on the right, an added or removed element in one column. The text diff steps aside meanwhile. For an element that only moved, the bar says **Only the layout changed**. **Show all** or Esc go back to the whole file. The diagram keeps its size, the XML below it grows with its length.
+
 The code starts shown. To start with the diagram alone, choose **Start with the diagram alone** under **Code under diagrams** on Diagit's options page. The change applies to open pages right away. Some files keep their code even then:
 
 - A file with review comments starts with the code shown, and Diagit shows it as soon as comments load.
