@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/Miragon/diagit/compare/v0.11.0...v0.11.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* keep the diff toolbar on one row and cut the legend with an ellipsis ([#267](https://github.com/Miragon/diagit/issues/267)) ([d8123aa](https://github.com/Miragon/diagit/commit/d8123aa33b1306576ce4d17fc881a0ff5cdc6832))
+
 ## [0.11.0](https://github.com/Miragon/diagit/compare/v0.10.1...v0.11.0) (2026-11-24)
 
 
