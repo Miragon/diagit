@@ -526,6 +526,21 @@ describe('DiffPanel', () => {
       expect(newViewer.fits).toBe(fitsBefore)
     })
 
+    it('fits again when the next change after the last one is the overview', async () => {
+      vi.stubGlobal('ResizeObserver', FakeResizeObserver)
+      const { container, newViewer } = await diffOf()
+      buttonLabelled(container, 'Expand After').click()
+      buttonLabelled(container, 'Next change').click()
+      buttonLabelled(container, 'Next change').click()
+      buttonLabelled(container, 'Next change').click()
+      expect(position(container)).toBe('')
+      const fitsBefore = newViewer.fits
+
+      FakeResizeObserver.resizeAll()
+
+      expect(newViewer.fits).toBe(fitsBefore + 1)
+    })
+
     it('fits again on resize after "Show all"', async () => {
       vi.stubGlobal('ResizeObserver', FakeResizeObserver)
       const { container, newViewer } = await diffOf()

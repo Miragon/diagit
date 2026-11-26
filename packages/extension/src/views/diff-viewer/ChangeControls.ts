@@ -37,12 +37,19 @@ export class ChangeControls {
         ? `${navigator.position} of ${navigator.ids.length}`
         : ''
     }
+    const reportStep = () => {
+      if (navigator.position) {
+        this.navigation.steppedToChange()
+      } else {
+        this.navigation.showedAll()
+      }
+    }
     const previous = this.iconButton(
       'Previous change',
       ChevronLeft,
       step(() => {
         navigator.previous()
-        this.navigation.steppedToChange()
+        reportStep()
       }),
     )
     const next = this.iconButton(
@@ -50,7 +57,7 @@ export class ChangeControls {
       ChevronRight,
       step(() => {
         navigator.next()
-        this.navigation.steppedToChange()
+        reportStep()
       }),
     )
     previous.disabled = !navigator.hasChanges
