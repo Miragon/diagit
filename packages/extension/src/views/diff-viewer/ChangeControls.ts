@@ -81,7 +81,7 @@ export class ChangeControls {
         [
           previous,
           next,
-          position,
+          this.positionSlot(position, navigator.ids.length),
           h('span', { class: 'diagit-diff-nav-separator', 'aria-hidden': 'true', text: '·' }),
           h('button', {
             class: 'btn btn-ghost',
@@ -138,6 +138,21 @@ export class ChangeControls {
         ]),
       ),
     )
+  }
+
+  /**
+   * Reserves the width of the longest position text, so the arrows stay put while the text
+   * switches between "n changes" and "i of n".
+   */
+  private positionSlot(position: HTMLElement, total: number): HTMLElement {
+    const widest = [this.totalText(total), `${total} of ${total}`].map((text) =>
+      h('span', {
+        class: 'diagit-btn-group-position diagit-diff-position-sizer',
+        'aria-hidden': 'true',
+        text,
+      }),
+    )
+    return h('span', { class: 'diagit-diff-position-slot' }, [position, ...widest])
   }
 
   private totalText(total: number): string {
