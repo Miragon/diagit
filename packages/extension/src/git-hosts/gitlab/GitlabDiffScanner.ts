@@ -3,6 +3,7 @@ import { CODE_HIDDEN_ATTRIBUTE, DIFF_PANEL_TAG } from '../../platform/injectedEl
 import { notationDetector, type NotationDetector } from '../../notations/NotationDetector'
 import { hasRenderedBox } from '../../platform/utils/isRendered'
 import { gitlabSelectors } from './gitlabSelectors'
+import { isLinkedInto } from '../utils/fileLink'
 
 export class GitlabDiffScanner {
   constructor(private readonly notations: NotationDetector = notationDetector) {}
@@ -27,6 +28,8 @@ export class GitlabDiffScanner {
         isCollapsed: () => this.isCollapsed(root),
         showsOtherFile: () => this.showsOtherFile(root, path),
         hostCode: () => (content === root ? [] : this.hostContentOf(content)),
+        reviewCommentCount: () => root.querySelectorAll(gitlabSelectors.diff.reviewNote).length,
+        isLinkedFrom: (hash: string) => isLinkedInto(root, hash, [root.id]),
       })
     })
     return files

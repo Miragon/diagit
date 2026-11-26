@@ -45,6 +45,18 @@ Diagit matches elements by id. When a change gives an element a new id, it shows
 
 The arrows for the previous and the next change in the toolbar select one change after the other and zoom both sides to it. Next to them Diagit shows which change is selected, for example "2 of 7", or how many changes there are when none is selected. **Show all** clears the selection and fits both diagrams again. The overview is also one step of the arrows: after the last change they show all changes, then the first change again, and the same way back. The **−**, **+** and **Fit** buttons zoom by hand.
 
+## The code under the diagram
+
+**Code** at the end of the toolbar hides the text diff below the panel and shows it again. Diagit keeps your choice for each file until you close the page.
+
+The code starts shown. To start with the diagram alone, choose **Start with the diagram alone** under **Code under diagrams** on Diagit's options page. The change applies to open pages right away. Some files keep their code even then:
+
+- A file with review comments starts with the code shown, and Diagit shows it as soon as comments load.
+- A link to a line or a comment of the file, such as `#diff-…R42` or `#note_123`, opens the file with its code.
+- When the panel shows an error instead of a diagram, the code stays.
+
+Apart from the start you choose, Diagit never hides the code by itself. When you hide the code of a file with review comments, a number on **Code** counts the comments you do not see.
+
 ## Look at one side
 
 **Expand** next to **Fit** opens the panel in a larger dialog, with the file path in its toolbar. From there, the full screen button shows it on the whole screen. Press it again or Esc to go back.
@@ -53,7 +65,7 @@ Expanded and in full screen, a switch at the top shows **Before** or **After** a
 
 ## Limits
 
-- The diff covers BPMN. DMN, Wardley Maps and the other notations are drawn in a pull request as on the file page, without before and after.
+- The diff covers BPMN. For DMN, Wardley Maps and the other notations a pull request shows only the text diff. Open the file to see the diagram.
 - Moving many elements, for example after an automatic layout, marks all of them as moved. Their content is unchanged.
 
 ## Next steps

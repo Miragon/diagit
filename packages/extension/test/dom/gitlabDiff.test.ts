@@ -432,3 +432,23 @@ describe('GitLab diff: hiding the code under a panel', () => {
     expect(block!.hostCode()).toEqual([])
   })
 })
+
+describe('GitLab diff: links and review comments of a file', () => {
+  it('is linked from a note or a line of the file and counts its notes', async () => {
+    const http = new FakeHttpClient().respondWith({
+      [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+      [`${api}/diffs?per_page=100&page=1`]: [],
+    })
+    document.body.innerHTML = `
+      <div class="diff-file" id="f00d" data-path="flows/order.bpmn">
+        <div class="diff-content"><li class="note" id="note_1"></li><li class="note" id="note_2"></li></div>
+      </div>`
+
+    const [block] = await new GitlabHost(http).diff.collect(location, document)
+
+    expect(block!.isLinkedFrom('#note_2')).toBe(true)
+    expect(block!.isLinkedFrom('#f00d_12_14')).toBe(true)
+    expect(block!.isLinkedFrom('#note_99')).toBe(false)
+    expect(block!.reviewCommentCount()).toBe(2)
+  })
+})

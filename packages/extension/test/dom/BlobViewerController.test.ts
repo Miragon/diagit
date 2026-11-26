@@ -12,6 +12,8 @@ import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { FakeHttpClient } from '../fakes/FakeHttpClient'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
+import { codeStartSettingIn, codeVisibilityIn } from '../fakes/codeVisibilityIn'
+import { MemoryStorageArea } from '../fakes/MemoryStorageArea'
 
 vi.mock('wxt/browser', () => ({
   browser: {
@@ -55,6 +57,8 @@ describe('BlobViewerController', () => {
       blobPage,
       FAKE_REPORT_CONTEXT,
       new FakeNotationLookup(),
+      undefined,
+      codeVisibilityIn(),
     ).start()
 
     const file = document.getElementById('file')!
@@ -72,6 +76,8 @@ describe('BlobViewerController', () => {
       blobPage,
       FAKE_REPORT_CONTEXT,
       new FakeNotationLookup(),
+      undefined,
+      codeVisibilityIn(),
     ).start()
 
     const file = document.getElementById('file')!
@@ -94,6 +100,8 @@ describe('BlobViewerController', () => {
       blobPage,
       FAKE_REPORT_CONTEXT,
       new FakeNotationLookup(),
+      undefined,
+      codeVisibilityIn(),
     ).start()
 
     const file = document.getElementById('file')!
@@ -114,6 +122,8 @@ describe('BlobViewerController', () => {
       blobPage,
       FAKE_REPORT_CONTEXT,
       new FakeNotationLookup(),
+      undefined,
+      codeVisibilityIn(),
     ).start()
     await new Promise((resolve) => setTimeout(resolve, 50))
 
@@ -127,6 +137,8 @@ describe('BlobViewerController', () => {
         controllerBlobPage,
         FAKE_REPORT_CONTEXT,
         new FakeNotationLookup(),
+        undefined,
+        codeVisibilityIn(),
       ).start()
     }
 
@@ -189,6 +201,26 @@ describe('BlobViewerController', () => {
       expect(button.hidden).toBe(true)
     })
 
+    it('starts with the code shown on a link to a line, even when the options say alone', async () => {
+      const area = new MemoryStorageArea()
+      await codeStartSettingIn(area).write('hidden')
+      document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
+      const page = pageAt('/o/r/blob/main/order.bpmn')
+      Object.assign(page.location, { hash: '#L42' })
+      new BlobViewerController(
+        page,
+        blobPage,
+        FAKE_REPORT_CONTEXT,
+        new FakeNotationLookup(),
+        undefined,
+        codeVisibilityIn(area),
+      ).start()
+
+      const button = await mountedCodeButton()
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+      expect(document.querySelector(HOST_TAG)!.hasAttribute(CODE_HIDDEN_ATTRIBUTE)).toBe(false)
+    })
+
     it('shows the code again once the panel is gone', async () => {
       document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
       start()
@@ -209,6 +241,8 @@ describe('BlobViewerController', () => {
         blobPage,
         FAKE_REPORT_CONTEXT,
         new FakeNotationLookup(),
+        undefined,
+        codeVisibilityIn(),
       ).start()
     }
 

@@ -17,6 +17,9 @@ export interface ChangedFile extends DiffPanelSlot {
   showsOtherFile(): boolean
   /** The host's code of the file that a panel may hide; empty when it cannot be told apart. */
   hostCode(): HTMLElement[]
+  reviewCommentCount(): number
+  /** Whether a URL hash such as `#diff-…R42` or `#note_7` points into this file. */
+  isLinkedFrom(hash: string): boolean
 }
 
 export interface DiffLoaders {

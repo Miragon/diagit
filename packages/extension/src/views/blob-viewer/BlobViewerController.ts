@@ -7,7 +7,8 @@ import { PlacementNoticeSlot } from './PlacementNoticeSlot'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import type { ReportContext } from '../../platform/DiagitRepository'
-import { CodeToggle } from '../../platform/ui/CodeToggle'
+import type { CodeToggle } from '../../platform/ui/CodeToggle'
+import { CodeVisibility } from '../../platform/ui/CodeVisibility'
 
 const MOUNT_RETRIES = 12
 const RETRY_INTERVAL_MS = 500
@@ -23,7 +24,6 @@ export class BlobViewerController {
   private mounting = false
   private restoreAnchor: (() => void) | null = null
   private retryTimer: ReturnType<typeof setInterval> | null = null
-  private readonly codeShownByPath = new Map<string, boolean>()
 
   constructor(
     private readonly page: HostPage,
@@ -31,12 +31,24 @@ export class BlobViewerController {
     private readonly reportContext: ReportContext,
     private readonly notations: NotationLookup = allNotations,
     private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
+    private readonly codeVisibility: CodeVisibility = new CodeVisibility(),
   ) {
     this.placementNotice = new PlacementNoticeSlot(page, reportContext)
   }
 
   start(): void {
     this.page.addDocumentStyle(this.blobPage.hiddenCodeCss(HIDDEN_CODE_PANEL))
+    void this.codeVisibility.load().then((stopFollowingCodeStart) => {
+      if (this.page.isInvalid) {
+        stopFollowingCodeStart()
+        return
+      }
+      this.page.onInvalidated(stopFollowingCodeStart)
+      this.watchPage()
+    })
+  }
+
+  private watchPage(): void {
     this.page.onChange(RECHECK_DEBOUNCE_MS, () => {
       if (!this.mounting && this.isOutOfSync()) {
         this.sync()
@@ -129,14 +141,13 @@ export class BlobViewerController {
   }
 
   private codeToggleFor(path: string, shadowHost: HTMLElement): CodeToggle {
-    const toggle = new CodeToggle({
-      shown: this.codeShownByPath.get(path) ?? true,
-      hideCode: (hidden) => shadowHost.toggleAttribute(CODE_HIDDEN_ATTRIBUTE, hidden),
-      toggled: (shown) => this.codeShownByPath.set(path, shown),
-    })
     const code = this.blobPage.findCode(this.page.document)
-    toggle.controls(code ? [code] : [])
-    return toggle
+    return this.codeVisibility.toggleFor({
+      key: path,
+      hostCode: code ? [code] : [],
+      isLinked: this.blobPage.isLinkedToLine(this.page.location),
+      hideCode: (hidden) => shadowHost.toggleAttribute(CODE_HIDDEN_ATTRIBUTE, hidden),
+    })
   }
 
   private showPlacementNotice(): void {

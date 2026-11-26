@@ -11,11 +11,11 @@ export class ExtensionTab {
     return new ExtensionTab(context)
   }
 
-  async text(expression: string): Promise<string> {
+  async text(expression: string, { awaitPromise = false } = {}): Promise<string> {
     const result = await browser.scriptEvaluate({
       expression,
       target: { context: this.context },
-      awaitPromise: false,
+      awaitPromise,
     })
     return result.type === 'success' && result.result.type === 'string' ? result.result.value : ''
   }

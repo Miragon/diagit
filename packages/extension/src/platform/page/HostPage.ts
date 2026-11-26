@@ -35,6 +35,10 @@ export class HostPage {
     return this.win.document
   }
 
+  get isInvalid(): boolean {
+    return this.ctx.isInvalid
+  }
+
   onInvalidated(listener: () => void): void {
     this.ctx.onInvalidated(listener)
   }

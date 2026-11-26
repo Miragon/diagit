@@ -3,6 +3,7 @@ import { notationDetector, type NotationDetector } from '../../notations/Notatio
 import { isRendered } from '../../platform/utils/isRendered'
 import { githubSelectors } from './githubSelectors'
 import { stripBidiMarks } from '../../platform/utils/stripBidiMarks'
+import { isLinkedInto } from '../utils/fileLink'
 
 const RENAME_SEPARATORS = ['→', ' renamed to ']
 
@@ -32,6 +33,9 @@ export class GithubDiffScanner {
         isCollapsed: () => !isRendered(this.codeOf(root)),
         showsOtherFile: () => this.showsOtherFile(root, path),
         hostCode: () => this.hostCodeOf(root),
+        reviewCommentCount: () =>
+          root.querySelectorAll(githubSelectors.diff.reviewCommentBody).length,
+        isLinkedFrom: (hash: string) => isLinkedInto(root, hash, this.fileIdsOf(root)),
       }
     })
   }
@@ -102,6 +106,11 @@ export class GithubDiffScanner {
       root.querySelector<HTMLElement>(githubSelectors.diff.modernCode) ??
       root.querySelector<HTMLElement>(githubSelectors.diff.legacyCode)
     return code ? [code] : []
+  }
+
+  private fileIdsOf(root: HTMLElement): string[] {
+    const table = root.querySelector(githubSelectors.diff.modernCode)
+    return [root.id, table?.getAttribute('data-diff-anchor') ?? '']
   }
 
   private hasFramedCode(root: HTMLElement): boolean {

@@ -548,3 +548,37 @@ describe('GitHub diff: hiding the code under a panel', () => {
     expect(displayOf(doc, '.rows')).toBe('none')
   })
 })
+
+describe('GitHub diff: links and review comments of a file', () => {
+  const modernFile = `
+    <div id="diff-abc" aria-labelledby="diff-abc-heading">
+      <div data-diff-header-wrapper><h3 id="diff-abc-heading">flows/order.bpmn</h3></div>
+      <div class="frame">
+        <table data-diff-anchor="diff-abc">
+          <tr><td id="diff-abcR42"></td></tr>
+          <tr><td><div id="discussion_r7"><div class="markdown-body">Why?</div></div></td></tr>
+          <tr><td><div class="markdown-body">Because.</div></td></tr>
+        </table>
+      </div>
+    </div>`
+
+  async function scannedFile() {
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+    const [block] = await pullRequestDiff(http).collect(location, withFileBoxes(modernFile))
+    return block!
+  }
+
+  it('is linked from a line, a discussion or a line that is not rendered yet', async () => {
+    const file = await scannedFile()
+
+    expect(file.isLinkedFrom('#diff-abcR42')).toBe(true)
+    expect(file.isLinkedFrom('#discussion_r7')).toBe(true)
+    expect(file.isLinkedFrom('#diff-abcR900')).toBe(true)
+    expect(file.isLinkedFrom('#diff-otherR42')).toBe(false)
+    expect(file.isLinkedFrom('')).toBe(false)
+  })
+
+  it('counts the review comments in the file', async () => {
+    expect((await scannedFile()).reviewCommentCount()).toBe(2)
+  })
+})
