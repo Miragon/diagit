@@ -424,6 +424,7 @@
 }
 
 .diagit-xml-line {
+  display: flex;
   min-height: 1.5em;
   padding: 0 var(--cd-shell-rand) 0 0;
   white-space: pre-wrap;
@@ -431,7 +432,7 @@
 }
 
 .diagit-xml-line::before {
-  display: inline-block;
+  flex: none;
   width: 24px;
   color: var(--fg-muted);
   text-align: center;
@@ -456,4 +457,20 @@
 
 .diagit-xml-line[data-line='gap'] {
   background: var(--cd-ui-abschnitt);
+}
+
+.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='added'] {
+  box-shadow: inset 3px 0 0 var(--cd-ui-success);
+}
+
+.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='added']::before {
+  color: var(--cd-ui-success);
+}
+
+.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='removed'] {
+  box-shadow: inset 3px 0 0 var(--cd-ui-danger);
+}
+
+.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='removed']::before {
+  color: var(--cd-ui-danger);
 }
