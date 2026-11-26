@@ -77,6 +77,16 @@
   background: var(--cd-ui-hover);
 }
 
+.btn-toggle:hover:not(:disabled) {
+  background: var(--cd-ui-hover);
+}
+
+.btn-toggle[aria-pressed='true'] {
+  border-color: var(--cd-ui-interaktion);
+  background: var(--cd-ui-hover);
+  color: var(--cd-ui-link);
+}
+
 .btn-quiet-danger svg {
   color: var(--cd-ui-danger);
 }

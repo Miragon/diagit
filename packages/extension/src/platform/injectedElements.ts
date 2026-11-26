@@ -5,3 +5,5 @@ export const DIFF_PANEL_TAG = 'diagit-diff'
 export const PLACEMENT_NOTICE_TAG = 'diagit-placement-notice'
 
 export const DIFF_ERROR_TAG = 'diagit-diff-error'
+
+export const CODE_HIDDEN_ATTRIBUTE = 'data-code-hidden'

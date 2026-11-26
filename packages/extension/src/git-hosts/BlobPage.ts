@@ -17,6 +17,11 @@ export class BlobPage {
     private readonly notations: NotationDetector = notationDetector,
   ) {}
 
+  private get insertClimbs(): string[] {
+    const { insertClimb } = this.config
+    return Array.isArray(insertClimb) ? insertClimb : [insertClimb]
+  }
+
   isBlob(location: Pick<Location, 'pathname'>): boolean {
     return location.pathname.includes(this.config.blobSegment)
   }
@@ -48,10 +53,7 @@ export class BlobPage {
     if (!code) {
       return null
     }
-    const climbs = Array.isArray(this.config.insertClimb)
-      ? this.config.insertClimb
-      : [this.config.insertClimb]
-    for (const climb of climbs) {
+    for (const climb of this.insertClimbs) {
       const ancestor = code.closest<HTMLElement>(climb)
       if (ancestor) {
         return ancestor
@@ -60,7 +62,20 @@ export class BlobPage {
     return code
   }
 
-  private findCode(doc: Document): HTMLElement | null {
+  /**
+   * Hides the code that follows a panel matching `hiddenPanel`. Inside the anchor only the
+   * children that hold the code are hidden, so a file header there stays.
+   */
+  hiddenCodeCss(hiddenPanel: string): string {
+    const code = this.config.contentSelectors.join(', ')
+    const codeInsideAnchor = this.insertClimbs.map(
+      (climb) => `${hiddenPanel} + ${climb} > :is(${code}, :has(${code}))`,
+    )
+    const codeAsAnchor = `${hiddenPanel} + :is(${code})`
+    return `${[...codeInsideAnchor, codeAsAnchor].join(',\n')} {\n  display: none !important;\n}`
+  }
+
+  findCode(doc: Document): HTMLElement | null {
     for (const selector of this.config.contentSelectors) {
       const el = doc.querySelector<HTMLElement>(selector)
       if (el) {

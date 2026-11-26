@@ -39,3 +39,40 @@ describe('GitHub blob viewer (content script)', () => {
     await expect(host.shadow$('img.excalidraw-image')).toBeDisplayed()
   })
 })
+
+describe('GitHub blob viewer: the Code button', () => {
+  const codeButton = () => $('diagit-viewer').shadow$('.diagit-code-toggle')
+
+  it('hides the code under the diagram and shows it again, keeping the file header', async () => {
+    await browser.url('/octo/flows/blob/main/order.bpmn')
+    await $('diagit-viewer').shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+    await expect(codeButton()).toHaveAttribute('aria-pressed', 'true')
+    await expect($('[data-testid="code-lines-container"]')).toBeDisplayed()
+
+    await codeButton().click()
+
+    await expect(codeButton()).toHaveAttribute('aria-pressed', 'false')
+    await expect($('[data-testid="code-lines-container"]')).not.toBeDisplayed()
+    await expect($('.file-header')).toBeDisplayed()
+
+    await codeButton().click()
+
+    await expect($('[data-testid="code-lines-container"]')).toBeDisplayed()
+  })
+
+  it('hides code that the host renders late', async () => {
+    await browser.url('/octo/late/blob/main/order.bpmn')
+    await codeButton().waitForExist({ timeout: 20_000 })
+
+    await codeButton().click()
+
+    await expect($('[data-testid="code-lines-container"]')).not.toBeDisplayed()
+  })
+
+  it('keeps the code of a page it cannot place the diagram on', async () => {
+    await browser.url('/octo/relayout/blob/main/order.bpmn')
+    await $('diagit-placement-notice').waitForExist({ timeout: 20_000 })
+
+    await expect($('pre')).toBeDisplayed()
+  })
+})

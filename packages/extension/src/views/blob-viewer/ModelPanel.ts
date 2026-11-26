@@ -9,6 +9,7 @@ import { diagitRepository, type ReportContext } from '../../platform/DiagitRepos
 import { Notice, type NoticeDetails } from '../../platform/ui/Notice'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 import { AutoFit } from '../../platform/ui/AutoFit'
+import type { CodeToggle } from '../../platform/ui/CodeToggle'
 
 const CODE_STILL_SHOWN = 'The code below still shows the file.'
 
@@ -17,6 +18,7 @@ export interface ModelPanelOptions {
   filePath: string
   loadXml: () => Promise<string>
   reportContext: ReportContext
+  codeToggle?: CodeToggle
   onRendered?: () => void
 }
 
@@ -37,7 +39,10 @@ export class ModelPanel implements PanelHandle, Zoomable {
 
   constructor(private readonly options: ModelPanelOptions) {
     this.wrap = h('div', { class: 'diagit-wrap diagit-file-panel' }, [
-      h('div', { class: 'diagit-toolbar' }, [fileLabel(options.filePath, this.label)]),
+      h('div', { class: 'diagit-toolbar' }, [
+        fileLabel(options.filePath, this.label),
+        ...(options.codeToggle ? [options.codeToggle.element] : []),
+      ]),
       this.canvas,
       this.zoomControls.element,
     ])
@@ -88,6 +93,7 @@ export class ModelPanel implements PanelHandle, Zoomable {
   private async load(): Promise<void> {
     this.canvas.replaceChildren(this.placeholder)
     this.zoomControls.showLoading()
+    this.options.codeToggle?.allowHiding(true)
     let xml: string
     try {
       xml = await this.options.loadXml()
@@ -158,5 +164,6 @@ export class ModelPanel implements PanelHandle, Zoomable {
     const notice = new Notice({ ...details, followsUserAction: this.retried }, 'pane')
     this.canvas.replaceChildren(notice.element)
     this.zoomControls.hide()
+    this.options.codeToggle?.allowHiding(false)
   }
 }
