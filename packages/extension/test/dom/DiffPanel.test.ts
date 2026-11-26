@@ -723,6 +723,20 @@ describe('DiffPanel', () => {
     ])
   })
 
+  it('names the whole legend on hover, for when a narrow panel cuts it off', async () => {
+    const container = mount(
+      new FakeDiffer({ added: ['A'], removed: ['R'], changed: [], moved: ['M'] }, ['A', 'R', 'M']),
+      async () => '<old/>',
+      async () => '<new/>',
+    )
+
+    await vi.waitFor(() => expect(container.textContent).toContain('Added 1'))
+
+    expect(container.querySelector('.diagit-diff-legend')?.getAttribute('title')).toBe(
+      'Added 1, Removed 1, Moved 1, 3 changes',
+    )
+  })
+
   it('shows one legend and one change navigator for both panes', async () => {
     const container = mount(
       new FakeDiffer({ added: ['A'], removed: ['R'], changed: [], moved: [] }, ['A', 'R']),

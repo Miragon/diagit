@@ -16,10 +16,6 @@
   container: diagit-diff-root / inline-size;
 }
 
-.diagit-diff-root .diagit-toolbar {
-  flex-wrap: wrap;
-}
-
 .diagit-diff-area {
   position: relative;
 }
@@ -164,9 +160,8 @@
 .diagit-diff-changes {
   display: flex;
   flex: 1 1 auto;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 16px;
+  gap: 16px;
   min-width: 0;
   min-height: var(--cd-shell-ziel);
   font-size: 13px;
@@ -198,32 +193,29 @@
   margin-left: auto;
 }
 
-@container diagit-diff-root (max-width: 900px) {
-  .diagit-diff-changes {
-    order: 1;
-    flex-basis: 100%;
-    padding-bottom: 4px;
-  }
-}
-
+/* One line that ends in an ellipsis when the panel is too narrow, so the
+   toolbar never wraps. Inline content, because text-overflow needs it. */
 .diagit-diff-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--fg);
 }
 
-.diagit-legend-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+.diagit-diff-legend > * + * {
+  margin-left: 12px;
+}
+
+.diagit-diff-nav {
+  flex: none;
 }
 
 .diagit-swatch {
-  flex: none;
+  display: inline-block;
   box-sizing: border-box;
+  margin-right: 6px;
+  vertical-align: -1px;
   width: 12px;
   height: 12px;
   border: 1px solid var(--cd-schwarz);
