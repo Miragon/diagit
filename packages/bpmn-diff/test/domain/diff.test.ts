@@ -81,6 +81,49 @@ describe('ModelComparator', () => {
     expect(result.changed).toEqual(['Participant_1'])
   })
 
+  describe('attributes from namespaces without a registered schema', () => {
+    const foreign = readFixture('foreign-attributes.bpmn')
+
+    it('detects a changed operaton attribute', async () => {
+      const changed = foreign.replace('${chargeCard}', '${refundCard}')
+      const result = await diff(foreign, changed)
+      expect(result.changed).toEqual(['Task_1'])
+    })
+
+    it('detects a removed operaton attribute', async () => {
+      const result = await diff(foreign, foreign.replace(' operaton:asyncBefore="true"', ''))
+      expect(result.changed).toEqual(['Task_1'])
+    })
+
+    it('detects a changed flowable attribute', async () => {
+      const result = await diff(foreign, foreign.replace('${initiator}', '${manager}'))
+      expect(result.changed).toEqual(['Task_2'])
+    })
+
+    it('detects a changed attribute of an unknown namespace', async () => {
+      const result = await diff(foreign, foreign.replace('foo:bar="one"', 'foo:bar="two"'))
+      expect(result.changed).toEqual(['Task_2'])
+    })
+
+    it('ignores a namespace declaration that moves onto an element', async () => {
+      const redeclared = foreign.replace(
+        '<bpmn:userTask id="Task_2"',
+        '<bpmn:userTask xmlns:foo="http://example.com/foo" id="Task_2"',
+      )
+      const result = await diff(foreign, redeclared)
+      expect(isEmptyDiff(result)).toBe(true)
+    })
+
+    it('ignores the order of the attributes', async () => {
+      const reordered = foreign.replace(
+        'operaton:delegateExpression="${chargeCard}" operaton:asyncBefore="true"',
+        'operaton:asyncBefore="true" operaton:delegateExpression="${chargeCard}"',
+      )
+      const result = await diff(foreign, reordered)
+      expect(isEmptyDiff(result)).toBe(true)
+    })
+  })
+
   describe('referenced elements without a shape of their own', () => {
     const references = readFixture('references.bpmn')
 

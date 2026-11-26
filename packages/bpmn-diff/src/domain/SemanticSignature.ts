@@ -72,9 +72,24 @@ export class SemanticSignature {
       }
       out[key] = this.serialize(value, diagramElements, seen, depth + 1)
     }
+    const foreignAttributes = this.foreignAttributesOf(node)
+    if (foreignAttributes.length > 0) {
+      out.$attrs = foreignAttributes
+    }
 
     seen.delete(node)
     return out
+  }
+
+  /**
+   * Attributes of a namespace without a registered schema (Operaton, Flowable, …) land in
+   * moddle's non-enumerable `$attrs`. Namespace declarations are notation, not meaning.
+   */
+  private foreignAttributesOf(node: any): [string, string][] {
+    const attributes: Record<string, string> = node.$attrs ?? {}
+    return Object.entries(attributes)
+      .filter(([name]) => name !== 'xmlns' && !name.startsWith('xmlns:'))
+      .sort(([a], [b]) => a.localeCompare(b))
   }
 
   private semanticKeys(node: any): string[] {
