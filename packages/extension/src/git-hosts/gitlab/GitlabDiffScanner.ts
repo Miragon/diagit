@@ -1,11 +1,15 @@
 import type { ChangedFile } from '../DiffSource'
-import { DIFF_PANEL_TAG } from '../../platform/injectedElements'
+import { CODE_HIDDEN_ATTRIBUTE, DIFF_PANEL_TAG } from '../../platform/injectedElements'
 import { notationDetector, type NotationDetector } from '../../notations/NotationDetector'
 import { hasRenderedBox } from '../../platform/utils/isRendered'
 import { gitlabSelectors } from './gitlabSelectors'
 
 export class GitlabDiffScanner {
   constructor(private readonly notations: NotationDetector = notationDetector) {}
+
+  hiddenCodeCss(hiddenPanel: string): string {
+    return `${hiddenPanel} ~ * {\n  display: none !important;\n}`
+  }
 
   scan(doc: Document): ChangedFile[] {
     const files: ChangedFile[] = []
@@ -14,13 +18,15 @@ export class GitlabDiffScanner {
       if (!path || !this.notations.isDiffable(path)) {
         return
       }
+      const content = this.contentOf(root)
       files.push({
         path,
-        anchor: this.contentOf(root),
+        anchor: content,
         append: 'first',
         fileRoot: root,
         isCollapsed: () => this.isCollapsed(root),
         showsOtherFile: () => this.showsOtherFile(root, path),
+        hostCode: () => (content === root ? [] : this.hostContentOf(content)),
       })
     })
     return files
@@ -39,10 +45,17 @@ export class GitlabDiffScanner {
     if (!content) {
       return true
     }
-    const hostContent = Array.from(content.children).filter(
-      (child) => child.localName !== DIFF_PANEL_TAG,
+    if (content.querySelector(`:scope > ${DIFF_PANEL_TAG}[${CODE_HIDDEN_ATTRIBUTE}]`)) {
+      return !hasRenderedBox(content)
+    }
+    return !this.hostContentOf(content).some(hasRenderedBox)
+  }
+
+  private hostContentOf(content: HTMLElement): HTMLElement[] {
+    return Array.from(content.children).filter(
+      (child): child is HTMLElement =>
+        child instanceof HTMLElement && child.localName !== DIFF_PANEL_TAG,
     )
-    return !hostContent.some(hasRenderedBox)
   }
 
   private filePathOf(root: HTMLElement): string | null {

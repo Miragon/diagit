@@ -30,6 +30,10 @@ export class CachedDiffSource<Page extends { key: string }, Data> implements Dif
     private readonly notations: NotationDetector = notationDetector,
   ) {}
 
+  hiddenCodeCss(hiddenPanel: string): string {
+    return this.page.hiddenCodeCss(hiddenPanel)
+  }
+
   pageKey(location: PageUrl): string | null {
     return this.page.identify(location)?.key ?? null
   }

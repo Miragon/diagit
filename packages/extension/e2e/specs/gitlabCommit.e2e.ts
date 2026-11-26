@@ -21,3 +21,20 @@ describe('GitLab commit diff (content script)', () => {
     await expect($('table.rd-text-view-root')).toBeExisting()
   })
 })
+
+describe('GitLab commit diff: the Code button', () => {
+  it('hides the diff table in the file body and keeps the panel and the header', async () => {
+    await browser.url('/octo/flows/-/commit/c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00')
+    const host = $('diagit-diff')
+    await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
+    await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+
+    await host.shadow$('.diagit-code-toggle').click()
+
+    await expect($('table.rd-text-view-root')).not.toBeDisplayed()
+    await expect($('.rd-diff-file-header')).toBeDisplayed()
+    await expect(host).toBeDisplayed()
+    await expect(host).not.toHaveAttribute('data-collapsed')
+  })
+})

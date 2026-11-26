@@ -20,6 +20,7 @@ function sourceFor(loadersFor: DiffSource['loadersFor']): DiffSource {
     collect: async () => [],
     unrecognizedFiles: async () => [],
     loadersFor,
+    hiddenCodeCss: () => '',
   }
 }
 

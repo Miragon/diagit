@@ -41,3 +41,19 @@ describe('GitHub commit diff (content script)', () => {
     await expect(panels).toBeElementsArrayOfSize(1)
   })
 })
+
+describe('GitHub commit diff: the Code button', () => {
+  it('hides the diff table under the panel', async () => {
+    await browser.url('/octo/flows/commit/c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00')
+    const host = $('diagit-diff')
+    await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
+    await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+
+    await host.shadow$('.diagit-code-toggle').click()
+
+    await expect($('table[data-diff-anchor]')).not.toBeDisplayed()
+    await expect($('h3[id^="heading-"]')).toBeDisplayed()
+    await expect(host).toBeDisplayed()
+  })
+})
