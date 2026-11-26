@@ -112,17 +112,19 @@ export class ChangeControls {
   }
 
   private legend(diff: DiagramDiff, total: number): HTMLElement {
-    const chips = (Object.keys(LEGEND_LABEL) as ChangeCategory[])
+    const counts = (Object.keys(LEGEND_LABEL) as ChangeCategory[])
       .filter((category) => diff[category].length > 0)
-      .map((category) =>
+      .map((category) => ({ category, text: `${LEGEND_LABEL[category]} ${diff[category].length}` }))
+    const totalText = this.totalText(total)
+    const fullLegend = [...counts.map(({ text }) => text), totalText].join(', ')
+    return h('div', { class: 'diagit-diff-legend', title: fullLegend }, [
+      ...counts.map(({ category, text }) =>
         h('span', { class: 'diagit-legend-chip' }, [
           h('i', { class: 'diagit-swatch', 'data-change': category }),
-          `${LEGEND_LABEL[category]} ${diff[category].length}`,
+          text,
         ]),
-      )
-    return h('div', { class: 'diagit-diff-legend' }, [
-      ...chips,
-      h('span', { class: 'diagit-diff-total', text: this.totalText(total) }),
+      ),
+      h('span', { class: 'diagit-diff-total', text: totalText }),
     ])
   }
 
