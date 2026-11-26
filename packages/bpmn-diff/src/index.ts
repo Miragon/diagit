@@ -1,4 +1,5 @@
 export { BpmnModelDiffer } from './BpmnModelDiffer'
+export type { BpmnComparison, ElementDetail } from './BpmnComparison'
 export { BpmnParser } from './adapter/BpmnParser'
 export { ModelComparator } from './domain/ModelComparator'
 export { SemanticSignature } from './domain/SemanticSignature'
