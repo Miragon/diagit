@@ -1,54 +1,42 @@
-type XmlLineKind = 'same' | 'removed' | 'added' | 'gap'
+type XmlLineKind = 'same' | 'removed' | 'added'
 
 export interface XmlLine {
   kind: XmlLineKind
   text: string
 }
 
-/** One row of the side-by-side XML: the line before the change and the line after it. */
-export type XmlLinePair = readonly [before: XmlLine, after: XmlLine]
-
-const GAP: XmlLine = { kind: 'gap', text: '' }
-
 /**
- * Lines up two short XML snippets: unchanged lines side by side, a run of removed lines next
- * to the run of added lines that replaced it, and a gap where one side has no line.
+ * Lines up two short XML snippets in one column, like the diff of a git host: unchanged lines
+ * once, and each run of removed lines before the added lines that replaced it. A missing side
+ * (`null`) makes every line of the other side removed or added.
  */
 export class XmlLineDiff {
-  pairs(before: string, after: string): XmlLinePair[] {
-    const oldLines = before.split('\n')
-    const newLines = after.split('\n')
-    const pairs: XmlLinePair[] = []
-    let removed: string[] = []
-    let added: string[] = []
+  lines(before: string | null, after: string | null): XmlLine[] {
+    const oldLines = before === null ? [] : before.split('\n')
+    const newLines = after === null ? [] : after.split('\n')
+    const lines: XmlLine[] = []
+    let removed: XmlLine[] = []
+    let added: XmlLine[] = []
     const flushChangedRun = () => {
-      pairs.push(...this.pairChangedRun(removed, added))
+      lines.push(...removed, ...added)
       removed = []
       added = []
     }
     for (const step of this.steps(oldLines, newLines)) {
       if (step.kind === 'same') {
         flushChangedRun()
-        pairs.push([step, step])
+        lines.push(step)
       } else if (step.kind === 'removed') {
-        removed.push(step.text)
+        removed.push(step)
       } else {
-        added.push(step.text)
+        added.push(step)
       }
     }
     flushChangedRun()
-    return pairs
+    return lines
   }
 
-  private pairChangedRun(removed: string[], added: string[]): XmlLinePair[] {
-    const rows = Math.max(removed.length, added.length)
-    return Array.from({ length: rows }, (_, row) => [
-      row < removed.length ? { kind: 'removed', text: removed[row]! } : GAP,
-      row < added.length ? { kind: 'added', text: added[row]! } : GAP,
-    ])
-  }
-
-  /** The edit steps of a longest-common-subsequence alignment, removed lines first. */
+  /** The edit steps of a longest-common-subsequence alignment. */
   private steps(oldLines: string[], newLines: string[]): XmlLine[] {
     const common = this.commonSuffixLengths(oldLines, newLines)
     const steps: XmlLine[] = []

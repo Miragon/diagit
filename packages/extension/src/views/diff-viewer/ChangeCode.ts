@@ -1,23 +1,22 @@
 import type { ChangeDetail, DiagramDiff } from '../../notations/Notation'
 import { h } from '../../platform/utils/dom'
-import type { DiffSide } from './sides'
-import { XmlLineDiff, type XmlLine, type XmlLinePair } from './XmlLineDiff'
+import { XmlLineDiff, type XmlLine } from './XmlLineDiff'
 
 export interface SelectedChange {
   id: string
   category: keyof DiagramDiff
   detail: ChangeDetail | null
-  shownSides: readonly DiffSide[]
 }
 
 const CHANGE_CODE_ID = 'diagit-change-code'
 
 const TYPE_PREFIX = /^[^:]*:/
 const WORD_START = /(?<=[a-z])(?=[A-Z])/
+const LEADING_WHITESPACE = /^(\s*)(.*)$/s
 
 /**
- * The bar under the diagram and, for a selected change, its XML without layout: before and
- * after on the columns of the panes, also for an added or removed element.
+ * The bar under the diagram and, for a selected change, its XML without layout in one column,
+ * like the diff of a git host: unchanged lines, removed lines (−) and added lines (+).
  */
 export class ChangeCode {
   private readonly bar = h('div', { class: 'diagit-change-code-bar' })
@@ -51,11 +50,11 @@ export class ChangeCode {
       this.xml.hidden = true
       return true
     }
-    const columns = detail ? this.columnsOf(change, detail) : []
+    const lines = detail ? this.lineDiff.lines(detail.before, detail.after) : []
     this.show('XML of the selected change', name, type)
-    this.xml.hidden = columns.length === 0
-    this.renderColumns(columns)
-    return columns.length > 0
+    this.xml.hidden = lines.length === 0
+    this.xml.replaceChildren(...lines.map((line) => this.lineRow(line)))
+    return lines.length > 0
   }
 
   private show(label: string, title: string, ...details: string[]): void {
@@ -69,45 +68,13 @@ export class ChangeCode {
     )
   }
 
-  private columnsOf(change: SelectedChange, detail: ChangeDetail): XmlLine[][] {
-    const { before, after } = detail
-    if (before === null && after === null) {
-      return []
-    }
-    const pairs =
-      before !== null && after !== null
-        ? this.lineDiff.pairs(before, after)
-        : this.pairsOfOneSide(before, after)
-    const oldColumn = pairs.map(([line]) => line)
-    const newColumn = pairs.map(([, line]) => line)
-    const shown = change.shownSides
-    if (shown.length === 1) {
-      const column = shown[0] === 'old' ? oldColumn : newColumn
-      return [column.filter((line) => line.kind !== 'gap')]
-    }
-    return [oldColumn, newColumn]
-  }
-
-  /** An added or removed element keeps both columns: the side it is missing from stays empty. */
-  private pairsOfOneSide(before: string | null, after: string | null): XmlLinePair[] {
-    const gap: XmlLine = { kind: 'gap', text: '' }
-    if (after !== null) {
-      return after.split('\n').map((text) => [gap, { kind: 'added', text }])
-    }
-    return (before ?? '').split('\n').map((text) => [{ kind: 'removed', text }, gap])
-  }
-
-  private renderColumns(columns: XmlLine[][]): void {
-    this.xml.dataset.columns = String(columns.length)
-    const rows = Math.max(0, ...columns.map((column) => column.length))
-    const cells = Array.from({ length: rows }, (_, row) =>
-      columns.map((column) => this.lineCell(column[row] ?? { kind: 'gap', text: '' })),
-    ).flat()
-    this.xml.replaceChildren(...cells)
-  }
-
-  private lineCell(line: XmlLine): HTMLElement {
-    return h('span', { class: 'diagit-xml-line', 'data-line': line.kind, text: line.text })
+  /** The indentation is a cell of its own, so a wrapped line goes on under its indentation. */
+  private lineRow(line: XmlLine): HTMLElement {
+    const [, indentation = '', code = ''] = line.text.match(LEADING_WHITESPACE) ?? []
+    return h('span', { class: 'diagit-xml-line', 'data-line': line.kind }, [
+      h('span', { class: 'diagit-xml-indentation', text: indentation }),
+      h('span', { class: 'diagit-xml-code', text: code }),
+    ])
   }
 
   private typeLabel(type: string): string {

@@ -130,13 +130,10 @@ describe('DiffPanel: the code of the selected change', () => {
     next(container)
 
     expect(barText(container)).toBe('Charge card | Service task')
-    expect(xml(container).dataset.columns).toBe('2')
     expect(lines(container)).toEqual([
-      'same:<bpmn:serviceTask id="Task_1">',
       'same:<bpmn:serviceTask id="Task_1">',
       'removed:  <zeebe:taskDefinition type="a" />',
       'added:  <zeebe:taskDefinition type="b" />',
-      'same:</bpmn:serviceTask>',
       'same:</bpmn:serviceTask>',
     ])
     expect(hostCodeHidden).toBe(true)
@@ -144,14 +141,26 @@ describe('DiffPanel: the code of the selected change', () => {
     expect(codeToggle.element.getAttribute('aria-controls')).toBe(changeCode(container).id)
   })
 
-  it('keeps both columns for an added element, empty on the Before side, named by its id', async () => {
+  it('shows an added element as added lines, named by its id', async () => {
     const { container } = await loaded()
 
     next(container)
 
     expect(barText(container)).toBe('Task_new | User task')
-    expect(xml(container).dataset.columns).toBe('2')
-    expect(lines(container)).toEqual(['gap:', 'added:<bpmn:userTask id="Task_new" />'])
+    expect(lines(container)).toEqual(['added:<bpmn:userTask id="Task_new" />'])
+  })
+
+  it('keeps the indentation of a line apart from its code, so a wrapped line stays under it', async () => {
+    const { container } = await loaded()
+
+    next(container)
+    next(container)
+
+    const removed = xml(container).querySelector('[data-line="removed"]')!
+    expect(removed.querySelector('.diagit-xml-indentation')!.textContent).toBe('  ')
+    expect(removed.querySelector('.diagit-xml-code')!.textContent).toBe(
+      '<zeebe:taskDefinition type="a" />',
+    )
   })
 
   it('says only the layout changed for a moved element', async () => {

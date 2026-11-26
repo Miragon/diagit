@@ -1,45 +1,38 @@
 import { describe, expect, it } from 'vitest'
 import { XmlLineDiff } from '../src/views/diff-viewer/XmlLineDiff'
 
-const rows = (before: string, after: string) =>
-  new XmlLineDiff()
-    .pairs(before, after)
-    .map(([old, current]) => `${old.kind}:${old.text} | ${current.kind}:${current.text}`)
+const lines = (before: string | null, after: string | null) =>
+  new XmlLineDiff().lines(before, after).map((line) => `${line.kind}:${line.text}`)
 
 describe('XmlLineDiff', () => {
-  it('puts a changed line next to the line it replaced', () => {
+  it('shows a changed line as the removed line followed by the added one', () => {
     expect(
-      rows(
+      lines(
         '<task id="T">\n  <job type="a" />\n</task>',
         '<task id="T">\n  <job type="b" />\n</task>',
       ),
     ).toEqual([
-      'same:<task id="T"> | same:<task id="T">',
-      'removed:  <job type="a" /> | added:  <job type="b" />',
-      'same:</task> | same:</task>',
+      'same:<task id="T">',
+      'removed:  <job type="a" />',
+      'added:  <job type="b" />',
+      'same:</task>',
     ])
   })
 
-  it('leaves a gap on the side that has no line', () => {
-    expect(rows('<a>\n</a>', '<a>\n  <input />\n  <output />\n</a>')).toEqual([
-      'same:<a> | same:<a>',
-      'gap: | added:  <input />',
-      'gap: | added:  <output />',
-      'same:</a> | same:</a>',
-    ])
-    expect(rows('<a>\n  <input />\n</a>', '<a>\n</a>')).toEqual([
-      'same:<a> | same:<a>',
-      'removed:  <input /> | gap:',
-      'same:</a> | same:</a>',
+  it('puts a whole run of removed lines before the run that replaced it', () => {
+    expect(lines('x\n1\n2\ny', 'x\n3\n4\n5\ny')).toEqual([
+      'same:x',
+      'removed:1',
+      'removed:2',
+      'added:3',
+      'added:4',
+      'added:5',
+      'same:y',
     ])
   })
 
-  it('pairs a longer run of removed lines with the shorter run that replaced it', () => {
-    expect(rows('x\n1\n2\ny', 'x\n3\ny')).toEqual([
-      'same:x | same:x',
-      'removed:1 | added:3',
-      'removed:2 | gap:',
-      'same:y | same:y',
-    ])
+  it('marks every line of an added or a removed element', () => {
+    expect(lines(null, '<a>\n</a>')).toEqual(['added:<a>', 'added:</a>'])
+    expect(lines('<a />', null)).toEqual(['removed:<a />'])
   })
 })

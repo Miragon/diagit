@@ -244,7 +244,6 @@ export class DiffPanel implements PanelHandle, Zoomable {
       id,
       category: this.categoryOf(id),
       detail: comparison.detail(id),
-      shownSides: this.sides.shownPanes.map((pane) => pane.side),
     })
     codeToggle.showCodeInPanel(showsCode)
   }
