@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { browser } from 'wxt/browser'
 import { BlobPage } from '../../src/git-hosts/BlobPage'
-import { HOST_TAG, PLACEMENT_NOTICE_TAG } from '../../src/platform/injectedElements'
+import {
+  CODE_HIDDEN_ATTRIBUTE,
+  HOST_TAG,
+  PLACEMENT_NOTICE_TAG,
+} from '../../src/platform/injectedElements'
 import { BlobViewerController } from '../../src/views/blob-viewer/BlobViewerController'
 import { HostPage } from '../../src/platform/page/HostPage'
 import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
@@ -114,6 +118,86 @@ describe('BlobViewerController', () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(document.querySelector(HOST_TAG)).toBeNull()
+  })
+
+  describe('the Code button', () => {
+    function start(controllerBlobPage = blobPage): void {
+      new BlobViewerController(
+        pageAt('/o/r/blob/main/order.bpmn'),
+        controllerBlobPage,
+        FAKE_REPORT_CONTEXT,
+        new FakeNotationLookup(),
+      ).start()
+    }
+
+    async function mountedCodeButton(): Promise<HTMLButtonElement> {
+      const button = await vi.waitFor(() => {
+        const found = document
+          .querySelector(HOST_TAG)
+          ?.shadowRoot?.querySelector<HTMLButtonElement>('.diagit-code-toggle')
+        expect(found).toBeTruthy()
+        return found!
+      })
+      return button
+    }
+
+    it('starts with the code shown and hides it on a click', async () => {
+      document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
+      start()
+
+      const button = await mountedCodeButton()
+      const panel = document.querySelector(HOST_TAG)!
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+      expect(panel.hasAttribute(CODE_HIDDEN_ATTRIBUTE)).toBe(false)
+
+      button.click()
+
+      expect(panel.hasAttribute(CODE_HIDDEN_ATTRIBUTE)).toBe(true)
+      expect(getComputedStyle(document.querySelector('.code')!).display).toBe('none')
+    })
+
+    it('keeps the choice when the host renders the file again', async () => {
+      document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
+      start()
+      ;(await mountedCodeButton()).click()
+
+      document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
+
+      const button = await mountedCodeButton()
+      expect(button.getAttribute('aria-pressed')).toBe('false')
+      expect(document.querySelector(HOST_TAG)!.hasAttribute(CODE_HIDDEN_ATTRIBUTE)).toBe(true)
+    })
+
+    it('brings the code back when the diagram cannot be shown', async () => {
+      const failingBlobPage = new BlobPage(
+        {
+          blobSegment: '/blob/',
+          rawSegment: '/raw/',
+          contentSelectors: ['.code'],
+          insertClimb: 'section',
+        },
+        new FakeHttpClient().failEverythingWith(new Error('offline')),
+      )
+      document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
+      start(failingBlobPage)
+      const button = await mountedCodeButton()
+      button.click()
+
+      const panel = document.querySelector(HOST_TAG)!
+      await vi.waitFor(() => expect(panel.shadowRoot!.querySelector('.diagit-notice')).toBeTruthy())
+      expect(panel.hasAttribute(CODE_HIDDEN_ATTRIBUTE)).toBe(false)
+      expect(button.hidden).toBe(true)
+    })
+
+    it('shows the code again once the panel is gone', async () => {
+      document.body.innerHTML = '<section id="file"><div class="code"></div></section>'
+      start()
+      ;(await mountedCodeButton()).click()
+
+      context.invalidate()
+
+      expect(getComputedStyle(document.querySelector('.code')!).display).not.toBe('none')
+    })
   })
 
   describe('when the page offers no place for the view', () => {

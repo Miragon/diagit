@@ -14,7 +14,7 @@ export interface ShadowPanelOptions<Handle extends PanelHandle> {
   anchor: HTMLElement
   append: 'first' | 'last' | 'before' | 'after'
   css: string
-  render: (container: HTMLElement) => Handle
+  render: (container: HTMLElement, shadowHost: HTMLElement) => Handle
 }
 
 export type ShadowPanel<Handle extends PanelHandle> = ShadowRootContentScriptUi<Handle>
@@ -61,6 +61,18 @@ export class HostPage {
     return this.watch(target, init, delayMs, onChange).stop
   }
 
+  addDocumentStyle(css: string): () => void {
+    const style = this.document.createElement('style')
+    style.textContent = css
+    this.document.head.append(style)
+    const remove = () => style.remove()
+    const stopRemovingOnInvalidation = this.ctx.onInvalidated(remove)
+    return () => {
+      stopRemovingOnInvalidation()
+      remove()
+    }
+  }
+
   async mountPanel<Handle extends PanelHandle>(
     options: ShadowPanelOptions<Handle>,
   ): Promise<ShadowPanel<Handle>> {
@@ -70,11 +82,11 @@ export class HostPage {
       position: 'inline',
       anchor: options.anchor,
       append: options.append,
-      onMount: (container, shadow) => {
+      onMount: (container, shadow, shadowHost) => {
         const style = this.document.createElement('style')
         style.textContent = [SHADOW_BASE_CSS, options.css, SHADOW_CANVAS_CSS].join('\n')
         shadow.append(style)
-        return options.render(container)
+        return options.render(container, shadowHost)
       },
       onRemove: (handle) => handle?.destroy(),
     })

@@ -1,5 +1,5 @@
 import type { BlobPage } from '../../git-hosts/BlobPage'
-import { HOST_TAG } from '../../platform/injectedElements'
+import { CODE_HIDDEN_ATTRIBUTE, HOST_TAG } from '../../platform/injectedElements'
 import type { Notation, NotationLookup } from '../../notations/Notation'
 import { allNotations } from '../../notations/allNotations'
 import { ModelPanel } from './ModelPanel'
@@ -7,10 +7,12 @@ import { PlacementNoticeSlot } from './PlacementNoticeSlot'
 import type { HostPage, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import type { ReportContext } from '../../platform/DiagitRepository'
+import { CodeToggle } from '../../platform/ui/CodeToggle'
 
 const MOUNT_RETRIES = 12
 const RETRY_INTERVAL_MS = 500
 const RECHECK_DEBOUNCE_MS = 50
+const HIDDEN_CODE_PANEL = `${HOST_TAG}[${CODE_HIDDEN_ATTRIBUTE}]`
 
 type MountOutcome = 'settled' | 'code-not-rendered-yet'
 
@@ -21,6 +23,7 @@ export class BlobViewerController {
   private mounting = false
   private restoreAnchor: (() => void) | null = null
   private retryTimer: ReturnType<typeof setInterval> | null = null
+  private readonly codeShownByPath = new Map<string, boolean>()
 
   constructor(
     private readonly page: HostPage,
@@ -33,6 +36,7 @@ export class BlobViewerController {
   }
 
   start(): void {
+    this.page.addDocumentStyle(this.blobPage.hiddenCodeCss(HIDDEN_CODE_PANEL))
     this.page.onChange(RECHECK_DEBOUNCE_MS, () => {
       if (!this.mounting && this.isOutOfSync()) {
         this.sync()
@@ -99,13 +103,14 @@ export class BlobViewerController {
         anchor,
         append: 'before',
         css: notation.css,
-        render: (container) => {
+        render: (container, shadowHost) => {
           container.style.paddingTop = stickyHeaderClearance
           return new ModelPanel({
             notation,
             filePath,
             loadXml,
             reportContext: this.reportContext,
+            codeToggle: this.codeToggleFor(path, shadowHost),
             onRendered: () => void this.diagramViews.save(path),
           }).mount(container)
         },
@@ -121,6 +126,17 @@ export class BlobViewerController {
       this.mounting = false
     }
     return 'settled'
+  }
+
+  private codeToggleFor(path: string, shadowHost: HTMLElement): CodeToggle {
+    const toggle = new CodeToggle({
+      shown: this.codeShownByPath.get(path) ?? true,
+      hideCode: (hidden) => shadowHost.toggleAttribute(CODE_HIDDEN_ATTRIBUTE, hidden),
+      toggled: (shown) => this.codeShownByPath.set(path, shown),
+    })
+    const code = this.blobPage.findCode(this.page.document)
+    toggle.controls(code ? [code] : [])
+    return toggle
   }
 
   private showPlacementNotice(): void {
