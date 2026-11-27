@@ -20,16 +20,3 @@ declare module 'bpmn-moddle' {
     create(type: string, attrs?: Record<string, unknown>): ModdleElement
   }
 }
-
-/**
- * The synchronous XML writer of bpmn-moddle: `BpmnModdle#toXML` only wraps it in a promise.
- */
-declare module 'moddle-xml' {
-  import type { ModdleElement } from 'bpmn-moddle'
-
-  export interface XmlWriter {
-    toXML(element: ModdleElement): string
-  }
-
-  export const Writer: new (options?: { format?: boolean; preamble?: boolean }) => XmlWriter
-}

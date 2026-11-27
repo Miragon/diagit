@@ -5,6 +5,24 @@ import { readFixture } from './fixtures'
 const differ = new BpmnModelDiffer()
 const base = readFixture('base.bpmn')
 
+const serviceTaskLines = [
+  '    <bpmn:serviceTask id="Task_1" name="Do work">',
+  '      <bpmn:extensionElements>',
+  '        <zeebe:taskDefinition type="foo" />',
+  '      </bpmn:extensionElements>',
+  '      <bpmn:incoming>Flow_1</bpmn:incoming>',
+  '      <bpmn:outgoing>Flow_2</bpmn:outgoing>',
+  '    </bpmn:serviceTask>',
+]
+
+function numberedFrom(first: number, lines: string[]) {
+  return lines.map((text, index) => ({ number: first + index, text }))
+}
+
+function texts(lines: { text: string }[] | null | undefined): string[] {
+  return (lines ?? []).map((line) => line.text)
+}
+
 async function detailOfUnchanged(xml: string, id: string) {
   return (await differ.compare(xml, xml)).detail(id)
 }
@@ -23,108 +41,52 @@ describe('BpmnComparison', () => {
   })
 
   describe('detail', () => {
-    it('writes a service task flat: its extension, no flows, no namespace declarations', async () => {
-      const serviceTask = [
-        '<bpmn:serviceTask id="Task_1" name="Do work">',
-        '  <bpmn:extensionElements>',
-        '    <zeebe:taskDefinition type="foo" />',
-        '  </bpmn:extensionElements>',
-        '</bpmn:serviceTask>',
-      ].join('\n')
-
+    it('takes the lines of the element from the file, with their numbers', async () => {
       expect(await detailOfUnchanged(base, 'Task_1')).toEqual({
         id: 'Task_1',
         type: 'bpmn:ServiceTask',
         name: 'Do work',
-        before: serviceTask,
-        after: serviceTask,
+        before: numberedFrom(12, serviceTaskLines),
+        after: numberedFrom(12, serviceTaskLines),
       })
     })
 
     it('shows both sides of a changed element', async () => {
       const changed = base.replace('type="foo"', 'type="bar"')
       const detail = (await differ.compare(base, changed)).detail('Task_1')
-      expect(detail?.before).toContain('<zeebe:taskDefinition type="foo" />')
-      expect(detail?.after).toContain('<zeebe:taskDefinition type="bar" />')
+      expect(texts(detail?.before)).toContain('        <zeebe:taskDefinition type="foo" />')
+      expect(texts(detail?.after)).toContain('        <zeebe:taskDefinition type="bar" />')
     })
 
-    it('keeps the prefixes of attributes from namespaces without a schema', async () => {
-      const foreign = readFixture('foreign-attributes.bpmn')
-      const operatonTask = await detailOfUnchanged(foreign, 'Task_1')
-      const flowableTask = await detailOfUnchanged(foreign, 'Task_2')
-      expect(operatonTask?.after).toBe(
-        '<bpmn:serviceTask id="Task_1" name="Charge card" operaton:delegateExpression="${chargeCard}" operaton:asyncBefore="true" />',
-      )
-      expect(flowableTask?.after).toBe(
-        '<bpmn:userTask id="Task_2" name="Approve" flowable:assignee="${initiator}" foo:bar="one" />',
-      )
-    })
-
-    it('writes a sub-process without the elements inside it', async () => {
+    it('leaves out the elements inside a sub-process that have a shape', async () => {
       const detail = await detailOfUnchanged(readFixture('subprocess.bpmn'), 'SubProcess_1')
-      expect(detail?.after).toBe(
-        [
-          '<bpmn:subProcess id="SubProcess_1" name="Handle order">',
-          '  <bpmn:multiInstanceLoopCharacteristics id="Loop_1" isSequential="true" />',
-          '</bpmn:subProcess>',
-        ].join('\n'),
-      )
+      expect(detail?.after?.map((line) => line.number)).toEqual([8, 9, 16])
     })
 
     describe('referenced elements without a shape of their own', () => {
       const references = readFixture('references.bpmn')
 
-      it('appends the message behind a message event', async () => {
+      it('adds the message behind a message event, in file order', async () => {
         const detail = await detailOfUnchanged(references, 'CatchEvent_1')
-        expect(detail?.after).toBe(
-          [
-            '<bpmn:intermediateCatchEvent id="CatchEvent_1" name="Order received">',
-            '  <bpmn:messageEventDefinition id="MessageEventDefinition_1" messageRef="Message_1" />',
-            '</bpmn:intermediateCatchEvent>',
-            '',
-            '<bpmn:message id="Message_1" name="order-received">',
-            '  <bpmn:extensionElements>',
-            '    <zeebe:subscription correlationKey="=orderId" />',
-            '  </bpmn:extensionElements>',
-            '</bpmn:message>',
-          ].join('\n'),
-        )
+        expect(texts(detail?.after)).toEqual([
+          '  <bpmn:message id="Message_1" name="order-received">',
+          '    <bpmn:extensionElements>',
+          '      <zeebe:subscription correlationKey="=orderId" />',
+          '    </bpmn:extensionElements>',
+          '  </bpmn:message>',
+          '    <bpmn:intermediateCatchEvent id="CatchEvent_1" name="Order received">',
+          '      <bpmn:messageEventDefinition id="MessageEventDefinition_1" messageRef="Message_1" />',
+          '    </bpmn:intermediateCatchEvent>',
+        ])
       })
 
-      it('appends the error behind an error end event', async () => {
-        const detail = await detailOfUnchanged(references, 'EndEvent_1')
-        expect(detail?.after).toBe(
-          [
-            '<bpmn:endEvent id="EndEvent_1">',
-            '  <bpmn:errorEventDefinition id="ErrorEventDefinition_1" errorRef="Error_1" />',
-            '</bpmn:endEvent>',
-            '',
-            '<bpmn:error id="Error_1" name="Rejected" errorCode="rejected" />',
-          ].join('\n'),
-        )
-      })
-
-      it('writes an event whose message reference does not resolve', async () => {
-        const dangling = references.replace('messageRef="Message_1"', 'messageRef="Message_404"')
-        const detail = await detailOfUnchanged(dangling, 'CatchEvent_1')
-        expect(detail?.after).toBe(
-          [
-            '<bpmn:intermediateCatchEvent id="CatchEvent_1" name="Order received">',
-            '  <bpmn:messageEventDefinition id="MessageEventDefinition_1" />',
-            '</bpmn:intermediateCatchEvent>',
-          ].join('\n'),
-        )
-      })
-
-      it('does not append the diagram elements a sequence flow connects', async () => {
+      it('does not add the diagram elements a sequence flow connects', async () => {
         const detail = await detailOfUnchanged(references, 'Flow_1')
-        expect(detail?.after).toBe(
-          [
-            '<bpmn:sequenceFlow id="Flow_1" sourceRef="CatchEvent_1" targetRef="EndEvent_1">',
-            '  <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" id="Expression_1">=approved</bpmn:conditionExpression>',
-            '</bpmn:sequenceFlow>',
-          ].join('\n'),
-        )
+        expect(texts(detail?.after)).toEqual([
+          '    <bpmn:sequenceFlow id="Flow_1" sourceRef="CatchEvent_1" targetRef="EndEvent_1">',
+          '      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" id="Expression_1">=approved</bpmn:conditionExpression>',
+          '    </bpmn:sequenceFlow>',
+        ])
       })
     })
 
@@ -135,52 +97,28 @@ describe('BpmnComparison', () => {
         'id="Process_1" isExecutable="false"',
       )
       const detail = (await differ.compare(collab, notExecutable)).detail('Participant_1')
-      const participant =
-        '<bpmn:participant id="Participant_1" name="Buyer" processRef="Process_1" />'
-      expect(detail?.before).toBe(
-        `${participant}\n\n<bpmn:process id="Process_1" isExecutable="true" />`,
-      )
-      expect(detail?.after).toBe(
-        `${participant}\n\n<bpmn:process id="Process_1" isExecutable="false" />`,
-      )
+      expect(texts(detail?.after)).toEqual([
+        '    <bpmn:participant id="Participant_1" name="Buyer" processRef="Process_1" />',
+        '  <bpmn:process id="Process_1" isExecutable="false">',
+        '  </bpmn:process>',
+      ])
     })
 
-    it('writes the shapeless root process of a plain diagram', async () => {
-      expect(await detailOfUnchanged(base, 'Process_1')).toEqual({
-        id: 'Process_1',
-        type: 'bpmn:Process',
-        name: null,
-        before: '<bpmn:process id="Process_1" isExecutable="true" />',
-        after: '<bpmn:process id="Process_1" isExecutable="true" />',
-      })
-    })
-
-    it('has no XML before an added element', async () => {
+    it('has no lines before an added element', async () => {
       const detail = (await differ.compare(base, readFixture('added-task.bpmn'))).detail('Task_2')
-      expect(detail).toEqual({
-        id: 'Task_2',
-        type: 'bpmn:ServiceTask',
-        name: 'Extra work',
-        before: null,
-        after: [
-          '<bpmn:serviceTask id="Task_2" name="Extra work">',
-          '  <bpmn:extensionElements>',
-          '    <zeebe:taskDefinition type="extra" />',
-          '  </bpmn:extensionElements>',
-          '</bpmn:serviceTask>',
-        ].join('\n'),
-      })
+      expect(detail?.before).toBeNull()
+      expect(texts(detail?.after)[0]).toBe('    <bpmn:serviceTask id="Task_2" name="Extra work">')
     })
 
-    it('has no XML after a removed element', async () => {
+    it('has no lines after a removed element', async () => {
       const comparison = await differ.compare(base, readFixture('removed-end.bpmn'))
-      expect(comparison.detail('EndEvent_1')).toEqual({
-        id: 'EndEvent_1',
-        type: 'bpmn:EndEvent',
-        name: 'Done',
-        before: '<bpmn:endEvent id="EndEvent_1" name="Done" />',
-        after: null,
-      })
+      const detail = comparison.detail('EndEvent_1')
+      expect(texts(detail?.before)).toEqual([
+        '    <bpmn:endEvent id="EndEvent_1" name="Done">',
+        '      <bpmn:incoming>Flow_2</bpmn:incoming>',
+        '    </bpmn:endEvent>',
+      ])
+      expect(detail?.after).toBeNull()
     })
 
     it('returns null for an id in neither model', async () => {

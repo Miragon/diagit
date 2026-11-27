@@ -17,6 +17,10 @@ export class BpmnModelDiffer {
       this.parser.parseDocument(newXml),
     ])
     const diff = this.comparator.compare(oldDocument.model, newDocument.model)
-    return new BpmnComparison(diff, oldDocument, newDocument)
+    return new BpmnComparison(
+      diff,
+      { document: oldDocument, text: oldXml },
+      { document: newDocument, text: newXml },
+    )
   }
 }
