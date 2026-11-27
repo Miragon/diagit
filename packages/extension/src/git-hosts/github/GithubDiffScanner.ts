@@ -9,6 +9,15 @@ const RENAME_SEPARATORS = ['→', ' renamed to ']
 export class GithubDiffScanner {
   constructor(private readonly notations: NotationDetector = notationDetector) {}
 
+  /**
+   * Framed code: the panel sits in front of the table. Legacy code: only the children of the
+   * code element are hidden, so `isCollapsed` still sees it rendered.
+   */
+  hiddenCodeCss(hiddenPanel: string): string {
+    const { modernCode, legacyCode } = githubSelectors.diff
+    return `${hiddenPanel} ~ ${modernCode},\n${hiddenPanel} + :is(${legacyCode}) > * {\n  display: none !important;\n}`
+  }
+
   scan(doc: Document): ChangedFile[] {
     return this.diagramFileRoots(doc).flatMap(({ root, path }) => {
       const code = this.codeOf(root)
@@ -22,6 +31,7 @@ export class GithubDiffScanner {
         fileRoot: root,
         isCollapsed: () => !isRendered(this.codeOf(root)),
         showsOtherFile: () => this.showsOtherFile(root, path),
+        hostCode: () => this.hostCodeOf(root),
       }
     })
   }
@@ -85,6 +95,13 @@ export class GithubDiffScanner {
       clean,
     )
     return headSide.trim()
+  }
+
+  private hostCodeOf(root: HTMLElement): HTMLElement[] {
+    const code =
+      root.querySelector<HTMLElement>(githubSelectors.diff.modernCode) ??
+      root.querySelector<HTMLElement>(githubSelectors.diff.legacyCode)
+    return code ? [code] : []
   }
 
   private hasFramedCode(root: HTMLElement): boolean {

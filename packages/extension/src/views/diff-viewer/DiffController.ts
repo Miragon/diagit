@@ -4,12 +4,17 @@ import {
   type DiffFileBlock,
   type DiffSource,
 } from '../../git-hosts/DiffSource'
-import { DIFF_ERROR_TAG, DIFF_PANEL_TAG } from '../../platform/injectedElements'
+import {
+  CODE_HIDDEN_ATTRIBUTE,
+  DIFF_ERROR_TAG,
+  DIFF_PANEL_TAG,
+} from '../../platform/injectedElements'
 import type { DiagramDiffer, NotationLookup } from '../../notations/Notation'
 import { diffableNotations } from '../../notations/diffableNotations'
 import { UnrecognizedFileNotices } from './UnrecognizedFileNotices'
 import { DiffPanel } from './DiffPanel'
 import { Notice } from '../../platform/ui/Notice'
+import { CodeToggle } from '../../platform/ui/CodeToggle'
 import type { HostPage, PanelHandle, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import type { ReportContext } from '../../platform/DiagitRepository'
@@ -20,6 +25,7 @@ import diffCss from './diff.css?inline'
 const RERUN_DEBOUNCE_MS = 300
 const COLLAPSE_DEBOUNCE_MS = 150
 const FILE_ROOT_CHANGES: MutationObserverInit = { attributes: true, childList: true, subtree: true }
+const HIDDEN_CODE_PANEL = `${DIFF_PANEL_TAG}[${CODE_HIDDEN_ATTRIBUTE}]`
 
 interface ShownPanel {
   file: ChangedFile
@@ -31,6 +37,7 @@ export class DiffController {
   private readonly erroring = new WeakSet<Element>()
   private readonly shownOnPage = new Map<ShadowPanel<PanelHandle>, ShownPanel>()
   private shownPageKey: string | null = null
+  private readonly codeShownByFile = new Map<string, boolean>()
   private readonly unrecognizedNotices: UnrecognizedFileNotices
 
   constructor(
@@ -44,6 +51,7 @@ export class DiffController {
   }
 
   start(): void {
+    this.page.addDocumentStyle(this.source.hiddenCodeCss(HIDDEN_CODE_PANEL))
     this.page.onChange(RERUN_DEBOUNCE_MS, () => void this.run())
     void this.run()
   }
@@ -137,7 +145,7 @@ export class DiffController {
       anchor: block.anchor,
       append: block.append,
       css: [differ.css, diffCss].join('\n'),
-      render: (container) =>
+      render: (container, shadowHost) =>
         new DiffPanel({
           differ,
           label: this.labelFor(block),
@@ -146,10 +154,30 @@ export class DiffController {
           loadOld: block.loadOld,
           loadNew: block.loadNew,
           hasNoOldVersion: block.hasNoOldVersion,
+          codeToggle: this.codeToggleFor(block, pageKey, shadowHost),
           onRendered: () => void this.diagramViews.save(this.page.location.pathname),
         }).mount(container),
     })
     this.keepOnPage(panel, block, pageKey, this.mirrorCollapse(panel, block))
+  }
+
+  private codeToggleFor(
+    file: ChangedFile,
+    pageKey: string,
+    shadowHost: HTMLElement,
+  ): CodeToggle | undefined {
+    const hostCode = file.hostCode()
+    if (!hostCode.length) {
+      return undefined
+    }
+    const fileKey = `${pageKey}\n${file.path}`
+    const toggle = new CodeToggle({
+      shown: this.codeShownByFile.get(fileKey) ?? true,
+      hideCode: (hidden) => shadowHost.toggleAttribute(CODE_HIDDEN_ATTRIBUTE, hidden),
+      toggled: (shown) => this.codeShownByFile.set(fileKey, shown),
+    })
+    toggle.controls(hostCode)
+    return toggle
   }
 
   private isShowing(pageKey: string | null): boolean {

@@ -78,7 +78,8 @@
   color: var(--fg-muted);
 }
 
-.diagit-toolbar-end {
+.diagit-toolbar-end,
+.diagit-code-toggle {
   margin-left: auto;
 }
 

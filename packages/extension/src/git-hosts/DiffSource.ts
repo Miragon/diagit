@@ -15,6 +15,8 @@ export interface ChangedFile extends DiffPanelSlot {
   path: string
   isCollapsed(): boolean
   showsOtherFile(): boolean
+  /** The host's code of the file that a panel may hide; empty when it cannot be told apart. */
+  hostCode(): HTMLElement[]
 }
 
 export interface DiffLoaders {
@@ -55,6 +57,8 @@ export interface DiffSource {
   collect(location: PageUrl, doc: Document): Promise<DiffFileBlock[]>
   unrecognizedFiles(location: PageUrl, doc: Document): Promise<VisibleFileHeader[]>
   loadersFor(location: PageUrl, path: string): Promise<DiffLoaders | null>
+  /** Hides the code next to a panel that matches `hiddenPanel`. */
+  hiddenCodeCss(hiddenPanel: string): string
 }
 
 export interface DiffPage<Page extends { key: string }, Data> {
@@ -66,4 +70,5 @@ export interface DiffPage<Page extends { key: string }, Data> {
   changedPaths(data: Data): string[]
   loaders(location: PageUrl, path: string, data: Data): DiffLoaders
   errorHelp(location: PageUrl, err: unknown): Promise<ErrorHelp>
+  hiddenCodeCss(hiddenPanel: string): string
 }

@@ -21,6 +21,11 @@ export class FirstMatchingDiffSource implements DiffSource {
     return (await this.sourceFor(location)?.loadersFor(location, path)) ?? null
   }
 
+  hiddenCodeCss(hiddenPanel: string): string {
+    const rules = this.sources.map((source) => source.hiddenCodeCss(hiddenPanel))
+    return [...new Set(rules)].join('\n')
+  }
+
   private sourceFor(location: PageUrl): DiffSource | undefined {
     return this.sources.find((source) => source.pageKey(location) !== null)
   }

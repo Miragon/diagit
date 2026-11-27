@@ -22,6 +22,10 @@ export abstract class GithubDiffPage<Page extends { key: string }> implements Di
 
   abstract load(location: PageUrl, page: Page): Promise<GithubDiffData>
 
+  hiddenCodeCss(hiddenPanel: string): string {
+    return this.scanner.hiddenCodeCss(hiddenPanel)
+  }
+
   scan(doc: Document): ChangedFile[] {
     return this.scanner.scan(doc)
   }

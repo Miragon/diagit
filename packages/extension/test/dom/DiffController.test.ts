@@ -41,6 +41,7 @@ function sourceShowing(
     pageKey,
     unrecognizedFiles: async () => [],
     loadersFor: async () => null,
+    hiddenCodeCss: (hiddenPanel) => `${hiddenPanel} + .code { display: none; }`,
     async collect() {
       const code = fileRoot.querySelector<HTMLElement>('.code')!
       await metadata
@@ -52,8 +53,9 @@ function sourceShowing(
           fileRoot,
           isCollapsed: () => false,
           showsOtherFile: () => false,
-          loadOld: async () => null,
-          loadNew: async () => null,
+          hostCode: () => [code],
+          loadOld: async () => '<old/>',
+          loadNew: async () => '<new/>',
         },
       ]
     },
@@ -181,6 +183,7 @@ describe('DiffController', () => {
         pageKey: () => 'group/project!7',
         unrecognizedFiles: async () => [],
         loadersFor: async () => null,
+        hiddenCodeCss: () => '',
         async collect(_location, doc) {
           return [...doc.querySelectorAll<HTMLElement>('.file')]
             .map((fileRoot) => ({ fileRoot, path: fileRoot.dataset.path! }))
@@ -192,6 +195,7 @@ describe('DiffController', () => {
               fileRoot,
               isCollapsed: () => false,
               showsOtherFile: () => fileRoot.dataset.path !== path,
+              hostCode: () => [],
               loadOld: async () => null,
               loadNew: async () => null,
             }))
@@ -239,6 +243,53 @@ describe('DiffController', () => {
     expect(fileRoot.querySelector(DIFF_PANEL_TAG)).toBeNull()
   })
 
+  describe('the Code button', () => {
+    async function codeButtonOf(code: HTMLElement): Promise<HTMLButtonElement> {
+      return vi.waitFor(() => {
+        const button =
+          code.previousElementSibling?.shadowRoot?.querySelector<HTMLButtonElement>(
+            '.diagit-code-toggle',
+          )
+        expect(button).toBeTruthy()
+        return button!
+      })
+    }
+
+    it('hides the code of the file under the panel and keeps the panel', async () => {
+      const fileRoot = renderFileBox()
+      const code = fileRoot.querySelector<HTMLElement>('.code')!
+      start(sourceShowing(fileRoot, Promise.resolve()))
+
+      const button = await codeButtonOf(code)
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+      button.click()
+
+      const panel = code.previousElementSibling!
+      expect(panel.hasAttribute('data-code-hidden')).toBe(true)
+      expect(getComputedStyle(code).display).toBe('none')
+      expect(getComputedStyle(panel).display).not.toBe('none')
+    })
+
+    it('keeps the choice when the host renders the file box again', async () => {
+      const source = sourceShowing(renderFileBox(), Promise.resolve())
+      start({
+        ...source,
+        collect: () =>
+          sourceShowing(currentFileBox(), Promise.resolve()).collect(location, document),
+      })
+      ;(await codeButtonOf(currentCode())).click()
+
+      renderFileBox()
+
+      const button = await codeButtonOf(currentCode())
+      expect(button.getAttribute('aria-pressed')).toBe('false')
+      expect(currentCode().previousElementSibling!.hasAttribute('data-code-hidden')).toBe(true)
+    })
+
+    const currentFileBox = () => document.querySelector<HTMLElement>('.file')!
+    const currentCode = () => currentFileBox().querySelector<HTMLElement>('.code')!
+  })
+
   it('shows an error notice above each file when the metadata cannot be loaded', async () => {
     const fileRoot = renderFileBox()
     const code = fileRoot.querySelector<HTMLElement>('.code')!
@@ -246,6 +297,7 @@ describe('DiffController', () => {
       pageKey: () => 'octo/flows!1',
       unrecognizedFiles: async () => [],
       loadersFor: async () => null,
+      hiddenCodeCss: () => '',
       collect: async () => {
         throw new DiffDataError(
           'HTTP 404',
@@ -263,6 +315,7 @@ describe('DiffController', () => {
               fileRoot,
               isCollapsed: () => false,
               showsOtherFile: () => false,
+              hostCode: () => [],
             },
           ],
         )
@@ -299,6 +352,7 @@ describe('DiffController', () => {
       pageKey: () => 'octo/flows!1',
       unrecognizedFiles: async () => [],
       loadersFor: async () => null,
+      hiddenCodeCss: () => '',
       collect: async () => {
         throw new DiffDataError(
           'HTTP 500',
@@ -311,6 +365,7 @@ describe('DiffController', () => {
               fileRoot,
               isCollapsed: () => false,
               showsOtherFile: () => false,
+              hostCode: () => [],
             },
           ],
         )
@@ -343,6 +398,7 @@ describe('DiffController', () => {
         pageKey,
         collect: async () => [],
         loadersFor: async () => null,
+        hiddenCodeCss: () => '',
         unrecognizedFiles: async () => {
           const header = document.querySelector<HTMLElement>('.file-header')!
           return isRecognized() ? [] : [{ path, header }]

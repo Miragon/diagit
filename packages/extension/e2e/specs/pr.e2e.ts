@@ -67,3 +67,25 @@ describe('GitHub PR diff (content script)', () => {
     await expect(panesInsideASubprocess).toBeElementsArrayOfSize(0)
   })
 })
+
+describe('GitHub PR diff: the Code button', () => {
+  it('hides the diff table under the panel and keeps the panel and the file collapse working', async () => {
+    await browser.url('/octo/flows/pull/1/files')
+    const host = $('diagit-diff')
+    await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
+    await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+
+    await host.shadow$('.diagit-code-toggle').click()
+
+    await expect($('table[data-diff-anchor]')).not.toBeDisplayed()
+    await expect(host).toBeDisplayed()
+    await expect(host).not.toHaveAttribute('data-collapsed')
+
+    await browser.execute(() => {
+      document.querySelector<HTMLElement>('#diff-order-bpmn .diff-body')!.style.display = 'none'
+    })
+
+    await expect(host).toHaveAttribute('data-collapsed')
+  })
+})

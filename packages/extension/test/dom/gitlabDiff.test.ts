@@ -365,3 +365,70 @@ describe('GitLab merge-request diff', () => {
     })
   })
 })
+
+describe('GitLab diff: hiding the code under a panel', () => {
+  const metadata = {
+    [api]: { diff_refs: { base_sha: 'aaa', head_sha: 'bbb' } },
+    [`${api}/diffs?per_page=100&page=1`]: [],
+  }
+
+  afterEach(() => {
+    document.head.innerHTML = ''
+  })
+
+  it('hides the code after the panel in the content area and offers it as host code', async () => {
+    const host = new GitlabHost(new FakeHttpClient().respondWith(metadata))
+    document.head.innerHTML = `<style>${host.diff.hiddenCodeCss(`${DIFF_PANEL_TAG}[data-code-hidden]`)}</style>`
+    const doc = withFileBox(
+      'flows/order.bpmn',
+      `<${DIFF_PANEL_TAG} data-code-hidden></${DIFF_PANEL_TAG}><table class="rows"></table>`,
+    )
+
+    const [block] = await host.diff.collect(location, doc)
+
+    expect(block!.hostCode()).toEqual([doc.querySelector('.rows')])
+    expect(getComputedStyle(doc.querySelector('.rows')!).display).toBe('none')
+  })
+
+  it('still reads a file as expanded while its panel hides the code', async () => {
+    const doc = withFileBox(
+      'flows/order.bpmn',
+      `<${DIFF_PANEL_TAG} data-code-hidden></${DIFF_PANEL_TAG}><table class="rows"></table>`,
+    )
+    giveBox(doc.querySelector('.diff-content')!)
+
+    const [block] = await new GitlabHost(new FakeHttpClient().respondWith(metadata)).diff.collect(
+      location,
+      doc,
+    )
+
+    expect(block!.isCollapsed()).toBe(false)
+  })
+
+  it('reads a collapsed file as collapsed while its panel hides the code', async () => {
+    const doc = withFileBox(
+      'flows/order.bpmn',
+      `<${DIFF_PANEL_TAG} data-code-hidden></${DIFF_PANEL_TAG}><table class="rows"></table>`,
+    )
+
+    const [block] = await new GitlabHost(new FakeHttpClient().respondWith(metadata)).diff.collect(
+      location,
+      doc,
+    )
+
+    expect(block!.isCollapsed()).toBe(true)
+  })
+
+  it('offers no code to hide when it cannot tell the code from the file header', async () => {
+    document.body.innerHTML = `
+      <div class="diff-file" data-path="flows/order.bpmn"><span>order.bpmn</span></div>`
+
+    const [block] = await new GitlabHost(new FakeHttpClient().respondWith(metadata)).diff.collect(
+      location,
+      document,
+    )
+
+    expect(block!.anchor).toBe(block!.fileRoot)
+    expect(block!.hostCode()).toEqual([])
+  })
+})

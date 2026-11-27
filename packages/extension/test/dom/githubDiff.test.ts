@@ -502,3 +502,49 @@ describe('GitHub pull-request diff with file regions around the React header', (
     expect(blocks.map((block) => block.fileRoot.id)).toEqual(['diff-1'])
   })
 })
+
+describe('GitHub diff: hiding the code under a panel', () => {
+  const hiddenPanel = 'diagit-diff[data-code-hidden]'
+
+  function withHidingStyle(html: string): Document {
+    const css = pullRequestDiff(new FakeHttpClient()).hiddenCodeCss(hiddenPanel)
+    document.head.innerHTML = `<style>${css}</style>`
+    return withFileBoxes(html)
+  }
+
+  afterEach(() => {
+    document.head.innerHTML = ''
+  })
+
+  const displayOf = (doc: Document, selector: string) =>
+    getComputedStyle(doc.querySelector(selector)!).display
+
+  it('hides the framed code table but keeps the file header', async () => {
+    const doc = withHidingStyle(`
+      <div id="diff-1" aria-labelledby="diff-1-heading">
+        <div data-diff-header-wrapper><h3 id="diff-1-heading">flows/order.bpmn</h3></div>
+        <div class="frame">
+          <diagit-diff data-code-hidden></diagit-diff>
+          <table data-diff-anchor></table>
+        </div>
+      </div>`)
+    const http = new FakeHttpClient().respondWith(pullRequestMetadata)
+
+    const [block] = await pullRequestDiff(http).collect(location, doc)
+
+    expect(block!.hostCode()).toEqual([doc.querySelector('table')])
+    expect(displayOf(doc, 'table')).toBe('none')
+    expect(displayOf(doc, '[data-diff-header-wrapper]')).not.toBe('none')
+  })
+
+  it('hides only the children of legacy code, so the file still reads as expanded', () => {
+    const doc = withHidingStyle(`
+      <div class="file" data-tagsearch-path="flows/order.bpmn">
+        <diagit-diff data-code-hidden></diagit-diff>
+        <div class="js-file-content"><table class="rows"></table></div>
+      </div>`)
+
+    expect(displayOf(doc, '.js-file-content')).not.toBe('none')
+    expect(displayOf(doc, '.rows')).toBe('none')
+  })
+})

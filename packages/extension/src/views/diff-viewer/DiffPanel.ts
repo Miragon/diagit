@@ -9,6 +9,7 @@ import { filePathLabel } from '../../platform/utils/fileLabel'
 import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 import { AutoFit } from '../../platform/ui/AutoFit'
+import type { CodeToggle } from '../../platform/ui/CodeToggle'
 import { ChangeControls } from './ChangeControls'
 import { ChangeNavigator } from './ChangeNavigator'
 import { DiffNotices } from './DiffNotices'
@@ -21,6 +22,7 @@ export interface DiffPanelOptions extends DiffLoaders {
   label: string
   filePath: string
   reportContext: ReportContext
+  codeToggle?: CodeToggle
   onRendered?: () => void
   onOwnPage?: boolean
 }
@@ -57,14 +59,15 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.plainGrid,
     this.zoomControls.element,
   ])
-  private readonly root = h('div', { class: 'diagit-wrap diagit-diff-root' }, [
-    h('div', { class: 'diagit-toolbar' }, [
-      h('div', { class: 'diagit-segmented', role: 'group', 'aria-label': 'View' }, [
-        this.plainButton,
-        this.diffButton,
-      ]),
-      this.changeControls.element,
+  private readonly toolbar = h('div', { class: 'diagit-toolbar' }, [
+    h('div', { class: 'diagit-segmented', role: 'group', 'aria-label': 'View' }, [
+      this.plainButton,
+      this.diffButton,
     ]),
+    this.changeControls.element,
+  ])
+  private readonly root = h('div', { class: 'diagit-wrap diagit-diff-root' }, [
+    this.toolbar,
     this.diagramArea,
   ])
   private modelView: ModelView
@@ -88,6 +91,9 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.notices = new DiffNotices(options.label, options.reportContext)
     this.modelView = options.hasNoOldVersion ? 'plain' : 'diff'
     this.changeControls.element.before(filePathLabel(options.filePath))
+    if (options.codeToggle) {
+      this.toolbar.append(options.codeToggle.element)
+    }
     if (options.onOwnPage) {
       this.zoomControls.allowFullScreen(this.root)
     } else {
@@ -161,6 +167,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.fit()
       this.trackZoomLevel()
     }
+    this.allowHidingCodeWhileDiagramShows()
   }
 
   private pick(view: ModelView): void {
@@ -183,6 +190,13 @@ export class DiffPanel implements PanelHandle, Zoomable {
     }
     this.fit()
     this.trackZoomLevel()
+    this.allowHidingCodeWhileDiagramShows()
+  }
+
+  private allowHidingCodeWhileDiagramShows(): void {
+    const stillLoading = !this.finishedViews.has(this.modelView)
+    const showsDiagram = this.visibleViewers().some((viewer) => viewer !== null)
+    this.options.codeToggle?.allowHiding(stillLoading || showsDiagram)
   }
 
   private trackZoomLevel(): void {
@@ -285,6 +299,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.fit()
       this.trackZoomLevel()
     }
+    this.allowHidingCodeWhileDiagramShows()
   }
 
   private showDiff(diff: DiagramDiff): void {
@@ -323,6 +338,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     if (this.head.status === 'rejected') {
       this.plainCanvas.showFailure(this.notices.notLoaded('new', this.head.reason))
       this.finishedViews.add('plain')
+      this.allowHidingCodeWhileDiagramShows()
       return
     }
     const { differ } = this.options
@@ -346,6 +362,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       viewer?.fit()
       this.trackZoomLevel()
     }
+    this.allowHidingCodeWhileDiagramShows()
   }
 
   private async computeDiff(
