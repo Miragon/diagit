@@ -43,7 +43,7 @@ Diagit matches elements by id. When a change gives an element a new id, it shows
 
 ## Step through the changes
 
-The arrows for the previous and the next change in the toolbar select one change after the other and zoom both sides to it. Next to them Diagit shows which change is selected, for example "2 of 7", or how many changes there are when none is selected. **Show all** clears the selection and fits both diagrams again. The **−**, **+** and **Fit** buttons zoom by hand.
+The arrows for the previous and the next change in the toolbar select one change after the other and zoom both sides to it. Next to them Diagit shows which change is selected, for example "2 of 7", or how many changes there are when none is selected. **Show all** clears the selection and fits both diagrams again. The overview is also one step of the arrows: after the last change they show all changes, then the first change again, and the same way back. The **−**, **+** and **Fit** buttons zoom by hand.
 
 ## Look at one side
 

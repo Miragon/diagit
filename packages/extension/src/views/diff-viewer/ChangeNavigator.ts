@@ -46,12 +46,18 @@ export class ChangeNavigator {
     }
   }
 
+  /** The overview is one stop of the cycle: … last change → all changes → first change … */
   private go(direction: number): void {
     if (!this.hasChanges) {
       return
     }
-    const from = this.index < 0 && direction < 0 ? 0 : this.index
-    this.index = (from + direction + this.ids.length) % this.ids.length
+    const stops = this.ids.length + 1
+    const stop = (this.index + 1 + direction + stops) % stops
+    if (stop === 0) {
+      this.showAll()
+      return
+    }
+    this.index = stop - 1
     this.focus(this.ids[this.index]!)
   }
 
