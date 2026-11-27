@@ -14,7 +14,8 @@ import { diffableNotations } from '../../notations/diffableNotations'
 import { UnrecognizedFileNotices } from './UnrecognizedFileNotices'
 import { DiffPanel } from './DiffPanel'
 import { Notice } from '../../platform/ui/Notice'
-import { CodeToggle } from '../../platform/ui/CodeToggle'
+import type { CodeToggle } from '../../platform/ui/CodeToggle'
+import { CodeVisibility } from '../../platform/ui/CodeVisibility'
 import type { HostPage, PanelHandle, ShadowPanel } from '../../platform/page/HostPage'
 import { DiagramViewsLocalStorage } from '../../platform/settings/DiagramViewsLocalStorage'
 import type { ReportContext } from '../../platform/DiagitRepository'
@@ -37,7 +38,6 @@ export class DiffController {
   private readonly erroring = new WeakSet<Element>()
   private readonly shownOnPage = new Map<ShadowPanel<PanelHandle>, ShownPanel>()
   private shownPageKey: string | null = null
-  private readonly codeShownByFile = new Map<string, boolean>()
   private readonly unrecognizedNotices: UnrecognizedFileNotices
 
   constructor(
@@ -46,14 +46,22 @@ export class DiffController {
     private readonly reportContext: ReportContext,
     private readonly notations: NotationLookup = diffableNotations,
     private readonly diagramViews: DiagramViewsLocalStorage = new DiagramViewsLocalStorage(),
+    private readonly codeVisibility: CodeVisibility = new CodeVisibility(),
   ) {
     this.unrecognizedNotices = new UnrecognizedFileNotices(page, notations, reportContext)
   }
 
   start(): void {
     this.page.addDocumentStyle(this.source.hiddenCodeCss(HIDDEN_CODE_PANEL))
-    this.page.onChange(RERUN_DEBOUNCE_MS, () => void this.run())
-    void this.run()
+    void this.codeVisibility.load().then((stopFollowingCodeStart) => {
+      if (this.page.isInvalid) {
+        stopFollowingCodeStart()
+        return
+      }
+      this.page.onInvalidated(stopFollowingCodeStart)
+      this.page.onChange(RERUN_DEBOUNCE_MS, () => void this.run())
+      void this.run()
+    })
   }
 
   private async run(): Promise<void> {
@@ -140,13 +148,15 @@ export class DiffController {
   }
 
   private async mount(block: DiffFileBlock, differ: DiagramDiffer, pageKey: string): Promise<void> {
+    let codeToggle: CodeToggle | undefined
     const panel = await this.page.mountPanel({
       name: DIFF_PANEL_TAG,
       anchor: block.anchor,
       append: block.append,
       css: [differ.css, diffCss].join('\n'),
-      render: (container, shadowHost) =>
-        new DiffPanel({
+      render: (container, shadowHost) => {
+        codeToggle = this.codeToggleFor(block, pageKey, shadowHost)
+        return new DiffPanel({
           differ,
           label: this.labelFor(block),
           filePath: block.path,
@@ -154,11 +164,12 @@ export class DiffController {
           loadOld: block.loadOld,
           loadNew: block.loadNew,
           hasNoOldVersion: block.hasNoOldVersion,
-          codeToggle: this.codeToggleFor(block, pageKey, shadowHost),
+          codeToggle,
           onRendered: () => void this.diagramViews.save(this.page.location.pathname),
-        }).mount(container),
+        }).mount(container)
+      },
     })
-    this.keepOnPage(panel, block, pageKey, this.mirrorCollapse(panel, block))
+    this.keepOnPage(panel, block, pageKey, this.mirrorFile(panel, block, codeToggle))
   }
 
   private codeToggleFor(
@@ -170,14 +181,12 @@ export class DiffController {
     if (!hostCode.length) {
       return undefined
     }
-    const fileKey = `${pageKey}\n${file.path}`
-    const toggle = new CodeToggle({
-      shown: this.codeShownByFile.get(fileKey) ?? true,
+    return this.codeVisibility.toggleFor({
+      key: `${pageKey}\n${file.path}`,
+      hostCode,
+      isLinked: file.isLinkedFrom(this.page.location.hash ?? ''),
       hideCode: (hidden) => shadowHost.toggleAttribute(CODE_HIDDEN_ATTRIBUTE, hidden),
-      toggled: (shown) => this.codeShownByFile.set(fileKey, shown),
     })
-    toggle.controls(hostCode)
-    return toggle
   }
 
   private isShowing(pageKey: string | null): boolean {
@@ -220,9 +229,16 @@ export class DiffController {
     shown.remove()
   }
 
-  private mirrorCollapse(panel: ShadowPanel<DiffPanel>, block: DiffFileBlock): () => void {
+  private mirrorFile(
+    panel: ShadowPanel<DiffPanel>,
+    block: DiffFileBlock,
+    codeToggle: CodeToggle | undefined,
+  ): () => void {
     let wasHidden = false
     const sync = () => {
+      if (codeToggle) {
+        this.codeVisibility.reviewCommentsChanged(codeToggle, block.reviewCommentCount())
+      }
       const collapsed = block.isCollapsed()
       panel.shadowHost.toggleAttribute('data-collapsed', collapsed)
       if (!collapsed && wasHidden) {

@@ -2,6 +2,7 @@ import { createRequire } from 'node:module'
 import { readFileSync } from 'node:fs'
 import { browser } from '@wdio/globals'
 import type { AxeResults, Result } from 'axe-core'
+import type { ExtensionTab } from './ExtensionTab'
 
 const axeSource = readFileSync(
   createRequire(import.meta.url).resolve('axe-core/axe.min.js'),
@@ -22,6 +23,15 @@ export class AccessibilityAudit {
       WCAG_AA,
     )) as AxeResults
     return results.violations.map(AccessibilityAudit.describe)
+  }
+
+  /** Audits the whole page of an extension tab, which a test reaches only through BiDi. */
+  static async violationsInTab(tab: ExtensionTab): Promise<string[]> {
+    await tab.text(axeSource)
+    const run = `axe.run(document, { runOnly: { type: 'tag', values: ${JSON.stringify(WCAG_AA)} } })
+      .then((results) => JSON.stringify(results.violations))`
+    const violations = JSON.parse(await tab.text(run, { awaitPromise: true })) as Result[]
+    return violations.map(AccessibilityAudit.describe)
   }
 
   static async useTheme(hostSelector: string, theme: 'light' | 'dark'): Promise<void> {

@@ -9,6 +9,8 @@ import { ExtensionEnvironment } from '../../src/platform/ExtensionEnvironment'
 import { DebugInfo } from '../../src/views/options/DebugInfo'
 import { GithubAccessSection } from '../../src/views/options/GithubAccessSection'
 import { HelpSection } from '../../src/views/options/HelpSection'
+import { CodeStartSection } from '../../src/views/options/CodeStartSection'
+import { CodeStartSetting } from '../../src/platform/settings/CodeStartSetting'
 import { SelfHostedHostsSection } from '../../src/views/options/SelfHostedHostsSection'
 import { OptionsPageChrome } from '../../src/views/options/OptionsPageChrome'
 import { h } from '../../src/platform/utils/dom'
@@ -22,6 +24,7 @@ const hostAccess = HostAccess.forHosts(hostRegistry)
 
 app.append(pageChrome.header(), content)
 content.append(pageChrome.viewerCard())
+new CodeStartSection(new CodeStartSetting()).mount(content)
 new SelfHostedHostsSection(hostAccess).mount(content)
 new GithubAccessSection(new GithubDeviceFlow(), githubTokens, {
   where: 'Options page',

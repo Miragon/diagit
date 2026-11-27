@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { browser } from 'wxt/browser'
-import { DiffDataError, type DiffSource } from '../../src/git-hosts/DiffSource'
+import { DiffDataError, type DiffFileBlock, type DiffSource } from '../../src/git-hosts/DiffSource'
 import { DIFF_ERROR_TAG, DIFF_PANEL_TAG } from '../../src/platform/injectedElements'
 import { DiffController } from '../../src/views/diff-viewer/DiffController'
 import { DiffPanel } from '../../src/views/diff-viewer/DiffPanel'
@@ -8,6 +8,8 @@ import { HostPage } from '../../src/platform/page/HostPage'
 import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { FakeNotationLookup } from '../fakes/FakeNotationLookup'
 import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
+import { codeStartSettingIn, codeVisibilityIn } from '../fakes/codeVisibilityIn'
+import { MemoryStorageArea } from '../fakes/MemoryStorageArea'
 
 vi.mock('wxt/browser', () => ({
   browser: {
@@ -54,6 +56,8 @@ function sourceShowing(
           isCollapsed: () => false,
           showsOtherFile: () => false,
           hostCode: () => [code],
+          reviewCommentCount: () => 0,
+          isLinkedFrom: () => false,
           loadOld: async () => '<old/>',
           loadNew: async () => '<new/>',
         },
@@ -62,12 +66,14 @@ function sourceShowing(
   }
 }
 
-function start(source: DiffSource): void {
+function start(source: DiffSource, codeVisibility = codeVisibilityIn()): void {
   new DiffController(
     new HostPage(context.ctx),
     source,
     FAKE_REPORT_CONTEXT,
     new FakeNotationLookup(),
+    undefined,
+    codeVisibility,
   ).start()
 }
 
@@ -111,8 +117,11 @@ describe('DiffController', () => {
   it('releases the panel and its watchers once the host removes the file', async () => {
     const destroy = vi.spyOn(DiffPanel.prototype, 'destroy')
     const fileRoot = renderFileBox()
-    start(sourceShowing(fileRoot, Promise.resolve()))
+    const metadata = deferred()
+    start(sourceShowing(fileRoot, metadata.promise))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     const listenersWithoutPanel = context.pendingInvalidationListeners
+    metadata.resolve()
     await vi.waitFor(() => expect(fileRoot.querySelector(DIFF_PANEL_TAG)).not.toBeNull())
 
     fileRoot.remove()
@@ -196,6 +205,8 @@ describe('DiffController', () => {
               isCollapsed: () => false,
               showsOtherFile: () => fileRoot.dataset.path !== path,
               hostCode: () => [],
+              reviewCommentCount: () => 0,
+              isLinkedFrom: () => false,
               loadOld: async () => null,
               loadNew: async () => null,
             }))
@@ -286,6 +297,64 @@ describe('DiffController', () => {
       expect(currentCode().previousElementSibling!.hasAttribute('data-code-hidden')).toBe(true)
     })
 
+    async function startingWithDiagramAlone(source: DiffSource): Promise<void> {
+      const area = new MemoryStorageArea()
+      await codeStartSettingIn(area).write('hidden')
+      start(source, codeVisibilityIn(area))
+    }
+
+    function withFile(source: DiffSource, file: Partial<DiffFileBlock>): DiffSource {
+      return {
+        ...source,
+        collect: async (location, doc) =>
+          (await source.collect(location, doc)).map((block) => ({ ...block, ...file })),
+      }
+    }
+
+    it('hides the code already while the diagram loads when the options say so', async () => {
+      const fileRoot = renderFileBox()
+      const code = fileRoot.querySelector<HTMLElement>('.code')!
+      const neverLoads = () => new Promise<string>(() => {})
+      await startingWithDiagramAlone(
+        withFile(sourceShowing(fileRoot, Promise.resolve()), {
+          loadOld: neverLoads,
+          loadNew: neverLoads,
+        }),
+      )
+
+      await codeButtonOf(code)
+      expect(code.previousElementSibling!.hasAttribute('data-code-hidden')).toBe(true)
+    })
+
+    it('starts with the code shown for a file the link points into', async () => {
+      const fileRoot = renderFileBox()
+      const code = fileRoot.querySelector<HTMLElement>('.code')!
+      await startingWithDiagramAlone(
+        withFile(sourceShowing(fileRoot, Promise.resolve()), { isLinkedFrom: () => true }),
+      )
+
+      const button = await codeButtonOf(code)
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+      expect(code.previousElementSibling!.hasAttribute('data-code-hidden')).toBe(false)
+    })
+
+    it('shows the code once review comments load into the file', async () => {
+      const fileRoot = renderFileBox()
+      const code = fileRoot.querySelector<HTMLElement>('.code')!
+      await startingWithDiagramAlone(
+        withFile(sourceShowing(fileRoot, Promise.resolve()), {
+          reviewCommentCount: () => fileRoot.querySelectorAll('.comment').length,
+        }),
+      )
+      await codeButtonOf(code)
+      const panel = code.previousElementSibling!
+      expect(panel.hasAttribute('data-code-hidden')).toBe(true)
+
+      code.append(Object.assign(document.createElement('div'), { className: 'comment' }))
+
+      await vi.waitFor(() => expect(panel.hasAttribute('data-code-hidden')).toBe(false))
+    })
+
     const currentFileBox = () => document.querySelector<HTMLElement>('.file')!
     const currentCode = () => currentFileBox().querySelector<HTMLElement>('.code')!
   })
@@ -316,6 +385,8 @@ describe('DiffController', () => {
               isCollapsed: () => false,
               showsOtherFile: () => false,
               hostCode: () => [],
+              reviewCommentCount: () => 0,
+              isLinkedFrom: () => false,
             },
           ],
         )
@@ -366,6 +437,8 @@ describe('DiffController', () => {
               isCollapsed: () => false,
               showsOtherFile: () => false,
               hostCode: () => [],
+              reviewCommentCount: () => 0,
+              isLinkedFrom: () => false,
             },
           ],
         )

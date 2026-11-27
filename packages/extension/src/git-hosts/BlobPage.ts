@@ -9,6 +9,7 @@ export interface BlobPageConfig {
 }
 
 const LEADING_REF_SEGMENT = /^[^/]+\//
+const LINE_LINK = /^#L\d+/
 
 export class BlobPage {
   constructor(
@@ -28,6 +29,10 @@ export class BlobPage {
 
   showsDiagram(location: Pick<Location, 'pathname'>): boolean {
     return this.isBlob(location) && this.notations.detect(location.pathname) !== null
+  }
+
+  isLinkedToLine(location: Pick<Location, 'hash'>): boolean {
+    return LINE_LINK.test(location.hash ?? '')
   }
 
   rawUrl(location: Location): string {

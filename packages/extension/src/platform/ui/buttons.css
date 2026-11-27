@@ -87,6 +87,23 @@
   color: var(--cd-ui-link);
 }
 
+.diagit-code-count {
+  min-width: 18px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--cd-blau);
+  color: var(--cd-weiss);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  text-align: center;
+}
+
+.diagit-code-count[hidden] {
+  display: none;
+}
+
 .btn-quiet-danger svg {
   color: var(--cd-ui-danger);
 }

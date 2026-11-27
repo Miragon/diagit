@@ -19,6 +19,7 @@ export const gitlabSelectors = {
       '.diff-content, [data-testid="diff-content"], [data-testid="rd-diff-file-body"]',
     titleForSibling:
       '.file-title, .js-file-title, [data-testid="file-title"], .file-title-flex-parent',
+    reviewNote: '[id^="note_"]',
     collapseContent:
       '.diff-content, [data-testid="content-area"], [data-testid="diff-content"], [data-testid="rd-diff-file-body"]',
   },

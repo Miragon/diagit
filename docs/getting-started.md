@@ -23,7 +23,7 @@ Open any [supported file](./notations) in a repository, for example a `.bpmn`, `
   <figcaption>order.bpmn on a file page, drawn by Diagit</figcaption>
 </figure>
 
-Drag to move the diagram, zoom with **−** and **+**, and press **Fit** to see all of it again. The source stays below, unchanged. The full screen button next to **Fit** shows the diagram on the whole screen. Press it again or Esc to leave.
+Drag to move the diagram, zoom with **−** and **+**, and press **Fit** to see all of it again. The source stays below, unchanged. **Code** at the end of the toolbar hides the source and shows it again. The full screen button next to **Fit** shows the diagram on the whole screen. Press it again or Esc to leave.
 
 ## 3. Review a change in a pull request
 
@@ -51,7 +51,7 @@ Diagit recognises files by their ending. Check that the file ends in one of the 
 :::
 
 ::: details A diagram appears, but no diff for my DMN, Wardley Map or other model
-The before/after diff is available for BPMN so far. All other notations are drawn on the file page, also inside a pull request.
+The before/after diff is available for BPMN so far. All other notations are drawn on the file page. In a pull request they show only the text diff.
 :::
 
 ## Next steps

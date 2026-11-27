@@ -32,3 +32,13 @@ describe('GitHub blob page', () => {
     expect(githubHost.blobPage.filePath(location)).toBe('dir/flow.bpmn')
   })
 })
+
+describe('blob page links', () => {
+  it('knows a link to a line or a range of lines', () => {
+    expect(githubHost.blobPage.isLinkedToLine({ hash: '#L42' })).toBe(true)
+    expect(githubHost.blobPage.isLinkedToLine({ hash: '#L42-L50' })).toBe(true)
+    expect(gitlabHost.blobPage.isLinkedToLine({ hash: '#L7' })).toBe(true)
+    expect(githubHost.blobPage.isLinkedToLine({ hash: '#readme' })).toBe(false)
+    expect(githubHost.blobPage.isLinkedToLine({ hash: '' })).toBe(false)
+  })
+})

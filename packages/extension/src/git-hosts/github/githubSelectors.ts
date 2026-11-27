@@ -15,5 +15,6 @@ export const githubSelectors = {
     modernHeadingFullPath: 'code > .sr-only',
     modernCode: 'table[data-diff-anchor]',
     legacyCode: '.js-file-content, .data.highlight, .diff-table',
+    reviewCommentBody: '.markdown-body',
   },
 }

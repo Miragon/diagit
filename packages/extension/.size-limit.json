@@ -27,7 +27,7 @@
       ".output/chrome-mv3/content-scripts/github-commit.js",
       ".output/chrome-mv3/content-scripts/gitlab-diff.js"
     ],
-    "limit": "2.35 MB",
+    "limit": "2.45 MB",
     "gzip": false,
     "brotli": false
   }
