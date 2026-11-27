@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.12.0](https://github.com/Miragon/diagit/compare/v0.11.1...v0.12.0) (2026-11-27)
+
+
+### Features
+
+* choose whether diagrams start with the code shown or hidden ([#273](https://github.com/Miragon/diagit/issues/273)) ([cc9411c](https://github.com/Miragon/diagit/commit/cc9411c97e5350a999360041599829dae8355448))
+* show only the XML of the selected change ([#275](https://github.com/Miragon/diagit/issues/275)) ([6559d04](https://github.com/Miragon/diagit/commit/6559d04457e3d30b28bed44924f2e8cc3b6b927d))
+* show or hide the code under diff panels ([#272](https://github.com/Miragon/diagit/issues/272)) ([239be11](https://github.com/Miragon/diagit/commit/239be1157f932a6f026a146347ec0fcd3f066ed3))
+* show or hide the code under the diagram on file pages ([#271](https://github.com/Miragon/diagit/issues/271)) ([b8a383e](https://github.com/Miragon/diagit/commit/b8a383ee0fad09bed072054fb81ab05c08ad89f9))
+* step through the overview between the last and the first change ([#270](https://github.com/Miragon/diagit/issues/270)) ([a24f1f8](https://github.com/Miragon/diagit/commit/a24f1f894a8a7b9ffaaf89050a4f87f1274ee155))
+
+
+### Bug Fixes
+
+* address the findings of the stack review ([#280](https://github.com/Miragon/diagit/issues/280)) ([1b07d40](https://github.com/Miragon/diagit/commit/1b07d407bdc301de13694f25e70ca915d7791be8))
+* **deps:** Bump the npm-minor-patch group with 13 updates ([#277](https://github.com/Miragon/diagit/issues/277)) ([6d68a83](https://github.com/Miragon/diagit/commit/6d68a83535b18300e196f8fc4ba327f250085d36))
+
 ## [0.11.1](https://github.com/Miragon/diagit/compare/v0.11.0...v0.11.1) (2026-11-26)
 
 
