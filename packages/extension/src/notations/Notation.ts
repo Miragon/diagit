@@ -25,10 +25,29 @@ export interface DiffableViewer extends DiagramViewer {
   resetView(): void
 }
 
+/** One line of a file, numbered from 1. */
+export interface CodeLine {
+  readonly number: number
+  readonly text: string
+}
+
+/** One changed element as the lines of its file, without layout: `null` where it is missing. */
+export interface ChangeDetail {
+  type: string
+  name: string | null
+  before: readonly CodeLine[] | null
+  after: readonly CodeLine[] | null
+}
+
+export interface DiagramComparison {
+  readonly diff: DiagramDiff
+  detail(id: string): ChangeDetail | null
+}
+
 export interface DiagramDiffer {
   readonly css: string
   readonly showsBpmnIoLogo: boolean
-  diff(oldXml: string, newXml: string): Promise<DiagramDiff>
+  compare(oldXml: string, newXml: string): Promise<DiagramComparison>
   createViewer(canvas: HTMLElement, xml: string): Promise<DiffableViewer>
 }
 

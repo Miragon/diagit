@@ -1,4 +1,9 @@
-import type { DiagramDiff, DiagramDiffer } from '../../src/notations/Notation'
+import type {
+  ChangeDetail,
+  DiagramComparison,
+  DiagramDiff,
+  DiagramDiffer,
+} from '../../src/notations/Notation'
 import { FakeDiffableViewer } from './FakeDiffableViewer'
 
 export class FakeDiffer implements DiagramDiffer {
@@ -9,10 +14,11 @@ export class FakeDiffer implements DiagramDiffer {
   constructor(
     private readonly result: DiagramDiff = { added: [], removed: [], changed: [], moved: [] },
     private readonly knownIds: string[] = [],
+    private readonly details: Record<string, ChangeDetail> = {},
   ) {}
 
-  async diff(): Promise<DiagramDiff> {
-    return this.result
+  async compare(): Promise<DiagramComparison> {
+    return { diff: this.result, detail: (id) => this.details[id] ?? null }
   }
 
   async createViewer(canvas: HTMLElement): Promise<FakeDiffableViewer> {

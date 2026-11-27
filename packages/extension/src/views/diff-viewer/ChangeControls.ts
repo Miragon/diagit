@@ -14,56 +14,63 @@ const LEGEND_LABEL: Record<ChangeCategory, string> = {
 }
 
 interface NavigationListener {
-  steppedToChange(): void
+  steppedToChange(id: string): void
   showedAll(): void
 }
 
 export class ChangeControls {
   readonly element = h('div', { class: 'diagit-diff-changes' })
   private navigator: ChangeNavigator | null = null
+  private showAllChanges: (() => void) | null = null
 
   constructor(private readonly navigation: NavigationListener) {}
+
+  get selectedId(): string | null {
+    return this.navigator?.selectedId ?? null
+  }
+
+  /** Clears the selected change, like Show all; does nothing while none is selected. */
+  showAll(): void {
+    if (this.selectedId !== null) {
+      this.showAllChanges?.()
+    }
+  }
 
   showDiff(diff: DiagramDiff, navigator: ChangeNavigator): void {
     this.releaseNavigator()
     this.navigator = navigator
     const position = h('span', {
-      class: 'diagit-btn-group-position diagit-diff-position',
+      class: 'diagit-btn-group-position diagit-diff-position diagit-diff-total',
       'aria-live': 'polite',
+      text: this.totalText(navigator.ids.length),
     })
     const step = (move: () => void) => () => {
       move()
       position.textContent = navigator.position
         ? `${navigator.position} of ${navigator.ids.length}`
-        : ''
-    }
-    const reportStep = () => {
-      if (navigator.position) {
-        this.navigation.steppedToChange()
-      } else {
+        : this.totalText(navigator.ids.length)
+      const selected = navigator.selectedId
+      if (selected === null) {
         this.navigation.showedAll()
+      } else {
+        this.navigation.steppedToChange(selected)
       }
     }
     const previous = this.iconButton(
       'Previous change',
       ChevronLeft,
-      step(() => {
-        navigator.previous()
-        reportStep()
-      }),
+      step(() => navigator.previous()),
     )
     const next = this.iconButton(
       'Next change',
       ChevronRight,
-      step(() => {
-        navigator.next()
-        reportStep()
-      }),
+      step(() => navigator.next()),
     )
+    this.showAllChanges = step(() => navigator.showAll())
     previous.disabled = !navigator.hasChanges
     next.disabled = !navigator.hasChanges
     this.element.replaceChildren(
-      this.legend(diff, navigator.ids.length),
+      this.legend(diff),
       h(
         'div',
         {
@@ -72,18 +79,15 @@ export class ChangeControls {
           'aria-label': 'Changes',
         },
         [
+          position,
           previous,
           next,
-          position,
           h('span', { class: 'diagit-diff-nav-separator', 'aria-hidden': 'true', text: '·' }),
           h('button', {
             class: 'btn btn-ghost',
             type: 'button',
             text: 'Show all',
-            onClick: step(() => {
-              navigator.showAll()
-              this.navigation.showedAll()
-            }),
+            onClick: this.showAllChanges,
           }),
         ],
       ),
@@ -116,23 +120,24 @@ export class ChangeControls {
   private releaseNavigator(): void {
     this.navigator?.release()
     this.navigator = null
+    this.showAllChanges = null
   }
 
-  private legend(diff: DiagramDiff, total: number): HTMLElement {
+  private legend(diff: DiagramDiff): HTMLElement {
     const counts = (Object.keys(LEGEND_LABEL) as ChangeCategory[])
       .filter((category) => diff[category].length > 0)
       .map((category) => ({ category, text: `${LEGEND_LABEL[category]} ${diff[category].length}` }))
-    const totalText = this.totalText(total)
-    const fullLegend = [...counts.map(({ text }) => text), totalText].join(', ')
-    return h('div', { class: 'diagit-diff-legend', title: fullLegend }, [
-      ...counts.map(({ category, text }) =>
+    const fullLegend = counts.map(({ text }) => text).join(', ')
+    return h(
+      'div',
+      { class: 'diagit-diff-legend', title: fullLegend },
+      counts.map(({ category, text }) =>
         h('span', { class: 'diagit-legend-chip' }, [
           h('i', { class: 'diagit-swatch', 'data-change': category }),
           text,
         ]),
       ),
-      h('span', { class: 'diagit-diff-total', text: totalText }),
-    ])
+    )
   }
 
   private totalText(total: number): string {

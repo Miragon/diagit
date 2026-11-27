@@ -107,6 +107,10 @@ export class ZoomControls {
     this.renderViewButtons()
   }
 
+  get isEnlarged(): boolean {
+    return this.view !== 'inline'
+  }
+
   get largerView(): LargerView | null {
     if (this.expandDialog) {
       return 'expanded'

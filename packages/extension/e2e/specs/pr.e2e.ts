@@ -89,3 +89,43 @@ describe('GitHub PR diff: the Code button', () => {
     await expect(host).toHaveAttribute('data-collapsed')
   })
 })
+
+describe('GitHub PR diff: the code of the selected change', () => {
+  const diagramHeight = () =>
+    browser.execute(
+      () =>
+        document
+          .querySelector('diagit-diff')!
+          .shadowRoot!.querySelector('.diagit-diff-area')!
+          .getBoundingClientRect().height,
+    )
+
+  it('shows only the XML of the selected change and keeps the diagram at its size', async () => {
+    await browser.url('/octo/flows/pull/2/files')
+    const host = $('diagit-diff')
+    await host.waitForExist({ timeout: 20_000 })
+    await host.scrollIntoView()
+    await host.shadow$('.djs-element').waitForExist({ timeout: 20_000 })
+    const bar = host.shadow$('.diagit-change-code-bar')
+    await expect(bar).toHaveText(expect.stringContaining('All changes'))
+    const heightWithWholeFile = await diagramHeight()
+
+    await host.shadow$('button[aria-label="Next change"]').click()
+
+    await expect(bar).toHaveText(expect.stringContaining('Check the order'))
+    await expect(host.shadow$('.diagit-xml-line[data-line="removed"]')).toHaveText(
+      expect.stringContaining('name="Check order"'),
+    )
+    await expect(host.shadow$('.diagit-xml-line[data-line="added"]')).toHaveText(
+      expect.stringContaining('name="Check the order"'),
+    )
+    await expect($('table[data-diff-anchor]')).not.toBeDisplayed()
+    expect(await diagramHeight()).toBe(heightWithWholeFile)
+
+    await browser.keys(['Escape'])
+
+    await expect(bar).toHaveText(expect.stringContaining('All changes'))
+    await expect($('table[data-diff-anchor]')).toBeDisplayed()
+    expect(await diagramHeight()).toBe(heightWithWholeFile)
+  })
+})

@@ -1,5 +1,5 @@
 import { BpmnModelDiffer } from '@diagit/bpmn-diff'
-import type { DiagramDiff, DiagramDiffer, DiffableViewer } from '../Notation'
+import type { DiagramComparison, DiagramDiffer, DiffableViewer } from '../Notation'
 import { BPMN_PANEL_CSS } from './bpmnCss'
 import { BpmnViewer } from './BpmnViewer'
 
@@ -8,8 +8,8 @@ export class BpmnDiffer implements DiagramDiffer {
   readonly showsBpmnIoLogo = true
   private readonly models = new BpmnModelDiffer()
 
-  diff(oldXml: string, newXml: string): Promise<DiagramDiff> {
-    return this.models.diff(oldXml, newXml)
+  compare(oldXml: string, newXml: string): Promise<DiagramComparison> {
+    return this.models.compare(oldXml, newXml)
   }
 
   createViewer(canvas: HTMLElement, xml: string): Promise<DiffableViewer> {

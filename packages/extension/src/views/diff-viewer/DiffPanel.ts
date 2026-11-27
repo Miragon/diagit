@@ -1,4 +1,4 @@
-import type { DiagramDiff } from '../../notations/Notation'
+import type { DiagramComparison, DiagramDiff } from '../../notations/Notation'
 import type { DiffLoaders } from '../../git-hosts/DiffSource'
 import type { DiagramDiffer, DiffableViewer } from '../../notations/Notation'
 import type { PanelHandle } from '../../platform/page/HostPage'
@@ -10,6 +10,7 @@ import { detectHostTheme } from '../../platform/utils/hostTheme'
 import { ZoomControls, type Zoomable } from '../../platform/ui/ZoomControls'
 import { AutoFit } from '../../platform/ui/AutoFit'
 import type { CodeToggle } from '../../platform/ui/CodeToggle'
+import { ChangeCode } from './ChangeCode'
 import { ChangeControls } from './ChangeControls'
 import { ChangeNavigator } from './ChangeNavigator'
 import { DiffNotices } from './DiffNotices'
@@ -30,7 +31,11 @@ export interface DiffPanelOptions extends DiffLoaders {
 type ModelView = 'plain' | 'diff'
 type LoadedModel = PromiseSettledResult<string | null>
 
-const NO_CHANGES: DiagramDiff = { added: [], removed: [], changed: [], moved: [] }
+const NO_CHANGES: DiagramComparison = {
+  diff: { added: [], removed: [], changed: [], moved: [] },
+  detail: () => null,
+}
+const CATEGORIES_BY_PRIORITY = ['added', 'removed', 'changed', 'moved'] as const
 const ONE_SCREEN_AROUND_THE_VIEWPORT = '100% 0px'
 
 export class DiffPanel implements PanelHandle, Zoomable {
@@ -41,9 +46,16 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private readonly plainButton = this.viewButton('Plain')
   private readonly diffButton = this.viewButton('Diff')
   private readonly changeControls = new ChangeControls({
-    steppedToChange: () => this.autoFit?.userMovedView(),
-    showedAll: () => this.autoFit?.fit(),
+    steppedToChange: () => {
+      this.autoFit?.userMovedView()
+      this.showChangeCode()
+    },
+    showedAll: () => {
+      this.autoFit?.fit()
+      this.showChangeCode()
+    },
   })
+  private readonly changeCode = new ChangeCode()
   private readonly zoomControls = new ZoomControls(this, (view) => {
     if (!this.destroyed) {
       this.sides.followPanelView(view)
@@ -72,6 +84,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
   ])
   private modelView: ModelView
   private diff: DiagramDiff | null = null
+  private comparison: DiagramComparison | null = null
+  private stopFollowingCode: (() => void) | null = null
   private viewPickedByUser = false
   private base: LoadedModel | null = null
   private head: LoadedModel | null = null
@@ -92,7 +106,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.modelView = options.hasNoOldVersion ? 'plain' : 'diff'
     this.changeControls.element.before(filePathLabel(options.filePath))
     if (options.codeToggle) {
-      this.toolbar.append(options.codeToggle.element)
+      this.showCodeOfChanges(options.codeToggle)
     }
     if (options.onOwnPage) {
       this.zoomControls.allowFullScreen(this.root)
@@ -122,6 +136,18 @@ export class DiffPanel implements PanelHandle, Zoomable {
     return this
   }
 
+  private showCodeOfChanges(codeToggle: CodeToggle): void {
+    this.toolbar.append(codeToggle.element)
+    this.root.append(this.changeCode.element)
+    codeToggle.alsoControls(this.changeCode.element)
+    this.stopFollowingCode = codeToggle.onChange(() => this.showChangeCode())
+    this.root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !this.zoomControls.isEnlarged) {
+        this.changeControls.showAll()
+      }
+    })
+  }
+
   refit(): void {
     this.fit()
   }
@@ -146,6 +172,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   destroy(): void {
     this.destroyed = true
+    this.stopFollowingCode?.()
     this.stopTrackingZoom?.()
     this.stopTrackingZoom = null
     this.detachFocusZoom?.()
@@ -191,6 +218,40 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.fit()
     this.trackZoomLevel()
     this.allowHidingCodeWhileDiagramShows()
+    this.showChangeCode()
+  }
+
+  private showChangeCode(): void {
+    const codeToggle = this.options.codeToggle
+    if (!codeToggle) {
+      return
+    }
+    const { comparison } = this
+    const diffStillLoading = !this.finishedViews.has('diff')
+    const showsBar = this.modelView === 'diff' && (comparison !== null || diffStillLoading)
+    if (!showsBar || !codeToggle.codeShown) {
+      this.changeCode.hide()
+      codeToggle.showCodeInPanel(false)
+      return
+    }
+    const id = this.changeControls.selectedId
+    if (id === null || !comparison) {
+      this.changeCode.showWholeFile()
+      codeToggle.showCodeInPanel(false)
+      return
+    }
+    const showsCode = this.changeCode.showChange({
+      id,
+      category: this.categoryOf(id),
+      detail: comparison.detail(id),
+    })
+    codeToggle.showCodeInPanel(showsCode)
+  }
+
+  private categoryOf(id: string): keyof DiagramDiff {
+    return (
+      CATEGORIES_BY_PRIORITY.find((category) => this.diff?.[category].includes(id)) ?? 'changed'
+    )
   }
 
   private allowHidingCodeWhileDiagramShows(): void {
@@ -272,7 +333,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     }
     this.diffRendered = true
     const { base, head } = this
-    const [, , diff] = await Promise.all([
+    const [, , comparison] = await Promise.all([
       this.renderPane(this.oldPane, base, 'not in source'),
       this.renderPane(this.newPane, head, 'deleted'),
       this.computeDiff(base, head),
@@ -285,10 +346,11 @@ export class DiffPanel implements PanelHandle, Zoomable {
     if (this.oldPane.viewer || this.newPane.viewer) {
       this.options.onRendered?.()
     }
-    if (!diff) {
+    if (!comparison) {
       this.changeControls.showDiffUnavailable()
     } else if (this.bothVersionsLoaded(base, head)) {
-      this.showDiff(diff)
+      this.comparison = comparison
+      this.showDiff(comparison.diff)
     } else {
       this.changeControls.clear()
     }
@@ -300,6 +362,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       this.trackZoomLevel()
     }
     this.allowHidingCodeWhileDiagramShows()
+    this.showChangeCode()
   }
 
   private showDiff(diff: DiagramDiff): void {
@@ -316,6 +379,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
     const diff = this.sides.changesShown(this.diff)
     const viewers = this.sides.shownPanes.map((pane) => pane.viewer)
     this.changeControls.showDiff(diff, ChangeNavigator.forDiff(diff, viewers))
+    this.showChangeCode()
   }
 
   private bothVersionsLoaded(oldModel: LoadedModel, newModel: LoadedModel): boolean {
@@ -368,7 +432,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private async computeDiff(
     oldModel: LoadedModel,
     newModel: LoadedModel,
-  ): Promise<DiagramDiff | null> {
+  ): Promise<DiagramComparison | null> {
     if (oldModel.status === 'rejected' || newModel.status === 'rejected') {
       return null
     }
@@ -376,7 +440,7 @@ export class DiffPanel implements PanelHandle, Zoomable {
       return NO_CHANGES
     }
     try {
-      return await this.options.differ.diff(oldModel.value, newModel.value)
+      return await this.options.differ.compare(oldModel.value, newModel.value)
     } catch {
       return null
     }
