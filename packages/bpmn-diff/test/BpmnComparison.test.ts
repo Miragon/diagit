@@ -19,7 +19,7 @@ function numberedFrom(first: number, lines: string[]) {
   return lines.map((text, index) => ({ number: first + index, text }))
 }
 
-function texts(lines: { text: string }[] | null | undefined): string[] {
+function texts(lines: readonly { text: string }[] | null | undefined): string[] {
   return (lines ?? []).map((line) => line.text)
 }
 
@@ -43,7 +43,6 @@ describe('BpmnComparison', () => {
   describe('detail', () => {
     it('takes the lines of the element from the file, with their numbers', async () => {
       expect(await detailOfUnchanged(base, 'Task_1')).toEqual({
-        id: 'Task_1',
         type: 'bpmn:ServiceTask',
         name: 'Do work',
         before: numberedFrom(12, serviceTaskLines),

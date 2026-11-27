@@ -1,6 +1,6 @@
 export { BpmnModelDiffer } from './BpmnModelDiffer'
 export type { BpmnComparison, ElementDetail } from './BpmnComparison'
-export type { SourceLine } from './domain/XmlSource'
+export type { SourceLine } from './adapter/XmlSource'
 export { BpmnParser } from './adapter/BpmnParser'
 export { ModelComparator } from './domain/ModelComparator'
 export { SemanticSignature } from './domain/SemanticSignature'

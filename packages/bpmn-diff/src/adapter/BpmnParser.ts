@@ -3,22 +3,10 @@ import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json' with { ty
 import type { ModdleElement } from 'bpmn-moddle'
 import type { Bounds, DiffElement, ParsedModel } from '../domain/model'
 
-/** A parsed model together with the moddle state needed to write parts of it back to XML. */
-export interface BpmnDocument {
-  readonly model: ParsedModel
-  readonly definitions: ModdleElement
-  readonly moddle: BpmnModdle
-}
-
 export class BpmnParser {
   async parse(xml: string): Promise<ParsedModel> {
-    return (await this.parseDocument(xml)).model
-  }
-
-  async parseDocument(xml: string): Promise<BpmnDocument> {
-    const moddle = new BpmnModdle({ camunda: camundaModdle })
-    const { rootElement } = await moddle.fromXML(xml)
-    return { model: this.buildModel(rootElement), definitions: rootElement, moddle }
+    const { rootElement } = await new BpmnModdle({ camunda: camundaModdle }).fromXML(xml)
+    return this.buildModel(rootElement)
   }
 
   private buildModel(definitions: ModdleElement): ParsedModel {

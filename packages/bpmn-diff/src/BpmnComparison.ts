@@ -1,24 +1,21 @@
-import type { ModdleElement } from 'bpmn-moddle'
-import type { BpmnDocument } from './adapter/BpmnParser'
-import type { DiagramDiff } from './domain/model'
+import type { ModdleElement, DiagramDiff, ParsedModel } from './domain/model'
 import { ReferencedElements } from './domain/ReferencedElements'
-import { XmlSource, type SourceLine } from './domain/XmlSource'
+import { XmlSource, type SourceLine } from './adapter/XmlSource'
 
-/** A model next to the text of its file. */
+/** A parsed model next to the text of its file. */
 export interface BpmnFile {
-  readonly document: BpmnDocument
+  readonly model: ParsedModel
   readonly text: string
 }
 
 export interface ElementDetail {
-  id: string
   /** The moddle type, such as `bpmn:ServiceTask`. */
-  type: string
-  name: string | null
+  readonly type: string
+  readonly name: string | null
   /** The element's lines in the old file, `null` when it is not there (added). */
-  before: SourceLine[] | null
+  readonly before: readonly SourceLine[] | null
   /** The element's lines in the new file, `null` when it is not there (removed). */
-  after: SourceLine[] | null
+  readonly after: readonly SourceLine[] | null
 }
 
 /**
@@ -41,14 +38,12 @@ export class BpmnComparison {
   }
 
   detail(id: string): ElementDetail | null {
-    const businessObject = (
-      this.newFile.document.model.get(id) ?? this.oldFile.document.model.get(id)
-    )?.businessObject
+    const businessObject = (this.newFile.model.get(id) ?? this.oldFile.model.get(id))
+      ?.businessObject
     if (!businessObject) {
       return null
     }
     return {
-      id,
       type: businessObject.$type,
       name: typeof businessObject.name === 'string' ? businessObject.name : null,
       before: this.linesOf(id, this.oldFile, this.oldSource),
@@ -57,23 +52,19 @@ export class BpmnComparison {
   }
 
   private linesOf(id: string, file: BpmnFile, source: XmlSource): SourceLine[] | null {
-    const businessObject = file.document.model.get(id)?.businessObject
+    const businessObject = file.model.get(id)?.businessObject
     if (!businessObject) {
       return null
     }
-    const ids = [id, ...this.referencedIdsOf(businessObject, file)]
-    const lines = source.linesOf(ids, (nested) => nested !== id && file.document.model.has(nested))
+    const ids = [id, ...this.referencedIdsOf(businessObject, file.model)]
+    const lines = source.linesOf(ids, (nested) => nested !== id && file.model.has(nested))
     return lines.length > 0 ? lines : null
   }
 
-  private referencedIdsOf(businessObject: ModdleElement, file: BpmnFile): string[] {
-    try {
-      return this.referencedElements
-        .of(businessObject, file.document.model)
-        .map((element) => element.id)
-        .filter((referencedId): referencedId is string => typeof referencedId === 'string')
-    } catch {
-      return []
-    }
+  private referencedIdsOf(businessObject: ModdleElement, model: ParsedModel): string[] {
+    return this.referencedElements
+      .of(businessObject, model)
+      .map((element) => element.id)
+      .filter((referencedId): referencedId is string => typeof referencedId === 'string')
   }
 }

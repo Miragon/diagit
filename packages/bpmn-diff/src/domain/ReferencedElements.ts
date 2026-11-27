@@ -1,7 +1,11 @@
-import { CHILDREN_DIFFED_AS_OWN_ELEMENTS, LAYOUT_PROPERTIES } from './elementContent'
-import type { ModdleElement, ParsedModel } from './model'
-
-type DiagramElements = Pick<ParsedModel, 'has'>
+import {
+  CHILDREN_DIFFED_AS_OWN_ELEMENTS,
+  LAYOUT_PROPERTIES,
+  MAX_CONTENT_DEPTH,
+  ReferenceProperties,
+  type DiagramElements,
+} from './elementContent'
+import type { ModdleElement } from './model'
 
 interface Walk {
   readonly diagramElements: DiagramElements
@@ -11,14 +15,14 @@ interface Walk {
 
 const NOT_FOLLOWED = new Set<string>([...LAYOUT_PROPERTIES, ...CHILDREN_DIFFED_AS_OWN_ELEMENTS])
 
-const MAX_DEPTH = 16
-
 /**
  * The elements without a shape of their own that an element references, directly or from its
  * nested content: the message behind a message event definition, the process behind a pool, …
  * Like {@link SemanticSignature}, it never follows a reference to another diagram element.
  */
 export class ReferencedElements {
+  private readonly referenceProperties = new ReferenceProperties()
+
   of(element: ModdleElement, diagramElements: DiagramElements): ModdleElement[] {
     const walk: Walk = { diagramElements, visited: new Set([element]), found: [] }
     this.visitProperties(element, walk, 0)
@@ -26,7 +30,7 @@ export class ReferencedElements {
   }
 
   private visitProperties(node: ModdleElement, walk: Walk, depth: number): void {
-    if (depth > MAX_DEPTH) {
+    if (depth > MAX_CONTENT_DEPTH) {
       return
     }
     const referenceNames = this.referenceNamesOf(node)
@@ -78,9 +82,6 @@ export class ReferencedElements {
   }
 
   private referenceNamesOf(node: ModdleElement): Set<string> {
-    const properties: any[] = node.$descriptor?.properties ?? []
-    return new Set(
-      properties.filter((property) => property.isReference).map((property) => property.name),
-    )
+    return new Set(this.referenceProperties.namesOf(node))
   }
 }
