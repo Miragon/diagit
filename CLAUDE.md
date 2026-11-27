@@ -14,13 +14,19 @@ the plugin is installed (`.claude/settings.json` enables it). Copy and tone foll
   a vendored file. Components use the `--cd-ui-*` roles only.
 - Diagit lives inside a foreign page (GitHub, GitLab). The host decides only the mode:
   `detectHostTheme` sets `data-cd-theme` (light or dark) on the panel root. Host colours, host
-  fonts and host tokens (Primer, GitLab) are never taken over. The extension's own pages (options,
-  standalone viewer, alert) use `data-cd-theme="system"`.
+  fonts and host tokens (Primer, GitLab) are never taken over, except in the code block below.
+  The extension's own pages (options, standalone viewer, alert) use `data-cd-theme="system"`.
 - Dark surfaces are black and the neutral steps, never tinted. Green and amber are fills with a
   contour in `--cd-schwarz` on light, never a thin stroke or text there.
 - Known deviation, decided for now: fonts stay the system stacks (and the bpmn-js / dmn-js
   defaults on the canvas) instead of Geist. Function icons come from Lucide with stroke 2.5. The
   app icon is the comet on blue.
+- Known deviation, decided: the code block under a diff panel (`.diagit-change-xml` in
+  `diff.css`) looks like the host's own diff. It only shows a filtered part of what GitHub or
+  GitLab would show, so reviewers should recognise it at once. It takes the host's code font
+  through its CSS variable and tints added and removed lines in light and dark (mixed from the
+  status colours, inside `brand-lint-disable`). Everything that is Diagit's own layer (canvas,
+  toolbars, options, viewer) follows the design system.
 - UI copy is English, sentence case, with the shared terms from §2 of the guide.
 
 The files copied from miragon-brand (brand-lint, the design tokens and `cd-canvas.css`) are

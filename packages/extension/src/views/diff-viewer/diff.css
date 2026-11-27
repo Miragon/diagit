@@ -379,7 +379,6 @@
 }
 
 .diagit-change-code {
-  --diagit-xml-gutter: calc(var(--cd-shell-rand) + 12px);
   border-top: 1px solid var(--border);
   background: var(--bg);
   font-size: 13px;
@@ -396,7 +395,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 8px;
-  padding: 8px var(--cd-shell-rand) 8px var(--diagit-xml-gutter);
+  padding: 8px var(--cd-shell-rand);
 }
 
 .diagit-change-code-muted {
@@ -407,26 +406,51 @@
   content: '· ';
 }
 
+/*
+ * Two tones per side, like the diff of GitHub and GitLab: the whole line tinted, its numbers and
+ * the part that changed against its paired line stronger, mixed from the status colours, in
+ * light and dark. A deliberate deviation from the design system (see CLAUDE.md).
+ */
 .diagit-change-xml {
-  padding: 4px 0;
+  --diagit-xml-added-line: var(--cd-ui-success-flaeche);
+  --diagit-xml-added-strong: color-mix(in srgb, var(--cd-success) 32%, var(--cd-weiss));
+  --diagit-xml-removed-line: var(--cd-ui-danger-flaeche);
+  --diagit-xml-removed-strong: color-mix(in srgb, var(--cd-danger) 20%, var(--cd-weiss));
+  --diagit-xml-added-sign: var(--fg);
+  --diagit-xml-removed-sign: var(--fg);
+  --diagit-xml-number-width: calc(var(--diagit-xml-digits, 2ch) + 16px);
   border-top: 1px solid var(--border);
-  font-family: var(--diagit-font-mono);
+  /* The code font of the host page, as in its own diff (see CLAUDE.md). */
+  font-family: var(--gl-font-family-monospace, var(--fontStack-monospace, var(--diagit-font-mono)));
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 20px;
 }
 
 .diagit-xml-line {
   display: flex;
-  min-height: 1.5em;
   padding-right: var(--cd-shell-rand);
 }
 
-.diagit-xml-line::before {
+.diagit-xml-number {
   flex: none;
-  width: var(--diagit-xml-gutter);
+  box-sizing: border-box;
+  width: var(--diagit-xml-number-width);
+  padding: 0 8px;
+  color: var(--fg-muted);
+  text-align: right;
+  user-select: none;
+}
+
+.diagit-xml-number + .diagit-xml-number {
+  border-right: 1px solid var(--border);
+}
+
+.diagit-xml-sign {
+  flex: none;
+  width: 24px;
   color: var(--fg-muted);
   text-align: center;
-  content: ' ';
+  user-select: none;
 }
 
 .diagit-xml-indentation {
@@ -440,34 +464,53 @@
   overflow-wrap: anywhere;
 }
 
-.diagit-xml-line[data-line='added'] {
-  background: var(--cd-ui-success-flaeche);
+.diagit-xml-gap {
+  height: 20px;
+  border-block: 1px solid var(--border);
+  background: var(--cd-ui-grund);
 }
 
-.diagit-xml-line[data-line='added']::before {
-  content: '+';
+.diagit-xml-changed-part {
+  border-radius: 2px;
+  background: none;
+  color: inherit;
+}
+
+.diagit-xml-line[data-line='added'] {
+  background: var(--diagit-xml-added-line);
+}
+
+.diagit-xml-line[data-line='added'] :is(.diagit-xml-number, .diagit-xml-changed-part) {
+  background: var(--diagit-xml-added-strong);
 }
 
 .diagit-xml-line[data-line='removed'] {
-  background: var(--cd-ui-danger-flaeche);
+  background: var(--diagit-xml-removed-line);
 }
 
-.diagit-xml-line[data-line='removed']::before {
-  content: '−';
+.diagit-xml-line[data-line='removed'] :is(.diagit-xml-number, .diagit-xml-changed-part) {
+  background: var(--diagit-xml-removed-strong);
 }
 
-.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='added'] {
-  box-shadow: inset 3px 0 0 var(--cd-ui-success);
+.diagit-xml-line:is([data-line='added'], [data-line='removed']) .diagit-xml-number {
+  color: var(--fg);
 }
 
-.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='added']::before {
-  color: var(--cd-ui-success);
+.diagit-xml-line[data-line='added'] .diagit-xml-sign {
+  color: var(--diagit-xml-added-sign);
 }
 
-.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='removed'] {
-  box-shadow: inset 3px 0 0 var(--cd-ui-danger);
+.diagit-xml-line[data-line='removed'] .diagit-xml-sign {
+  color: var(--diagit-xml-removed-sign);
 }
 
-.diagit-wrap[data-cd-theme='dark'] .diagit-xml-line[data-line='removed']::before {
-  color: var(--cd-ui-danger);
+/* brand-lint-disable */
+.diagit-wrap[data-cd-theme='dark'] .diagit-change-xml {
+  --diagit-xml-added-line: color-mix(in srgb, var(--cd-success) 14%, var(--cd-ui-flaeche));
+  --diagit-xml-added-strong: color-mix(in srgb, var(--cd-success) 32%, var(--cd-ui-flaeche));
+  --diagit-xml-removed-line: color-mix(in srgb, var(--cd-danger-hell) 14%, var(--cd-ui-flaeche));
+  --diagit-xml-removed-strong: color-mix(in srgb, var(--cd-danger-hell) 32%, var(--cd-ui-flaeche));
+  --diagit-xml-added-sign: var(--cd-ui-success);
+  --diagit-xml-removed-sign: var(--cd-ui-danger);
 }
+/* brand-lint-enable */

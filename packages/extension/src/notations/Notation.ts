@@ -25,12 +25,18 @@ export interface DiffableViewer extends DiagramViewer {
   resetView(): void
 }
 
-/** One changed element as code, without layout: `null` on the side it is missing from. */
+/** One line of a file, numbered from 1. */
+export interface CodeLine {
+  readonly number: number
+  readonly text: string
+}
+
+/** One changed element as the lines of its file, without layout: `null` where it is missing. */
 export interface ChangeDetail {
   type: string
   name: string | null
-  before: string | null
-  after: string | null
+  before: readonly CodeLine[] | null
+  after: readonly CodeLine[] | null
 }
 
 export interface DiagramComparison {

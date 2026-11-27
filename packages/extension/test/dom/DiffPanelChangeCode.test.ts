@@ -8,22 +8,41 @@ import { FAKE_REPORT_CONTEXT } from '../fakes/fakeReportContext'
 
 const DIFF: DiagramDiff = { added: ['Task_new'], removed: [], changed: ['Task_1'], moved: ['End'] }
 
+const numberedFrom = (first: number, ...texts: string[]) =>
+  texts.map((text, index) => ({ number: first + index, text }))
+
 const DETAILS: Record<string, ChangeDetail> = {
   Task_1: {
     type: 'bpmn:ServiceTask',
     name: 'Charge card',
-    before:
-      '<bpmn:serviceTask id="Task_1">\n  <zeebe:taskDefinition type="a" />\n</bpmn:serviceTask>',
-    after:
-      '<bpmn:serviceTask id="Task_1">\n  <zeebe:taskDefinition type="b" />\n</bpmn:serviceTask>',
+    before: numberedFrom(
+      9,
+      '    <bpmn:serviceTask id="Task_1">',
+      '      <zeebe:taskDefinition type="a" />',
+      '    </bpmn:serviceTask>',
+    ),
+    after: [
+      ...numberedFrom(3, '  <bpmn:message id="Message_1" />'),
+      ...numberedFrom(
+        10,
+        '    <bpmn:serviceTask id="Task_1">',
+        '      <zeebe:taskDefinition type="b" />',
+        '    </bpmn:serviceTask>',
+      ),
+    ],
   },
   Task_new: {
     type: 'bpmn:UserTask',
     name: null,
     before: null,
-    after: '<bpmn:userTask id="Task_new" />',
+    after: numberedFrom(12, '<bpmn:userTask id="Task_new" />'),
   },
-  End: { type: 'bpmn:EndEvent', name: 'Done', before: '<end />', after: '<end />' },
+  End: {
+    type: 'bpmn:EndEvent',
+    name: 'Done',
+    before: numberedFrom(1, '<end />'),
+    after: numberedFrom(1, '<end />'),
+  },
 }
 
 let panel: DiffPanel | null = null
@@ -58,7 +77,15 @@ const changeCode = (container: HTMLElement) =>
 const xml = (container: HTMLElement) => container.querySelector<HTMLElement>('.diagit-change-xml')!
 const lines = (container: HTMLElement) =>
   [...xml(container).querySelectorAll<HTMLElement>('.diagit-xml-line')].map(
-    (line) => `${line.dataset.line}:${line.textContent}`,
+    (line) =>
+      `${line.dataset.line}:${line.querySelector('.diagit-xml-indentation')!.textContent}${line.querySelector('.diagit-xml-code')!.textContent}`,
+  )
+const numbers = (container: HTMLElement) =>
+  [...xml(container).querySelectorAll<HTMLElement>('.diagit-xml-line, .diagit-xml-gap')].map(
+    (row) =>
+      row.classList.contains('diagit-xml-gap')
+        ? 'gap'
+        : [...row.querySelectorAll('.diagit-xml-number')].map((cell) => cell.textContent).join('|'),
   )
 const next = (container: HTMLElement) =>
   container.querySelector<HTMLButtonElement>('button[aria-label="Next change"]')!.click()
@@ -131,10 +158,11 @@ describe('DiffPanel: the code of the selected change', () => {
 
     expect(barText(container)).toBe('Charge card | Service task')
     expect(lines(container)).toEqual([
-      'same:<bpmn:serviceTask id="Task_1">',
-      'removed:  <zeebe:taskDefinition type="a" />',
-      'added:  <zeebe:taskDefinition type="b" />',
-      'same:</bpmn:serviceTask>',
+      'added:  <bpmn:message id="Message_1" />',
+      'same:    <bpmn:serviceTask id="Task_1">',
+      'removed:      <zeebe:taskDefinition type="a" />',
+      'added:      <zeebe:taskDefinition type="b" />',
+      'same:    </bpmn:serviceTask>',
     ])
     expect(hostCodeHidden).toBe(true)
     expect(codeToggle.element.getAttribute('aria-pressed')).toBe('true')
@@ -150,6 +178,28 @@ describe('DiffPanel: the code of the selected change', () => {
     expect(lines(container)).toEqual(['added:<bpmn:userTask id="Task_new" />'])
   })
 
+  it('numbers each line in the old and the new file and marks the lines left out', async () => {
+    const { container } = await loaded()
+
+    next(container)
+    next(container)
+
+    expect(numbers(container)).toEqual(['|3', 'gap', '9|10', '10|', '|11', '11|12'])
+  })
+
+  it('marks the part of a replaced line that changed', async () => {
+    const { container } = await loaded()
+
+    next(container)
+    next(container)
+
+    expect(
+      [...xml(container).querySelectorAll('.diagit-xml-changed-part')].map(
+        (mark) => mark.textContent,
+      ),
+    ).toEqual(['a', 'b'])
+  })
+
   it('keeps the indentation of a line apart from its code, so a wrapped line stays under it', async () => {
     const { container } = await loaded()
 
@@ -157,7 +207,7 @@ describe('DiffPanel: the code of the selected change', () => {
     next(container)
 
     const removed = xml(container).querySelector('[data-line="removed"]')!
-    expect(removed.querySelector('.diagit-xml-indentation')!.textContent).toBe('  ')
+    expect(removed.querySelector('.diagit-xml-indentation')!.textContent).toBe('      ')
     expect(removed.querySelector('.diagit-xml-code')!.textContent).toBe(
       '<zeebe:taskDefinition type="a" />',
     )
