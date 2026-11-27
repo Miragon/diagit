@@ -1,5 +1,5 @@
 import type { BlobPage } from '../../git-hosts/BlobPage'
-import { CODE_HIDDEN_ATTRIBUTE, HOST_TAG } from '../../platform/injectedElements'
+import { CODE_HIDDEN_HOST, HOST_TAG } from '../../platform/injectedElements'
 import type { Notation, NotationLookup } from '../../notations/Notation'
 import { allNotations } from '../../notations/allNotations'
 import { ModelPanel } from './ModelPanel'
@@ -13,7 +13,6 @@ import { CodeVisibility } from '../../platform/ui/CodeVisibility'
 const MOUNT_RETRIES = 12
 const RETRY_INTERVAL_MS = 500
 const RECHECK_DEBOUNCE_MS = 50
-const HIDDEN_CODE_PANEL = `${HOST_TAG}[${CODE_HIDDEN_ATTRIBUTE}]`
 
 type MountOutcome = 'settled' | 'code-not-rendered-yet'
 
@@ -37,14 +36,11 @@ export class BlobViewerController {
   }
 
   start(): void {
-    this.page.addDocumentStyle(this.blobPage.hiddenCodeCss(HIDDEN_CODE_PANEL))
-    void this.codeVisibility.load().then((stopFollowingCodeStart) => {
-      if (this.page.isInvalid) {
-        stopFollowingCodeStart()
-        return
+    const hiddenCodeCss = this.blobPage.hiddenCodeCss(CODE_HIDDEN_HOST)
+    void this.codeVisibility.start(this.page, hiddenCodeCss).then(() => {
+      if (!this.page.isInvalid) {
+        this.watchPage()
       }
-      this.page.onInvalidated(stopFollowingCodeStart)
-      this.watchPage()
     })
   }
 
@@ -141,12 +137,11 @@ export class BlobViewerController {
   }
 
   private codeToggleFor(path: string, shadowHost: HTMLElement): CodeToggle {
-    const code = this.blobPage.findCode(this.page.document)
     return this.codeVisibility.toggleFor({
       key: path,
-      hostCode: code ? [code] : [],
-      isLinked: this.blobPage.isLinkedToLine(this.page.location),
-      hideCode: (hidden) => shadowHost.toggleAttribute(CODE_HIDDEN_ATTRIBUTE, hidden),
+      hostCode: this.blobPage.hostCode(this.page.document),
+      isLinked: this.blobPage.isLinkedFrom(this.page.location.hash),
+      panel: shadowHost,
     })
   }
 

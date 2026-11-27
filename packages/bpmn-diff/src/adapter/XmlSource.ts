@@ -15,7 +15,8 @@ interface CharRange {
   readonly end: number
 }
 
-const ID_ATTRIBUTE = /\sid\s*=\s*(?:"([^"]*)"|'([^']*)')/
+/** One attribute; matched from the start of a tag, a quoted value is consumed whole. */
+const ATTRIBUTE = /\s([^\s=/>]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g
 const MARKUP_ENDS: ReadonlyArray<readonly [string, string]> = [
   ['<!--', '-->'],
   ['<![CDATA[', ']]>'],
@@ -135,8 +136,7 @@ export class XmlSource {
           element.end = tagEnd
         }
       } else {
-        const id = tag.match(ID_ATTRIBUTE)
-        const element: ElementSpan = { id: id?.[1] ?? id?.[2] ?? null, start: offset, end: tagEnd }
+        const element: ElementSpan = { id: this.idOf(tag), start: offset, end: tagEnd }
         elements.push(element)
         if (!tag.endsWith('/>')) {
           open.push(element)
@@ -145,6 +145,16 @@ export class XmlSource {
       offset = text.indexOf('<', tagEnd)
     }
     return elements
+  }
+
+  /** The value of the tag's `id` attribute, never text inside another attribute's value. */
+  private idOf(tag: string): string | null {
+    for (const [, name, doubleQuoted, singleQuoted] of tag.matchAll(ATTRIBUTE)) {
+      if (name === 'id') {
+        return doubleQuoted ?? singleQuoted ?? null
+      }
+    }
+    return null
   }
 
   /** The end of a comment, CDATA section, processing instruction or declaration at `offset`. */

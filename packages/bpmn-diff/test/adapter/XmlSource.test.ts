@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { XmlSource } from '../../src/domain/XmlSource'
+import { XmlSource } from '../../src/adapter/XmlSource'
 
 const noneOwn = () => false
 const numbered = (source: XmlSource, ids: string[], isOwn: (id: string) => boolean = noneOwn) =>
@@ -46,6 +46,12 @@ describe('XmlSource', () => {
       ),
     )
     expect(numbered(source, ['B'])).toEqual(['3:<b id="B"><![CDATA[ </b> ]]></b>'])
+  })
+
+  it('takes the id attribute, not an id written inside another value', () => {
+    const source = new XmlSource(`<t name="Set id='x'" id="T" />\n<x id="x" />`)
+    expect(numbered(source, ['T'])).toEqual([`1:<t name="Set id='x'" id="T" />`])
+    expect(numbered(source, ['x'])).toEqual(['2:<x id="x" />'])
   })
 
   it('finds nothing for an unknown id', () => {

@@ -13,7 +13,7 @@ const numberedFrom = (first: number, ...texts: string[]) =>
 
 const DETAILS: Record<string, ChangeDetail> = {
   Task_1: {
-    type: 'bpmn:ServiceTask',
+    typeLabel: 'Service task',
     name: 'Charge card',
     before: numberedFrom(
       9,
@@ -32,13 +32,13 @@ const DETAILS: Record<string, ChangeDetail> = {
     ],
   },
   Task_new: {
-    type: 'bpmn:UserTask',
+    typeLabel: 'User task',
     name: null,
     before: null,
     after: numberedFrom(12, '<bpmn:userTask id="Task_new" />'),
   },
   End: {
-    type: 'bpmn:EndEvent',
+    typeLabel: 'End event',
     name: 'Done',
     before: numberedFrom(1, '<end />'),
     after: numberedFrom(1, '<end />'),

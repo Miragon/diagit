@@ -1,7 +1,11 @@
-import { CHILDREN_DIFFED_AS_OWN_ELEMENTS, LAYOUT_PROPERTIES } from './elementContent'
-import type { ModdleElement, ParsedModel } from './model'
-
-type DiagramElements = Pick<ParsedModel, 'has'>
+import {
+  CHILDREN_DIFFED_AS_OWN_ELEMENTS,
+  LAYOUT_PROPERTIES,
+  MAX_CONTENT_DEPTH,
+  ReferenceProperties,
+  type DiagramElements,
+} from './elementContent'
+import type { ModdleElement } from './model'
 
 const MODDLE_INTERNALS = ['$parent', '$descriptor', '$model', '$instanceOf']
 const SKIPPED_KEYS = new Set<string>([
@@ -10,9 +14,9 @@ const SKIPPED_KEYS = new Set<string>([
   ...CHILDREN_DIFFED_AS_OWN_ELEMENTS,
 ])
 
-const MAX_DEPTH = 16
-
 export class SemanticSignature {
+  private readonly referenceProperties = new ReferenceProperties()
+
   of(businessObject: ModdleElement, diagramElements: DiagramElements): string {
     const otherDiagramElements: DiagramElements = {
       has: (id) => id !== businessObject.id && diagramElements.has(id),
@@ -29,7 +33,7 @@ export class SemanticSignature {
     if (node === null || typeof node !== 'object') {
       return node
     }
-    if (depth > MAX_DEPTH) {
+    if (depth > MAX_CONTENT_DEPTH) {
       return '__max__'
     }
     if (Array.isArray(node)) {
@@ -79,9 +83,7 @@ export class SemanticSignature {
   }
 
   private semanticKeys(node: any): string[] {
-    const nonEnumerableReferences: string[] = (node.$descriptor?.properties ?? [])
-      .filter((property: any) => property.isReference)
-      .map((property: any) => property.name)
+    const nonEnumerableReferences = this.referenceProperties.namesOf(node)
     return [...new Set([...Object.keys(node), ...nonEnumerableReferences])].sort()
   }
 }

@@ -419,6 +419,21 @@ describe('GitLab diff: hiding the code under a panel', () => {
     expect(block!.isCollapsed()).toBe(true)
   })
 
+  it('reads a file whose code GitLab removed as collapsed while its panel hides the code', async () => {
+    const doc = withFileBox(
+      'flows/order.bpmn',
+      `<${DIFF_PANEL_TAG} data-code-hidden></${DIFF_PANEL_TAG}>`,
+    )
+    giveBox(doc.querySelector('.diff-content')!)
+
+    const [block] = await new GitlabHost(new FakeHttpClient().respondWith(metadata)).diff.collect(
+      location,
+      doc,
+    )
+
+    expect(block!.isCollapsed()).toBe(true)
+  })
+
   it('offers no code to hide when it cannot tell the code from the file header', async () => {
     document.body.innerHTML = `
       <div class="diff-file" data-path="flows/order.bpmn"><span>order.bpmn</span></div>`

@@ -10,8 +10,6 @@ export interface SelectedChange {
 
 const CHANGE_CODE_ID = 'diagit-change-code'
 
-const TYPE_PREFIX = /^[^:]*:/
-const WORD_START = /(?<=[a-z])(?=[A-Z])/
 const LEADING_WHITESPACE = /^(\s*)(.*)$/s
 const SIGN: Record<XmlLine['kind'], string> = { same: ' ', removed: '−', added: '+' }
 
@@ -42,11 +40,14 @@ export class ChangeCode {
     this.xml.hidden = true
   }
 
-  /** Shows the change; returns whether the panel now shows its code itself. */
+  /**
+   * Shows the change; returns whether it takes the place of the host's code: its lines, or the
+   * note that only the layout changed.
+   */
   showChange(change: SelectedChange): boolean {
     const { detail } = change
     const name = detail?.name || change.id
-    const type = detail ? this.typeLabel(detail.type) : ''
+    const type = detail?.typeLabel ?? ''
     if (change.category === 'moved') {
       this.show('XML of the selected change', name, type, 'Only the layout changed')
       this.xml.hidden = true
@@ -123,11 +124,5 @@ export class ChangeCode {
       title: `${label} ${number}`,
       text: String(number),
     })
-  }
-
-  private typeLabel(type: string): string {
-    const words = type.replace(TYPE_PREFIX, '').split(WORD_START)
-    const label = words.join(' ').toLowerCase()
-    return label.charAt(0).toUpperCase() + label.slice(1)
   }
 }

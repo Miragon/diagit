@@ -578,6 +578,13 @@ describe('GitHub diff: links and review comments of a file', () => {
     expect(file.isLinkedFrom('')).toBe(false)
   })
 
+  it('takes a hash that does not decode as written', async () => {
+    const file = await scannedFile()
+
+    expect(file.isLinkedFrom('#50%off')).toBe(false)
+    expect(file.isLinkedFrom('#diff-abcR42%')).toBe(true)
+  })
+
   it('counts the review comments in the file', async () => {
     expect((await scannedFile()).reviewCommentCount()).toBe(2)
   })

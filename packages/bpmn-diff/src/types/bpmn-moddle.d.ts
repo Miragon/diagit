@@ -17,6 +17,5 @@ declare module 'bpmn-moddle' {
     constructor(packages?: any, options?: any)
     fromXML(xml: string, typeName?: string): Promise<ParseResult>
     fromXML(xml: string, options?: Record<string, unknown>): Promise<ParseResult>
-    create(type: string, attrs?: Record<string, unknown>): ModdleElement
   }
 }

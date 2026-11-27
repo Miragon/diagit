@@ -33,7 +33,8 @@ export interface CodeLine {
 
 /** One changed element as the lines of its file, without layout: `null` where it is missing. */
 export interface ChangeDetail {
-  type: string
+  /** The kind of element for people, such as "Service task". */
+  typeLabel: string
   name: string | null
   before: readonly CodeLine[] | null
   after: readonly CodeLine[] | null

@@ -12,15 +12,15 @@ export class BpmnModelDiffer {
   }
 
   async compare(oldXml: string, newXml: string): Promise<BpmnComparison> {
-    const [oldDocument, newDocument] = await Promise.all([
-      this.parser.parseDocument(oldXml),
-      this.parser.parseDocument(newXml),
+    const [oldModel, newModel] = await Promise.all([
+      this.parser.parse(oldXml),
+      this.parser.parse(newXml),
     ])
-    const diff = this.comparator.compare(oldDocument.model, newDocument.model)
+    const diff = this.comparator.compare(oldModel, newModel)
     return new BpmnComparison(
       diff,
-      { document: oldDocument, text: oldXml },
-      { document: newDocument, text: newXml },
+      { model: oldModel, text: oldXml },
+      { model: newModel, text: newXml },
     )
   }
 }
