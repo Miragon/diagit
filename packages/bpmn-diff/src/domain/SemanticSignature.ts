@@ -1,26 +1,12 @@
+import { CHILDREN_DIFFED_AS_OWN_ELEMENTS, LAYOUT_PROPERTIES } from './elementContent'
 import type { ModdleElement, ParsedModel } from './model'
 
 type DiagramElements = Pick<ParsedModel, 'has'>
 
 const MODDLE_INTERNALS = ['$parent', '$descriptor', '$model', '$instanceOf']
-const LAYOUT = ['di']
-const CHILDREN_DIFFED_AS_OWN_ELEMENTS = [
-  'flowElements',
-  'incoming',
-  'outgoing',
-  'lanes',
-  'laneSets',
-  'children',
-  'artifacts',
-  'rootElements',
-  'diagrams',
-  'participants',
-  'messageFlows',
-]
-
 const SKIPPED_KEYS = new Set<string>([
   ...MODDLE_INTERNALS,
-  ...LAYOUT,
+  ...LAYOUT_PROPERTIES,
   ...CHILDREN_DIFFED_AS_OWN_ELEMENTS,
 ])
 
