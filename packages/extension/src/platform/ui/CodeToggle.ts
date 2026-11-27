@@ -32,6 +32,7 @@ export class CodeToggle {
   private hidingAllowed = true
   private hiddenCommentCount = 0
   private panelShowsCode = false
+  private notifiedCodeShown: boolean | null = null
   private controlledElements: Element[] = []
   private readonly listeners = new Set<() => void>()
 
@@ -55,6 +56,7 @@ export class CodeToggle {
     this.apply()
   }
 
+  /** Calls `listener` whenever `codeShown` changes. */
   onChange(listener: () => void): () => void {
     this.listeners.add(listener)
     return () => this.listeners.delete(listener)
@@ -82,9 +84,17 @@ export class CodeToggle {
     this.apply()
   }
 
+  /** Counts the review comments on the file; a file with comments keeps its code shown. */
   countReviewComments(count: number): void {
+    if (count === this.hiddenCommentCount) {
+      return
+    }
     this.hiddenCommentCount = count
-    this.apply()
+    if (count > 0) {
+      this.keepCodeShown()
+    } else {
+      this.apply()
+    }
   }
 
   controls(elements: Element[]): void {
@@ -111,13 +121,20 @@ export class CodeToggle {
     this.element.hidden = !this.hidingAllowed
     this.element.setAttribute('aria-pressed', String(this.shown))
     this.showHiddenCommentCount()
-    this.options.hideCode(!this.codeShown || this.panelShowsCode)
-    this.listeners.forEach((listener) => listener())
+    this.options.hideCode(this.hidesHostCode)
+    if (this.notifiedCodeShown !== this.codeShown) {
+      this.notifiedCodeShown = this.codeShown
+      this.listeners.forEach((listener) => listener())
+    }
+  }
+
+  /** The host's code hides only while hiding is allowed, so it never hides without the button. */
+  private get hidesHostCode(): boolean {
+    return this.hidingAllowed && (!this.shown || this.panelShowsCode)
   }
 
   private showHiddenCommentCount(): void {
-    const hostCodeShown = this.codeShown && !this.panelShowsCode
-    const hiddenCount = hostCodeShown ? 0 : this.hiddenCommentCount
+    const hiddenCount = this.hidesHostCode ? this.hiddenCommentCount : 0
     this.hiddenComments.hidden = hiddenCount === 0
     this.hiddenComments.textContent = hiddenCount ? String(hiddenCount) : ''
     const commentNote = hiddenCount === 1 ? '1 review comment' : `${hiddenCount} review comments`

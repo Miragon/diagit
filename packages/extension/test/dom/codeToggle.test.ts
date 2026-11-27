@@ -52,6 +52,30 @@ describe('CodeToggle', () => {
     expect(hideCode).toHaveBeenLastCalledWith(true)
     expect(toggle.element.hidden).toBe(false)
   })
+
+  it('keeps the host code while hiding is not allowed, also when the panel shows code', () => {
+    const hideCode = vi.fn()
+    const toggle = new CodeToggle({ shown: true, hideCode })
+
+    toggle.allowHiding(false)
+    toggle.showCodeInPanel(true)
+
+    expect(hideCode).toHaveBeenLastCalledWith(false)
+  })
+
+  it('tells its listeners only when the code is shown or hidden', () => {
+    const toggle = new CodeToggle({ shown: true, hideCode: () => {} })
+    const listener = vi.fn()
+    toggle.onChange(listener)
+
+    toggle.countReviewComments(2)
+    toggle.countReviewComments(2)
+    toggle.showCodeInPanel(true)
+    expect(listener).not.toHaveBeenCalled()
+
+    toggle.element.click()
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('BlobPage.hiddenCodeCss', () => {

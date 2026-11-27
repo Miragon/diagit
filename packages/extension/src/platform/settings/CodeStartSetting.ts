@@ -23,6 +23,23 @@ export class CodeStartSetting {
     await this.store.writeString(CODE_START_KEY, start)
   }
 
+  /**
+   * Hands the start to `listener` once read and on every change after; returns the unsubscribe.
+   * A change that arrives while reading wins over the value read.
+   */
+  async follow(listener: (start: CodeStart) => void): Promise<() => void> {
+    let changedWhileReading = false
+    const stopFollowing = this.onChange((start) => {
+      changedWhileReading = true
+      listener(start)
+    })
+    const start = await this.read()
+    if (!changedWhileReading) {
+      listener(start)
+    }
+    return stopFollowing
+  }
+
   onChange(listener: (start: CodeStart) => void): () => void {
     try {
       return this.store.onChange(CODE_START_KEY, (value) => listener(this.asCodeStart(value)))

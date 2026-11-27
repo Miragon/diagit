@@ -31,8 +31,9 @@ export class BlobPage {
     return this.isBlob(location) && this.notations.detect(location.pathname) !== null
   }
 
-  isLinkedToLine(location: Pick<Location, 'hash'>): boolean {
-    return LINE_LINK.test(location.hash ?? '')
+  /** Whether a URL hash links to a line of the file, which then keeps its code shown. */
+  isLinkedFrom(hash: string): boolean {
+    return LINE_LINK.test(hash)
   }
 
   rawUrl(location: Location): string {
@@ -80,7 +81,13 @@ export class BlobPage {
     return `${[...codeInsideAnchor, codeAsAnchor].join(',\n')} {\n  display: none !important;\n}`
   }
 
-  findCode(doc: Document): HTMLElement | null {
+  /** The host's code of the file, which a panel can hide. */
+  hostCode(doc: Document): HTMLElement[] {
+    const code = this.findCode(doc)
+    return code ? [code] : []
+  }
+
+  private findCode(doc: Document): HTMLElement | null {
     for (const selector of this.config.contentSelectors) {
       const el = doc.querySelector<HTMLElement>(selector)
       if (el) {

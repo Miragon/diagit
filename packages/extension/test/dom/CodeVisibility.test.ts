@@ -1,38 +1,47 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import type { FileCode } from '../../src/platform/ui/CodeVisibility'
+import { HostPage } from '../../src/platform/page/HostPage'
+import { CODE_HIDDEN_ATTRIBUTE } from '../../src/platform/injectedElements'
+import type { CodeVisibility, FileCode } from '../../src/platform/ui/CodeVisibility'
+import { FakeContentScriptContext } from '../fakes/FakeContentScriptContext'
 import { MemoryStorageArea } from '../fakes/MemoryStorageArea'
 import { codeStartSettingIn, codeVisibilityIn } from '../fakes/codeVisibilityIn'
 
+const context = new FakeContentScriptContext()
+
 afterEach(() => {
+  context.invalidate()
+  document.head.innerHTML = ''
   document.body.innerHTML = ''
 })
 
-function fileCode(overrides: Partial<FileCode> = {}): FileCode & { hidden: boolean } {
-  const file = {
+function fileCode(overrides: Partial<FileCode> = {}): FileCode & { readonly hidden: boolean } {
+  return {
     key: 'flows/order.bpmn',
     hostCode: [],
     isLinked: false,
-    hidden: false,
-    hideCode(hidden: boolean) {
-      file.hidden = hidden
+    panel: document.createElement('div'),
+    get hidden() {
+      return this.panel.hasAttribute(CODE_HIDDEN_ATTRIBUTE)
     },
     ...overrides,
   }
-  return file
+}
+
+async function started(visibility: CodeVisibility): Promise<CodeVisibility> {
+  await visibility.start(new HostPage(context.ctx), '')
+  return visibility
 }
 
 async function loadedWithStart(start: 'shown' | 'hidden') {
   const area = new MemoryStorageArea()
   await codeStartSettingIn(area).write(start)
-  const visibility = codeVisibilityIn(area)
-  await visibility.load()
+  const visibility = await started(codeVisibilityIn(area))
   return { area, visibility }
 }
 
 describe('CodeVisibility', () => {
   it('starts with the code shown by default', async () => {
-    const visibility = codeVisibilityIn()
-    await visibility.load()
+    const visibility = await started(codeVisibilityIn())
     const file = fileCode()
 
     visibility.toggleFor(file)
@@ -64,25 +73,24 @@ describe('CodeVisibility', () => {
     const file = fileCode()
     const toggle = visibility.toggleFor(file)
 
-    visibility.reviewCommentsChanged(toggle, 0)
+    toggle.countReviewComments(0)
     expect(file.hidden).toBe(true)
 
-    visibility.reviewCommentsChanged(toggle, 2)
+    toggle.countReviewComments(2)
     expect(file.hidden).toBe(false)
   })
 
   it('counts the review comments the person hid and never hides the code itself', async () => {
-    const visibility = codeVisibilityIn()
-    await visibility.load()
+    const visibility = await started(codeVisibilityIn())
     const file = fileCode()
     const toggle = visibility.toggleFor(file)
-    visibility.reviewCommentsChanged(toggle, 2)
+    toggle.countReviewComments(2)
     const count = () => toggle.element.querySelector<HTMLElement>('.diagit-code-count')!
 
     expect(count().hidden).toBe(true)
 
     toggle.element.click()
-    visibility.reviewCommentsChanged(toggle, 3)
+    toggle.countReviewComments(3)
 
     expect(file.hidden).toBe(true)
     expect(count().hidden).toBe(false)
@@ -90,9 +98,26 @@ describe('CodeVisibility', () => {
     expect(toggle.element.getAttribute('aria-description')).toBe('3 review comments hidden')
   })
 
+  it('adds the rule that hides the code to the page', async () => {
+    await codeVisibilityIn().start(new HostPage(context.ctx), '.panel + .code { display: none }')
+
+    expect(document.head.textContent).toContain('.panel + .code')
+  })
+
+  it('stops following the start once the page is invalidated', async () => {
+    const area = new MemoryStorageArea()
+    const visibility = await started(codeVisibilityIn(area))
+    const file = fileCode()
+    document.body.append(visibility.toggleFor(file).element)
+
+    context.invalidate()
+    await codeStartSettingIn(area).write('hidden')
+
+    expect(file.hidden).toBe(false)
+  })
+
   it('keeps the choice for a file when its panel mounts again', async () => {
-    const visibility = codeVisibilityIn()
-    await visibility.load()
+    const visibility = await started(codeVisibilityIn())
     visibility.toggleFor(fileCode()).element.click()
     const remounted = fileCode()
 
@@ -124,7 +149,7 @@ describe('CodeVisibility', () => {
       const file = fileCode()
       const toggle = visibility.toggleFor(file)
       document.body.append(toggle.element)
-      visibility.reviewCommentsChanged(toggle, 1)
+      toggle.countReviewComments(1)
 
       await codeStartSettingIn(area).write('hidden')
 

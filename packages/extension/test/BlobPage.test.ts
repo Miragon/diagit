@@ -35,10 +35,10 @@ describe('GitHub blob page', () => {
 
 describe('blob page links', () => {
   it('knows a link to a line or a range of lines', () => {
-    expect(githubHost.blobPage.isLinkedToLine({ hash: '#L42' })).toBe(true)
-    expect(githubHost.blobPage.isLinkedToLine({ hash: '#L42-L50' })).toBe(true)
-    expect(gitlabHost.blobPage.isLinkedToLine({ hash: '#L7' })).toBe(true)
-    expect(githubHost.blobPage.isLinkedToLine({ hash: '#readme' })).toBe(false)
-    expect(githubHost.blobPage.isLinkedToLine({ hash: '' })).toBe(false)
+    expect(githubHost.blobPage.isLinkedFrom('#L42')).toBe(true)
+    expect(githubHost.blobPage.isLinkedFrom('#L42-L50')).toBe(true)
+    expect(gitlabHost.blobPage.isLinkedFrom('#L7')).toBe(true)
+    expect(githubHost.blobPage.isLinkedFrom('#readme')).toBe(false)
+    expect(githubHost.blobPage.isLinkedFrom('')).toBe(false)
   })
 })

@@ -5,7 +5,7 @@ import {
   type DiffSource,
 } from '../../git-hosts/DiffSource'
 import {
-  CODE_HIDDEN_ATTRIBUTE,
+  CODE_HIDDEN_DIFF_PANEL,
   DIFF_ERROR_TAG,
   DIFF_PANEL_TAG,
 } from '../../platform/injectedElements'
@@ -26,7 +26,6 @@ import diffCss from './diff.css?inline'
 const RERUN_DEBOUNCE_MS = 300
 const COLLAPSE_DEBOUNCE_MS = 150
 const FILE_ROOT_CHANGES: MutationObserverInit = { attributes: true, childList: true, subtree: true }
-const HIDDEN_CODE_PANEL = `${DIFF_PANEL_TAG}[${CODE_HIDDEN_ATTRIBUTE}]`
 
 interface ShownPanel {
   file: ChangedFile
@@ -52,15 +51,12 @@ export class DiffController {
   }
 
   start(): void {
-    this.page.addDocumentStyle(this.source.hiddenCodeCss(HIDDEN_CODE_PANEL))
-    void this.codeVisibility.load().then((stopFollowingCodeStart) => {
-      if (this.page.isInvalid) {
-        stopFollowingCodeStart()
-        return
+    const hiddenCodeCss = this.source.hiddenCodeCss(CODE_HIDDEN_DIFF_PANEL)
+    void this.codeVisibility.start(this.page, hiddenCodeCss).then(() => {
+      if (!this.page.isInvalid) {
+        this.page.onChange(RERUN_DEBOUNCE_MS, () => void this.run())
+        void this.run()
       }
-      this.page.onInvalidated(stopFollowingCodeStart)
-      this.page.onChange(RERUN_DEBOUNCE_MS, () => void this.run())
-      void this.run()
     })
   }
 
@@ -185,7 +181,7 @@ export class DiffController {
       key: `${pageKey}\n${file.path}`,
       hostCode,
       isLinked: file.isLinkedFrom(this.page.location.hash ?? ''),
-      hideCode: (hidden) => shadowHost.toggleAttribute(CODE_HIDDEN_ATTRIBUTE, hidden),
+      panel: shadowHost,
     })
   }
 
@@ -237,7 +233,7 @@ export class DiffController {
     let wasHidden = false
     const sync = () => {
       if (codeToggle) {
-        this.codeVisibility.reviewCommentsChanged(codeToggle, block.reviewCommentCount())
+        codeToggle.countReviewComments(block.reviewCommentCount())
       }
       const collapsed = block.isCollapsed()
       panel.shadowHost.toggleAttribute('data-collapsed', collapsed)

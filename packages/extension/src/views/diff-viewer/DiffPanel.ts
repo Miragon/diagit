@@ -83,7 +83,6 @@ export class DiffPanel implements PanelHandle, Zoomable {
     this.diagramArea,
   ])
   private modelView: ModelView
-  private diff: DiagramDiff | null = null
   private comparison: DiagramComparison | null = null
   private stopFollowingCode: (() => void) | null = null
   private viewPickedByUser = false
@@ -250,7 +249,8 @@ export class DiffPanel implements PanelHandle, Zoomable {
 
   private categoryOf(id: string): keyof DiagramDiff {
     return (
-      CATEGORIES_BY_PRIORITY.find((category) => this.diff?.[category].includes(id)) ?? 'changed'
+      CATEGORIES_BY_PRIORITY.find((category) => this.comparison?.diff[category].includes(id)) ??
+      'changed'
     )
   }
 
@@ -368,15 +368,14 @@ export class DiffPanel implements PanelHandle, Zoomable {
   private showDiff(diff: DiagramDiff): void {
     this.oldPane.showDiff(diff)
     this.newPane.showDiff(diff)
-    this.diff = diff
     this.showChanges()
   }
 
   private showChanges(): void {
-    if (!this.diff) {
+    if (!this.comparison) {
       return
     }
-    const diff = this.sides.changesShown(this.diff)
+    const diff = this.sides.changesShown(this.comparison.diff)
     const viewers = this.sides.shownPanes.map((pane) => pane.viewer)
     this.changeControls.showDiff(diff, ChangeNavigator.forDiff(diff, viewers))
     this.showChangeCode()

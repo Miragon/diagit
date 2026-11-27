@@ -1,5 +1,5 @@
 import type { ChangedFile } from '../DiffSource'
-import { CODE_HIDDEN_ATTRIBUTE, DIFF_PANEL_TAG } from '../../platform/injectedElements'
+import { CODE_HIDDEN_DIFF_PANEL, DIFF_PANEL_TAG } from '../../platform/injectedElements'
 import { notationDetector, type NotationDetector } from '../../notations/NotationDetector'
 import { hasRenderedBox } from '../../platform/utils/isRendered'
 import { gitlabSelectors } from './gitlabSelectors'
@@ -48,10 +48,15 @@ export class GitlabDiffScanner {
     if (!content) {
       return true
     }
-    if (content.querySelector(`:scope > ${DIFF_PANEL_TAG}[${CODE_HIDDEN_ATTRIBUTE}]`)) {
+    const hostContent = this.hostContentOf(content)
+    if (hostContent.length === 0) {
+      return true
+    }
+    // Our rule hides the host's content under the panel, so only the area itself tells.
+    if (content.querySelector(`:scope > ${CODE_HIDDEN_DIFF_PANEL}`)) {
       return !hasRenderedBox(content)
     }
-    return !this.hostContentOf(content).some(hasRenderedBox)
+    return !hostContent.some(hasRenderedBox)
   }
 
   private hostContentOf(content: HTMLElement): HTMLElement[] {

@@ -40,16 +40,7 @@ export class CodeStartSection {
     for (const radio of this.radios) {
       radio.addEventListener('change', () => void this.setting.write(radio.value as CodeStart))
     }
-    let changedWhileReading = false
-    this.setting.onChange((start) => {
-      changedWhileReading = true
-      this.check(start)
-    })
-    void this.setting.read().then((start) => {
-      if (!changedWhileReading) {
-        this.check(start)
-      }
-    })
+    void this.setting.follow((start) => this.check(start))
   }
 
   private choiceRow(choice: (typeof CHOICES)[number], radio: HTMLInputElement): HTMLLabelElement {
