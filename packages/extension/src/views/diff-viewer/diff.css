@@ -247,11 +247,6 @@
   white-space: nowrap;
 }
 
-.diagit-legend-chip ~ .diagit-diff-total {
-  padding-left: 12px;
-  border-left: 1px solid var(--border);
-}
-
 .diagit-diff-position:empty {
   padding: 0;
 }
